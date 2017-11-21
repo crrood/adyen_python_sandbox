@@ -1,0 +1,31 @@
+<html>
+
+<head>
+	<script type="text/javascript" src="https://checkoutshopper-test.adyen.com/checkoutshopper/assets/js/sdk/checkoutSDK.1.0.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="styles.css"></link>
+</head>
+
+<body>
+	<h4>Checkout should appear below:</h4>
+	<div id="spacer">
+		<div class="checkout" id="checkout">
+			<form class="clientForm" id="infoForm" action="http://localhost:8000/cgi-bin/checkout_requester.py">
+				<div class="inputHolder">Amount: <input type="text" id="value" name="value" value="199"/><br></div>
+				<div class="inputHolder">Currency: <input type="text" id="currency" name="currency" value="USD"/><br></div>
+				<div class="inputHolder">CountryCode: <input type="text" id="countryCode" name="countryCode" value="US"/><br></div>
+				<div class="inputHolder">ShopperLocale: <input type="text" id="shopperLocale" name="shopperLocale" value="en_GB"/><br></div>
+				<div class="inputHolder">ShopperReference: <input type="text" id="shopperReference" name="shopperReference" value="localhostCheckout1"/><br></div>
+				<div class="inputHolder">Channel: <input type="text" id="channel" name="channel" value="Web"/><br></div>
+				<div class="inputHolder">MerchantAccount: <input type="text" id="merchantAccount" name="merchantAccount" value="ColinRood"/><br></div>
+				<input type="button" class="submitBtn" id="checkoutBtn" value="Checkout"/>
+			</form>
+		</div>
+	</div>
+	<h4>Payment result:</h4>
+	<div id="paymentResult">"Patience is a virtue" - Confucius probably</div>
+</body>
+
+</html>
+
+<script type="text/javascript" src="setupCall.js"></script>
+<link rel="stylesheet" type="text/css" href="http://localhost:8000/styles/style.css"/>

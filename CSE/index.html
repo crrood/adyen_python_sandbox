@@ -1,0 +1,89 @@
+<html>
+
+<body>
+
+	<h3>Payment info</h3>
+	<form id="paymentForm" class="clientForm" >
+		Value: <input type="text" name="value" value="1500"/><br>
+		Currency: <input type="text" name="currency" value="USD"/><br>
+		MerchantAccount: <input type="text" name="merchantAccount" value="ColinRood"/><br>
+	</form>
+
+	<h3>Card info</h3>
+	<form method="POST" class="clientForm" action="http://localhost:8000/cgi-bin/submit.py" id="adyen-encrypted-form">
+		<div id="cardType"></div><br>
+	    Number: <input type="text" size="20" data-encrypted-name="number" value="4111111111111111"/><br>
+	    Name: <input type="text" size="20" data-encrypted-name="holderName" value="Test Person"/><br>
+	    Expiry Month: <input type="text" size="2" data-encrypted-name="expiryMonth" value="08"/><br>
+	    Expiry Year: <input type="text" size="4" data-encrypted-name="expiryYear" value="2018"/><br>
+	    CVC: <input type="text" size="4" data-encrypted-name="cvc" value="737"/><br>
+	    <input type="hidden" id="adyen-encrypted-form-expiry-generationtime" value="" data-encrypted-name="generationtime"/>
+	    <input type="hidden" name="endpoint" value="CSE"/>
+	    <input type="submit" class="submitBtn" value="Pay"/>
+	</form>
+
+	<button id="logBtn">Log form data</button>
+	<div id="output"></div>
+</body>
+
+<link rel="stylesheet" type="text/css" href="http://localhost:8000/styles/style.css"/>
+<script type="text/javascript" src="https://test.adyen.com/hpp/cse/js/8115054323780109.shtml"></script>
+
+<script>
+
+document.getElementById("logBtn").addEventListener("click", function(e) {
+	console.log(encryptedForm);
+});
+
+function initCardsCheckout() {
+
+	// Generate current time client-side (unsafe)
+	var isoDate = new Date().toISOString();
+	isoDate = isoDate.substring(0, isoDate.length - 1) + "-8:00";
+	document.getElementById('adyen-encrypted-form-expiry-generationtime').value = isoDate;
+
+	// The form element to encrypt.
+	form = document.getElementById('adyen-encrypted-form');
+
+	// See https://github.com/Adyen/CSE-JS/blob/master/Options.md for details on the options to use.
+	var options = {
+		"enableValidations": false,
+	};
+
+	options.onsubmit = function(e) {
+		// prevent the default redirect
+		e.preventDefault();
+
+		// build URL encoded query string to send to server
+		params = "?endpoint=CSE&"
+
+		// get details for transaction
+		var paymentForm = document.getElementById("paymentForm");
+		var element;
+		for (var i = 0; i < paymentForm.elements.length; i++) {
+			element = paymentForm.elements[i];
+			params = params + encodeURIComponent(element.name) + "=" + element.value + "&";
+		};
+
+		// get encrypted card data from form element
+		params = params + "encryptedData=" + encodeURIComponent(form.elements["adyen-encrypted-data"].value) + "&";
+
+		console.log(params);
+		console.log(form);
+
+		// redirect to server
+		window.location = "http://localhost:8000/cgi-bin/submit.py" + params;
+	}
+
+	options.cardTypeElement = document.getElementById('cardType');
+
+	// Create the form object and bind encryption options to the form.
+	encryptedForm = adyen.createEncryptedForm(form, options);
+
+	// Activate the card type indicator
+	encryptedForm.addCardTypeDetection(options.cardTypeElement)
+}
+
+initCardsCheckout();
+
+ </script>
