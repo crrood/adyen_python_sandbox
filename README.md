@@ -10,6 +10,8 @@ Start a server in the root directory using
 python3 -m http.server --cgi 8000
 ```
 
+Then go to localhost:8000 in your browser
+
 ## Troubleshooting
 If you get permission problems, run
 ```shell
