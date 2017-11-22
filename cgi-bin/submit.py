@@ -25,7 +25,7 @@ LOCAL_ADDRESS = "http://localhost:8000"
 WS_USERNAME = "[your ws username]"
 WS_PASSWORD = "[you ws password]"
 CHECKOUT_API_KEY = "[your checkout api key]"
-HMAC_KEY = "[your HMAC key for HPP]" # may be overwritten by client
+HMAC_KEY = "[your HMAC key here]" # may be overwritten by client
 
 ##############################
 ##		HELPER METHODS		##
@@ -59,8 +59,8 @@ def send_response(result, content_type):
 	print(result.decode("utf8"))
 
 # respond with raw data
-def respond_debug(data, content_type="text/plain", repeat=False):
-	if not repeat:
+def respond_debug(data, content_type="text/plain", duplicate=False):
+	if not duplicate:
 		print("Content-type:{}\r\n".format(content_type))
 	print(data)
 
@@ -240,7 +240,7 @@ try:
 
 except:
 	respond_debug("endpoint value missing in request data:")
-	respond_debug(data, repeat=True)
+	respond_debug(data, duplicate=True)
 	exit(1)
 
 try:
@@ -248,5 +248,5 @@ try:
 	router[endpoint](data)
 except KeyError as e:
 	# in case of errors echo data back to client
-	respond_debug("Internal server error: \n{}".format(e))
-	respond_debug("\n{}".format(data), repeat=True)
+	respond_debug("Method not found: \n{}".format(e))
+	respond_debug("\n{}".format(data), duplicate=True)

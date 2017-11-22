@@ -32,33 +32,16 @@ document.getElementById("submitJSON").addEventListener("click", sendJSONData);
 
 function sendJSONData() {
 	var data = JSON.parse(document.getElementById("JSONTextArea").value);
-	data.endpoint = "hmacKey";
-	post("http://localhost:8000/cgi-bin/submit.py", data, "POST");
-};
+	data.endpoint = "hmac_signature";
 
-// post method that redirects browser
-function post(path, params, method) {
-	method = method || "post"; // Set method to post by default if not specified.
-
-	// The rest of this code assumes you are not using a library.
-	// It can be made less wordy if you use one.
-	var form = document.createElement("form");
-	form.setAttribute("method", method);
-	form.setAttribute("action", path);
-
-	for(var key in params) {
-		if(params.hasOwnProperty(key)) {
-			var hiddenField = document.createElement("input");
-			hiddenField.setAttribute("type", "hidden");
-			hiddenField.setAttribute("name", key);
-			hiddenField.setAttribute("value", params[key]);
-
-			form.appendChild(hiddenField);
+	var paramString = "?";
+	for(var key in data) {
+		if(data.hasOwnProperty(key)) {
+			paramString = paramString + key + "=" + data[key] + "&";
 		 }
 	}
 
-	document.body.appendChild(form);
-	form.submit();
-}
+	window.location = "http://localhost:8000/cgi-bin/submit.py" + paramString;
+};
 
 </script>
