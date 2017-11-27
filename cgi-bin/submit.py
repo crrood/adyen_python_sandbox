@@ -21,11 +21,28 @@ import webbrowser
 
 LOCAL_ADDRESS = "http://localhost:8000"
 
+##############################
+##		AUTHENTICATION		##
+##############################
+
+# NOTE
+# there are two options for how to store authentication credentials:
+# the more secure is to hardcode them here in the server
+# for ease of committing to github I have also included the option to read from a local file
+# production environments should always use hardcoded values
+
 # hardcoded authentication values
-WS_USERNAME = "[your ws username]"
-WS_PASSWORD = "[you ws password]"
-CHECKOUT_API_KEY = "[your checkout api key]"
-HMAC_KEY = "[your HMAC key here]" # may be overwritten by client
+WS_USERNAME = "[your webservice username]"
+WS_PASSWORD = "[your webservice password]"
+CHECKOUT_API_KEY = "[your checkout API key]"
+HMAC_KEY = "[your HMAC key]" # may be overwritten by client
+
+# authentication read from local file
+with open("api_credentials.txt") as f:
+	 WS_USERNAME = f.readline().strip()
+	 WS_PASSWORD = f.readline().strip()
+	 CHECKOUT_API_KEY = f.readline().strip()
+	 HMAC_KEY = f.readline().strip() # may be overwritten by client
 
 ##############################
 ##		HELPER METHODS		##
@@ -49,7 +66,8 @@ def send_request(url, data, headers, data_type="json"):
 	try:
 		return urlopen(request).read()
 	except HTTPError as e:
-		return e.read()
+		# return e.read()
+		return "{}".format(e).encode("utf8")
 	except:
 		return "error sending request".encode("utf8")
 
@@ -162,7 +180,7 @@ def HMAC_signature(data, respond=True):
 def CSE(data):
 
 	# set request outline
-	url = "https://pal-test.adyen.com/pal/servlet/Payment/v30/authorise"
+	url = "https://pal-test.adyen.com/pal/servlet/Payment/authorise"
 	headers = {
 		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD)),
 		"Content-Type": "application/json"
@@ -188,7 +206,7 @@ def CSE(data):
 	result = send_request(url, data, headers)
 	send_response(result, "text/plain")
 
-	# respond_debug(data)
+	# respond_debug(headers)
 
 ######################################
 ##		Hosted Payment Pages		##
