@@ -206,8 +206,6 @@ def CSE(data):
 	result = send_request(url, data, headers)
 	send_response(result, "application/json")
 
-	# respond_debug(headers)
-
 ######################################
 ##		Hosted Payment Pages		##
 ######################################
@@ -264,6 +262,7 @@ except:
 try:
 	# send to proper method
 	router[endpoint](data)
+	
 except KeyError as e:
 	# in case of errors echo data back to client
 	respond_debug("Method not found: \n{}".format(e))
