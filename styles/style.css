@@ -4,6 +4,10 @@
 	display: inline-block;
 }
 
+.formHolder {
+	display: inline-block;
+}
+
 .submitBtn {
 	border: 2px solid green;
 	margin: 5px;
@@ -12,11 +16,15 @@
 	font-weight: bold;
 }
 
-#cardType {
+.cardType {
 	border: 1px solid;
 	padding: 1px;
 	display: inline-block;
 	font-weight: bold;
+}
+
+.block {
+	display: block;
 }
 
 body {
