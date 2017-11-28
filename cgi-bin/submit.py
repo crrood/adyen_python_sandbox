@@ -204,7 +204,7 @@ def CSE(data):
 
 	# send to Adyen and display result
 	result = send_request(url, data, headers)
-	send_response(result, "text/plain")
+	send_response(result, "application/json")
 
 	# respond_debug(headers)
 
