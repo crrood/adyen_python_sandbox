@@ -190,21 +190,25 @@ def CSE(data):
 	# move value and currency into indented object
 	data = reformat_amount(data)
 
+	# check if recurring
+	# DEBUG
+	if "shopperReference" in data.keys() or True:
+		data["recurring"] = {
+			"contract": "ONECLICK"
+		}
+		data["shopperInteraction"] = "Ecommerce"
+		data["shopperReference"] = "recur121517"
+		data["selectedRecurringDetailReference"] = "LATEST"
+
 	# move encrypted card data into additionalData container
 	data["additionalData"] = {}
 	data["additionalData"]["card.encrypted.json"] = data["encryptedData"]
 	del data["encryptedData"]
 
-	# card data
-	data["card"] = {
-	    "expiryMonth": "08",
-	    "expiryYear": "2018",
-	    "holderName": "Test Person"
-	  }
-
 	# send to Adyen and display result
 	result = send_request(url, data, headers)
 	send_response(result, "application/json")
+	# respond_debug(data)
 
 ######################################
 ##		Hosted Payment Pages		##
