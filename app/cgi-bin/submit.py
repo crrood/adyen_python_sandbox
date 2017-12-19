@@ -191,7 +191,8 @@ def CSE(data):
 	data = reformat_amount(data)
 
 	# check if recurring
-	if "shopperReference" in data.keys():
+	# DEBUG
+	if "shopperReference" in data.keys() or True:
 		data["recurring"] = {
 			"contract": "ONECLICK"
 		}
@@ -207,6 +208,7 @@ def CSE(data):
 	# send to Adyen and display result
 	result = send_request(url, data, headers)
 	send_response(result, "application/json")
+	# respond_debug(data)
 
 ######################################
 ##		Hosted Payment Pages		##

@@ -1,6 +1,6 @@
 <HTML>
 	<body>
-		<form class="clientForm" action="http://localhost:8000/cgi-bin/submit.py">
+		<form class="clientForm" action="cgi-bin/submit.py">
 			paymentAmount: <input type="text" id="paymentAmount" name="paymentAmount" value="500"/><br>
 			currencyCode: <input type="text" id="currencyCode" name="currencyCode" value="EUR"/><br>
 			skinCode: <input type="text" id="skinCode" name="skinCode" value="rKJeo2Mf"/><br>
@@ -24,7 +24,7 @@
 	</body>
 </HTML>
 
-<link rel="stylesheet" type="text/css" href="http://localhost:8000/styles/style.css"/>
+<link rel="stylesheet" type="text/css" href="styles/style.css"/>
 
 <script>
 
@@ -41,7 +41,7 @@ function sendJSONData() {
 		 }
 	}
 
-	window.location = "http://localhost:8000/cgi-bin/submit.py" + paramString;
+	window.location = "cgi-bin/submit.py" + paramString;
 };
 
 </script>
