@@ -1,3 +1,12 @@
+.checkout {
+	margin-left: 15%;
+	margin-right: 15%;
+}
+
+.chckt-pm__name {
+	color: #0083BF !important;
+}
+
 .clientForm {
 	border: 2px solid;
 	padding: 10px;
