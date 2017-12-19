@@ -191,8 +191,7 @@ def CSE(data):
 	data = reformat_amount(data)
 
 	# check if recurring
-	# DEBUG
-	if "shopperReference" in data.keys() or True:
+	if "shopperReference" in data.keys():
 		data["recurring"] = {
 			"contract": "ONECLICK"
 		}
