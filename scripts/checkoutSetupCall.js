@@ -61,8 +61,7 @@ function openCheckout() {
 	formString = formString + "endpoint=checkout_setup";
 
 	// Set parameters for request to server
-	// url = "http://localhost:8000/cgi-bin/checkout_requester.py";
-	url = "http://localhost:8000/cgi-bin/submit.py";
+	url = "cgi-bin/submit.py";
 	headers = { "Content-Type": "application/x-www-form-urlencoded" };
 	method = "POST";
 
