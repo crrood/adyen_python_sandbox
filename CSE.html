@@ -28,7 +28,7 @@
 
 	<div class="formHolder">
 		<h3>Card info (generic library)</h3>
-		Client Encryption Public Key: <input type="text" name="publicKey" id="keyValue" class="block" value="10001|DAAA84F903B74D76E2E452201F49998FAF18743AF5BBE880E169752F3C60B8C5C601E99CBF66C4DAE57B818ECA837FD0A53A70FFC7515796E0CB4D4A07B15A1D0496B3E2D41A8099A25E055E5224E15AF203F8EDFBDA9FCCF6A5793AA3C620CB62D81F9103BF5EF362531D8742B84B597F46D2B29ABFE680DB09F1AE6B9D4ED3CBEDA22E3CC4D388BAC76A39116E0CA787483419B941F24FFD9EB2DC158EA20CA5A84D1DB1E3B5FEE2B8AB5512EAF7DE572366B10D5C57C09F3002CF0FD0AE557887C4078DE00EB48CDD6763BD976C969D91200C5DB11B2C3B002B4C31EC5BBFB27B00791813757C21D631DCC1E9B74610BCA05F5CFA4DE0662C0F561CF616BB"/><br>
+		<input type="hidden" name="publicKey" id="keyValue" class="block" value="10001|DAAA84F903B74D76E2E452201F49998FAF18743AF5BBE880E169752F3C60B8C5C601E99CBF66C4DAE57B818ECA837FD0A53A70FFC7515796E0CB4D4A07B15A1D0496B3E2D41A8099A25E055E5224E15AF203F8EDFBDA9FCCF6A5793AA3C620CB62D81F9103BF5EF362531D8742B84B597F46D2B29ABFE680DB09F1AE6B9D4ED3CBEDA22E3CC4D388BAC76A39116E0CA787483419B941F24FFD9EB2DC158EA20CA5A84D1DB1E3B5FEE2B8AB5512EAF7DE572366B10D5C57C09F3002CF0FD0AE557887C4078DE00EB48CDD6763BD976C969D91200C5DB11B2C3B002B4C31EC5BBFB27B00791813757C21D631DCC1E9B74610BCA05F5CFA4DE0662C0F561CF616BB"/>
 		<form method="POST" class="clientForm" action="cgi-bin/submit.py" id="adyen-encrypted-form-generic">
 			<div id="cardTypeGeneric" class="cardType"></div><br>
 			Number: <input type="text" size="20" data-encrypted-name="number" value="4111111111111111"/><br>
@@ -45,7 +45,7 @@
 	<div class="formHolder">
 		<h3>Recurring</h3>
 		<form method="POST" class="clientForm" action="cgi-bin/submit.py" id="adyen-encrypted-form-recurring">
-			ShopperReference: <input type="text" size="20" name="shopperReference" value="recur120417"/><br>
+			ShopperReference: <input type="text" size="20" name="shopperReference" value="recur122917"/><br>
 			SelectedRecurringDetailReference: <input type="text" size="20" name="selectedRecurringDetailReference" value="LATEST"/><br>
 			CVC: <input type="text" size="4" data-encrypted-name="cvc" value="737"/><br>
 			<input type="hidden" id="adyen-encrypted-form-expiry-generationtime-recurring" value="" data-encrypted-name="generationtime"/>
@@ -139,7 +139,19 @@ function onSubmit(e) {
 	for (var i = 0; i < paymentForm.elements.length; i++) {
 		element = paymentForm.elements[i];
 		params = params + encodeURIComponent(element.name) + "=" + element.value + "&";
-	};
+	}
+
+	// add recurring details if applicable
+	if (e.srcElement.id == "adyen-encrypted-form-recurring") {
+		var form = document.getElementById("adyen-encrypted-form-recurring");
+		var element;
+		for (var i = 0; i < form.elements.length; i++) {
+			element = form.elements[i];
+			if (element.name != "" && element.name != "adyen-encrypted-data") {
+				params = params + encodeURIComponent(element.name) + "=" + encodeURIComponent(element.value) + "&";
+			}
+		}
+	}
 
 	// The form element to encrypt
 	var form = document.getElementById(e.srcElement.id);

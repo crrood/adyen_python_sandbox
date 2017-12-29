@@ -1,11 +1,12 @@
 // Styling for checkout
-var hostedFieldStyle = {
+var sdkConfigObj = {
 	base: {
 		fontSize: '16px',
 		background: "#68FFC1",
 		outline: "2px black",
 		color: "blue",
-	}
+	},
+	context: "test"
 };
 
 document.getElementById("checkoutBtn").addEventListener("click", openCheckout);
@@ -20,7 +21,7 @@ callback = function() {
 			var data = JSON.parse(this.responseText);
 
 			// Initialize checkout
-			var checkout = chckt.checkout(data, '.checkout', hostedFieldStyle);
+			var checkout = chckt.checkout(data, '.checkout', sdkConfigObj);
 
 			// Handle response from initiate call
 			chckt.hooks.beforeComplete = function(pNode, pHookData, pData){

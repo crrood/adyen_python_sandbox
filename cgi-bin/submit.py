@@ -32,10 +32,10 @@ LOCAL_ADDRESS = "http://localhost:8000"
 # production environments should always use hardcoded values
 
 # hardcoded authentication values
-WS_USERNAME = "[your webservice username]"
-WS_PASSWORD = "[your webservice password]"
-CHECKOUT_API_KEY = "[your checkout API key]"
-HMAC_KEY = "[your HMAC key]" # may be overwritten by client
+WS_USERNAME = "ws_306326@Company.AdyenTechSupport"
+WS_PASSWORD = "7UuQQEmR=2Qq9ByCt4<3r2zq^"
+CHECKOUT_API_KEY = "AQEyhmfxLIrIaBdEw0m/n3Q5qf3VaY9UCJ1+XWZe9W27jmlZilETQsVk1ULvYgY9gREbDhYQwV1bDb7kfNy1WIxIIkxgBw==-CekguSzLVE/iCTVQQWGILQK0x8Lo88FEQ/VHTZuAoP0=-dqZewkA79CPfNISf"
+HMAC_KEY = "BE1C271E9CD9D2F6611D2C7064FE9EE314DA58539195E92BF5AC706209A514DB" # may be overwritten by client
 
 # authentication read from local file
 with open("api_credentials.txt") as f:
@@ -77,7 +77,7 @@ def send_response(result, content_type):
 	print(result.decode("utf8"))
 
 # respond with raw data
-def respond_debug(data, content_type="text/plain", duplicate=False):
+def send_debug(data, content_type="text/plain", duplicate=False):
 	if not duplicate:
 		print("Content-type:{}\r\n".format(content_type))
 	print(data)
@@ -195,14 +195,14 @@ def CSE(data):
 		data["recurring"] = {
 			"contract": "ONECLICK"
 		}
-		data["shopperInteraction"] = "Ecommerce"
-		data["shopperReference"] = "recur121517"
-		data["selectedRecurringDetailReference"] = "LATEST"
 
 	# move encrypted card data into additionalData container
 	data["additionalData"] = {}
 	data["additionalData"]["card.encrypted.json"] = data["encryptedData"]
 	del data["encryptedData"]
+
+	# display request object for debugging
+	send_debug(data)
 
 	# send to Adyen and display result
 	result = send_request(url, data, headers)
@@ -257,8 +257,8 @@ try:
 	del data["endpoint"]
 
 except:
-	respond_debug("endpoint value missing in request data:")
-	respond_debug(data, duplicate=True)
+	send_debug("endpoint value missing in request data:")
+	send_debug(data, duplicate=True)
 	exit(1)
 
 try:
@@ -267,5 +267,5 @@ try:
 	
 except KeyError as e:
 	# in case of errors echo data back to client
-	respond_debug("Method not found: \n{}".format(e))
-	respond_debug("\n{}".format(data), duplicate=True)
+	send_debug("Method not found: \n{}".format(e))
+	send_debug("\n{}".format(data), duplicate=True)
