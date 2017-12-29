@@ -160,7 +160,7 @@ function onSubmit(e) {
 	params = params + "encryptedData=" + encodeURIComponent(form.elements["adyen-encrypted-data"].value) + "&";
 
 	// redirect to server
-	window.location = "cgi-bin/submit.py" + params;
+	window.location = "./cgi-bin/submit.py" + params;
 }
 
 initCardsCheckout();
