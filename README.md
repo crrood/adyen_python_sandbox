@@ -1,6 +1,8 @@
 # adyen_python_sandbox
 Snippets of code to communicate with the Adyen payments server
 
+Can be run locally or on Heroku
+
 ## Setup:
 Add authentication credentials to /cgi-bin/submit.py
 
