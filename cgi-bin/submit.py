@@ -225,6 +225,7 @@ def HPP(data):
 	data["merchantReference"] = "Localhost HPP"
 	data["sessionValidity"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
 	data["shipBeforeData"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
+	data["resURL"] = "www.example.com"
 
 	# generate HMAC signature
 	data["merchantSig"] = HMAC_signature(data, False).decode("utf8")
