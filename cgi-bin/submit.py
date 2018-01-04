@@ -20,6 +20,7 @@ import webbrowser
 ##################################
 
 LOCAL_ADDRESS = "http://localhost:8000"
+READ_CREDENTIALS_FROM_FILE = False
 
 ##############################
 ##		AUTHENTICATION		##
@@ -38,11 +39,12 @@ CHECKOUT_API_KEY = "AQEyhmfxLIrIaBdEw0m/n3Q5qf3VaY9UCJ1+XWZe9W27jmlZilETQsVk1ULv
 HMAC_KEY = "BE1C271E9CD9D2F6611D2C7064FE9EE314DA58539195E92BF5AC706209A514DB" # may be overwritten by client
 
 # authentication read from local file
-with open("api_credentials.txt") as f:
-	 WS_USERNAME = f.readline().strip()
-	 WS_PASSWORD = f.readline().strip()
-	 CHECKOUT_API_KEY = f.readline().strip()
-	 HMAC_KEY = f.readline().strip() # may be overwritten by client
+if READ_CREDENTIALS_FROM_FILE:
+	with open("api_credentials.txt") as f:
+		 WS_USERNAME = f.readline().strip()
+		 WS_PASSWORD = f.readline().strip()
+		 CHECKOUT_API_KEY = f.readline().strip()
+		 HMAC_KEY = f.readline().strip() # may be overwritten by client
 
 ##############################
 ##		HELPER METHODS		##
