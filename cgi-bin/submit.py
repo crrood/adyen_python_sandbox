@@ -75,7 +75,9 @@ def send_request(url, data, headers, data_type="json"):
 
 # respond with result
 def send_response(result, content_type):	
-	print("Content-type:{}\n".format(content_type))
+	print("Content-type:{}".format(content_type))
+	print("Content-length:{}".format(len(result)))
+	print()
 	print(result.decode("utf8"))
 
 # respond with raw data
