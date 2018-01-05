@@ -1,1 +1,1 @@
-web: ./update_python_path.sh && ./start_server.sh
+web: ./update_python_path.sh /app/.heroku/python/bin/python3 && ./start_server.sh
