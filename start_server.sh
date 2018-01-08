@@ -1,2 +1,2 @@
 #!/bin/bash
-python3 -m http.server --cgi $PORT
+./update_python_path.sh && python3 -m http.server --cgi $PORT

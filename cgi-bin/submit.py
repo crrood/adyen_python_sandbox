@@ -1,4 +1,4 @@
-#!/usr/local/adyen/python3/bin/python3
+#!/Users/colinr/miniconda3/bin/python3
 
 # general utilities
 import json, os, datetime
