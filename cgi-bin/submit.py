@@ -75,13 +75,13 @@ def send_request(url, data, headers, data_type="json"):
 
 # respond with result
 def send_response(result, content_type):	
-	print("Content-type:{}".format(content_type))
-	print("Content-length:{}".format(len(result)))
-	print()
+	print("Content-type:{}\r\n".format(content_type), end="")
+	print("Content-length:{}\r\n".format(len(result)), end="")
+	print("\r\n", end="")
 	if type(result) is bytes:
-		print(result.decode("utf8"))
+		print("{}\r\n".format(result.decode("utf8")), end="")
 	elif type(result) is str:
-		print(result)
+		print("{}\r\n".format(result), end="")
 
 # respond with raw data
 def send_debug(data, content_type="text/plain", duplicate=False):
