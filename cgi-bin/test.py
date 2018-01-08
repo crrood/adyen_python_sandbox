@@ -1,4 +1,4 @@
-#!/Users/colinr/miniconda3/bin/python3
+#!/app/.heroku/python/bin/python3
 
 print("Content-type: text/plain")
 print()
