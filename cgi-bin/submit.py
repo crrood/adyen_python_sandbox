@@ -78,7 +78,10 @@ def send_response(result, content_type):
 	print("Content-type:{}".format(content_type))
 	print("Content-length:{}".format(len(result)))
 	print()
-	print(result.decode("utf8"))
+	if type(result) is bytes:
+		print(result.decode("utf8"))
+	elif type(result) is str:
+		print(result)
 
 # respond with raw data
 def send_debug(data, content_type="text/plain", duplicate=False):
@@ -170,9 +173,9 @@ def HMAC_signature(data, respond=True):
 	# calculate signature
 	signature = generate_HMAC(data, key)
 
-	# send 
+	# send response
 	if respond:
-		send_response(signature, "text/plain")
+		send_response("raw:\t\t{}\nencoded:\t{}".format(signature, urlencode({ "merchantSig": signature })), "text/plain")
 	else:
 		return signature
 
