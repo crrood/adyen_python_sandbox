@@ -68,7 +68,6 @@ def send_request(url, data, headers, data_type="json"):
 	try:
 		return urlopen(request).read()
 	except HTTPError as e:
-		# return e.read()
 		return "{}".format(e).encode("utf8")
 	except:
 		return "error sending request".encode("utf8")
@@ -170,6 +169,9 @@ def HMAC_signature(data, respond=True):
 		# use hardcoded key if not found in data
 		key = HMAC_KEY
 
+	if "submit" in data.keys():
+		del data["submit"]
+
 	# calculate signature
 	signature = generate_HMAC(data, key)
 
@@ -236,10 +238,43 @@ def HPP(data):
 
 	# generate HMAC signature
 	data["merchantSig"] = HMAC_signature(data, False).decode("utf8")
+	
+	# display request object for debugging
+	send_debug(data)
 
 	# redirect to HPP page in new window
-	send_response("<h2>Redirected to HPP in another window</h2>".encode("utf8"), "text/html")
+	send_response("Redirected to HPP in another window".encode("utf8"), "text/html")
 	webbrowser.open_new("{}?{}".format(url, urlencode(data)))
+
+##################################
+##		Directory Lookup		##
+##################################
+
+# get parameters and return available payment methods
+def directory_lookup(data):
+
+	# get API version
+	if data["version"] == "V2":
+		url = "https://test.adyen.com/hpp/directory/v2.shtml"
+	else:
+		url = "https://test.adyen.com/hpp/directory.shtml"
+	del data["version"]
+	
+	# set request outline
+	headers = {
+		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD)),
+		"Content-Type": "application/json"
+	}
+
+	# generate HMAC signature
+	data["merchantSig"] = HMAC_signature(data, False).decode("utf8")
+
+	# display request object for debugging
+	send_debug(urlencode(data))
+
+	# send to Adyen and display result
+	result = send_request("{}?{}".format(url, urlencode(data)), {}, headers)
+	send_response(result, "application/json")
 
 ##############################
 ##		PARSER METHOD		##
@@ -256,7 +291,8 @@ router = {
 	"HPP": HPP,
 	"checkout_setup": checkout_setup,
 	"hmac_signature": HMAC_signature,
-	"CSE": CSE
+	"CSE": CSE,
+	"directory_lookup": directory_lookup
 }
 
 try:
