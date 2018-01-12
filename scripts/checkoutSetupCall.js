@@ -46,8 +46,6 @@ function AJAXPost(path, headers, params, method) {
 		request.setRequestHeader(key, headers[key]);
 	}
 
-	console.log(params);
-
 	request.send(params);
 };
 

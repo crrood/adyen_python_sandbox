@@ -182,7 +182,7 @@ def HMAC_signature(data, respond=True):
 		return signature
 
 ######################################
-##		Client Side Encryption		##
+##		CLIENT SIDE ENCRYPTION		##
 ######################################
 
 # get encrypted card data blob and send to Adyen
@@ -218,7 +218,7 @@ def CSE(data):
 	send_response(result, "application/json")
 
 ######################################
-##		Hosted Payment Pages		##
+##		HOSTED PAYMENT PAGES		##
 ######################################
 
 # get setup data from client and send to Adyen
@@ -247,7 +247,7 @@ def HPP(data):
 	webbrowser.open_new("{}?{}".format(url, urlencode(data)))
 
 ##################################
-##		Directory Lookup		##
+##		DIRECTORY LOOKUP		##
 ##################################
 
 # get parameters and return available payment methods
@@ -277,7 +277,32 @@ def directory_lookup(data):
 	send_response(result, "application/json")
 
 ##############################
-##		PARSER METHOD		##
+##		SECURED FIELDS		##
+##############################
+
+# adyen-hosted iframes for card data entry
+def secured_fields_setup(data):
+
+	# request info
+	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v32/setup"
+	headers = {
+		"Content-Type": "application/json",
+		"X-API-Key": CHECKOUT_API_KEY
+	}
+
+	# static fields
+	data["origin"] = LOCAL_ADDRESS
+	data["returnUrl"] = LOCAL_ADDRESS
+
+	# move amount data into parent object
+	data = reformat_amount(data)
+
+	# get and return response
+	result = send_request(url, data, headers)
+	send_response(result, "application/json")
+
+##############################
+##		ROUTER METHOD		##
 ##############################
 
 # parse payment data from URL params 
@@ -292,7 +317,8 @@ router = {
 	"checkout_setup": checkout_setup,
 	"hmac_signature": HMAC_signature,
 	"CSE": CSE,
-	"directory_lookup": directory_lookup
+	"directory_lookup": directory_lookup,
+	"secured_fields_setup": secured_fields_setup
 }
 
 try:
