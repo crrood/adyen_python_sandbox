@@ -99,9 +99,16 @@ function setupSecuredFields(e) {
 }
 
 function paymentSuccess(result) {
-	displayToWindow("Success!");
+	if (result.type === "complete") {
+		document.getElementById("secured-fields-container").remove();
+		if (result.resultCode === "authorised") {
+			displayToWindow("Success!");
+		}
+		else {
+			displayToWindow("Failure");
+		}
+	}
 	displayToWindow(JSON.stringify(result));
-	document.getElementById("secured-fields-container").remove();
 }
 
 function paymentError(result) {
