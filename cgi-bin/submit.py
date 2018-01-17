@@ -73,10 +73,12 @@ def send_request(url, data, headers, data_type="json"):
 		return "error sending request".encode("utf8")
 
 # respond with result
-def send_response(result, content_type):	
-	print("Content-type:{}\r\n".format(content_type), end="")
-	print("Content-length:{}\r\n".format(len(result)), end="")
-	print("\r\n", end="")
+def send_response(result, content_type="text/html", skipHeaders=False):
+	if not skipHeaders:
+		print("Content-type:{}\r\n".format(content_type), end="")
+		print("Content-length:{}\r\n".format(len(result)), end="")
+		print("\r\n", end="")
+
 	if type(result) is bytes:
 		print("{}\r\n".format(result.decode("utf8")), end="")
 	elif type(result) is str:
@@ -87,6 +89,11 @@ def send_debug(data, content_type="text/plain", duplicate=False):
 	if not duplicate:
 		print("Content-type:{}\r\n".format(content_type))
 	print(data)
+	
+	if content_type == "text/html":
+		print("<br><br>")
+	else:
+		print("\r\n\r\n")
 
 # reformat amount data into indented object for Adyen
 def reformat_amount(data):
@@ -215,7 +222,7 @@ def CSE(data):
 
 	# send to Adyen and display result
 	result = send_request(url, data, headers)
-	send_response(result, "application/json")
+	send_response(result, skipHeaders=True)
 
 ######################################
 ##		HOSTED PAYMENT PAGES		##
@@ -234,7 +241,7 @@ def HPP(data):
 	data["merchantReference"] = "Localhost HPP"
 	data["sessionValidity"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
 	data["shipBeforeData"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
-	data["resURL"] = "www.example.com"
+	data["resURL"] = "http://www.example.com"
 
 	# generate HMAC signature
 	data["merchantSig"] = HMAC_signature(data, False).decode("utf8")
@@ -274,7 +281,43 @@ def directory_lookup(data):
 
 	# send to Adyen and display result
 	result = send_request("{}?{}".format(url, urlencode(data)), {}, headers)
-	send_response(result, "application/json")
+	send_response(result, skipHeaders=True)
+
+##############################
+##		SKIP DETAILS		##
+##############################
+
+# bypass the HPP and go straight to the specified payment method
+def skip_details(data):
+
+	# skipDetails endpoint
+	url = "https://test.adyen.com/hpp/skipDetails.shtml"
+	
+	# set request outline
+	headers = {
+		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD)),
+		"Content-Type": "application/json"
+	}
+
+	# session validity
+	data["sessionValidity"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
+
+	# populate empty but apparently mandatory fields
+	data["allowedMethods"] = ""
+	data["blockedMethods"] = ""
+	if "issuerId" not in data.keys():
+		data["issuerId"] = ""
+
+	# generate HMAC signature
+	data["merchantSig"] = HMAC_signature(data, False).decode("utf8")
+
+	# send to Adyen and display result
+	# result = send_request("{}?{}".format(url, urlencode(data)), {}, headers)
+	# send_response(result, "text/html")
+
+	# redirect to HPP
+	send_response("Redirected to HPP in another window".encode("utf8"), "text/html")
+	webbrowser.open("{}?{}".format(url, urlencode(data)))
 
 ##############################
 ##		SECURED FIELDS		##
@@ -318,7 +361,8 @@ router = {
 	"hmac_signature": HMAC_signature,
 	"CSE": CSE,
 	"directory_lookup": directory_lookup,
-	"secured_fields_setup": secured_fields_setup
+	"secured_fields_setup": secured_fields_setup,
+	"skip_details": skip_details
 }
 
 try:

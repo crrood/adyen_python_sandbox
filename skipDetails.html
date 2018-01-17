@@ -1,0 +1,27 @@
+<html>
+
+<head>
+	<script type="text/javascript" src="scripts/general.js"></script>
+	<link rel="stylesheet" type="text/css" href="styles/style.css"></link>
+</head>
+
+<body>
+<form id="infoForm" class="clientForm" action="cgi-bin/submit.py">
+	<div class="inputHolder">BrandCode: <input type="text" id="brandCode" name="brandCode" value="mc"/><br></div>
+	<div class="inputHolder">IssuerID: <input type="text" id="issuerId" name="issuerId" value=""/><br></div>
+	<div class="inputHolder">PaymentAmount: <input type="text" id="paymentAmount" name="paymentAmount" value="1499"/><br></div>
+	<div class="inputHolder">CurrencyCode: <input type="text" id="currencyCode" name="currencyCode" value="USD"/><br></div>
+	<div class="inputHolder">CountryCode: <input type="text" id="countryCode" name="countryCode" value="US"/><br></div>
+	<div class="inputHolder">ShopperLocale: <input type="text" id="shopperLocale" name="shopperLocale" value="en_GB"/><br></div>
+	<div class="inputHolder">ShopperReference: <input type="text" id="shopperReference" name="shopperReference" value="localhostShopper1"/><br></div>
+	<div class="inputHolder">MerchantReference: <input type="text" id="merchantReference" name="merchantReference" value="localhostSkipDetails"/><br></div>
+	<div class="inputHolder">Channel: <input type="text" id="channel" name="channel" value="Web"/><br></div>
+	<div class="inputHolder">ResURL: <input type="text" id="resURL" name="resURL" value="http://www.example.com"/><br></div>
+	<div class="inputHolder">MerchantAccount: <input type="text" id="merchantAccount" name="merchantAccount" value="ColinRood"/><br></div>
+	<div class="inputHolder">SkinCode: <input type="text" id="skinCode" name="skinCode" value="rKJeo2Mf"/><br></div>
+	<input type="hidden" id="endpoint" name="endpoint" value="skip_details"/></div>
+	<input type="submit" class="submitBtn" id="checkoutBtn" value="Send request"/>
+</form>
+</body>
+
+</html>
