@@ -1,6 +1,6 @@
 <HTML>
 	<head>
-		<script href="scripts/general.js"></script>
+		<link rel="stylesheet" type="text/css" href="styles/style.css"/>
 	</head>
 	<body>
 		<form class="clientForm" action="cgi-bin/submit.py">
@@ -27,10 +27,22 @@
 	</body>
 </HTML>
 
-<link rel="stylesheet" type="text/css" href="styles/style.css"/>
-
 <script>
 
-document.getElementById("submitJSON").addEventListener("click", sendJSONData);
+document.getElementById("submitJSON").addEventListener("click", sendJSONDataFromTextBox);
+
+function sendJSONDataFromTextBox() {
+	var data = JSON.parse(document.getElementById("JSONTextArea").value);
+	data.endpoint = "hmac_signature";
+
+	var paramString = "?";
+	for(var key in data) {
+		if(data.hasOwnProperty(key)) {
+			paramString = paramString + key + "=" + data[key] + "&";
+		 }
+	}
+
+	window.location = "cgi-bin/submit.py" + paramString;
+};
 
 </script>
