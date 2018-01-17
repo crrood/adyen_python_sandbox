@@ -246,11 +246,8 @@ def HPP(data):
 	# generate HMAC signature
 	data["merchantSig"] = HMAC_signature(data, False).decode("utf8")
 	
-	# display request object for debugging
-	send_debug(data)
-
 	# redirect to HPP page in new window
-	send_response("Redirected to HPP in another window".encode("utf8"), "text/html")
+	send_response("Redirected in another window\n\nRequest:\n{}".format("{}?{}".format(url, urlencode(data))), "text/plain")
 	webbrowser.open_new("{}?{}".format(url, urlencode(data)))
 
 ##################################
@@ -316,7 +313,7 @@ def skip_details(data):
 	# send_response(result, "text/html")
 
 	# redirect to HPP
-	send_response("Redirected to HPP in another window".encode("utf8"), "text/html")
+	send_response("Redirected in another window\n\nRequest:\n{}".format("{}?{}".format(url, urlencode(data))), "text/plain")
 	webbrowser.open("{}?{}".format(url, urlencode(data)))
 
 ##############################
