@@ -1,33 +1,39 @@
 <HTML>
 	<head>
 		<link rel="stylesheet" type="text/css" href="styles/style.css"/>
+		<script src="scripts/reactComplete.js"></script>
+		<script type="text/jsx" src="scripts/reactScript.js"></script>
 	</head>
 	<body>
-		<form class="clientForm" action="cgi-bin/submit.py">
-			paymentAmount: <input type="text" id="paymentAmount" name="paymentAmount" value="500"/><br>
-			currencyCode: <input type="text" id="currencyCode" name="currencyCode" value="EUR"/><br>
-			skinCode: <input type="text" id="skinCode" name="skinCode" value="rKJeo2Mf"/><br>
-			merchantAccount: <input type="text" id="merchantAccount" name="merchantAccount" value="ColinRood"/><br>
-			merchantReference: <input type="text" id="merchantReference" value="merchantReference" name="merchantReference" value="Simulated HPP transaction"/><br>
-			sessionValidity: <input type="text" id="sessionValidity" name="sessionValidity" value="2020-12-17T13:42:40+01:00"/><br>
-			hmacKey: <input type="text" id="hmacKey" name="hmacKey" value="BE1C271E9CD9D2F6611D2C7064FE9EE314DA58539195E92BF5AC706209A514DB"/><br>
-			<input type="hidden" name="endpoint" value="hmac_signature"/>
-			<input type="submit" class="submitBtn" id="submit" name="submit" value="calculate form"/>
-		</form>
-
-		<br><br><br>
+		<div id="reactHolder"></div>
 
 		<form>
-			<textarea rows="10" cols="50" id="JSONTextArea">
-				Raw JSON input
-			</textarea>
-			<br>
-			<input type="button" class="submitBtn" id="submitJSON" value="calculate json"/>
+			<label for="JSONTextArea">Raw JSON Input</labeL><br>
+			<textarea rows="10" cols="50" id="JSONTextArea"></textarea><br>
+			<input type="button" class="submitBtn" id="submitJSON" value="Calculate"/>
 		</form>
 	</body>
 </HTML>
 
 <script>
+
+var formData = {
+	"fields": [
+		["paymentAmount", "1499"],
+		["currencyCode", "USD"],
+		["merchantReference", "localhostSkipDetails"],
+		["sessionValidity", "2020-12-17T13:42:40+01:00"],
+		["merchantAccount", "ColinRood"],
+		["skinCode", "rKJeo2Mf"],
+		["hmacKey", "BE1C271E9CD9D2F6611D2C7064FE9EE314DA58539195E92BF5AC706209A514DB"]],
+	"hiddenFields": [
+		["endpoint", "hmac_signature"]],
+	"submitText": "Calculate"
+}
+
+function renderPage() {
+	renderReactForm(formData, "reactHolder");
+}
 
 document.getElementById("submitJSON").addEventListener("click", sendJSONDataFromTextBox);
 
