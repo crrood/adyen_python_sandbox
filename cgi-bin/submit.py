@@ -33,10 +33,10 @@ READ_CREDENTIALS_FROM_FILE = False
 # production environments should always use hardcoded values
 
 # hardcoded authentication values
-WS_USERNAME = "ws_306326@Company.AdyenTechSupport"
-WS_PASSWORD = "7UuQQEmR=2Qq9ByCt4<3r2zq^"
-CHECKOUT_API_KEY = "AQEyhmfxLIrIaBdEw0m/n3Q5qf3VaY9UCJ1+XWZe9W27jmlZilETQsVk1ULvYgY9gREbDhYQwV1bDb7kfNy1WIxIIkxgBw==-CekguSzLVE/iCTVQQWGILQK0x8Lo88FEQ/VHTZuAoP0=-dqZewkA79CPfNISf"
-HMAC_KEY = "BE1C271E9CD9D2F6611D2C7064FE9EE314DA58539195E92BF5AC706209A514DB" # may be overwritten by client
+WS_USERNAME = "your webservice user name"
+WS_PASSWORD = "your webservice password"
+CHECKOUT_API_KEY = "your checkout API key (passed in X-API-KEY)"
+HMAC_KEY = "your HMAC key" # may be overwritten by client
 
 # authentication read from local file
 if READ_CREDENTIALS_FROM_FILE:
