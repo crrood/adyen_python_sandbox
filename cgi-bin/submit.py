@@ -238,10 +238,9 @@ def HPP(data):
 	}
 
 	# server side fields
-	data["merchantReference"] = "Localhost HPP"
 	data["sessionValidity"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
 	data["shipBeforeData"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
-	data["resURL"] = "http://www.example.com"
+	data["resURL"] = "http://localhost:8000/cgi-bin/submit.py?endpoint=result_page"
 
 	# generate HMAC signature
 	data["merchantSig"] = HMAC_signature(data, False).decode("utf8")
@@ -305,6 +304,8 @@ def skip_details(data):
 	if "issuerId" not in data.keys():
 		data["issuerId"] = ""
 
+	data["resURL"] = "http://localhost:8000/cgi-bin/submit.py?endpoint=result_page"
+
 	# generate HMAC signature
 	data["merchantSig"] = HMAC_signature(data, False).decode("utf8")
 
@@ -341,6 +342,15 @@ def secured_fields_setup(data):
 	result = send_request(url, data, headers)
 	send_response(result, "application/json")
 
+##########################
+##		RESULT PAGE		##
+##########################
+
+# landing page for complete transactions
+def result_page(data):
+	send_debug("Response from HPP:")
+	send_debug(data, duplicate=True)
+
 ##############################
 ##		ROUTER METHOD		##
 ##############################
@@ -359,7 +369,8 @@ router = {
 	"CSE": CSE,
 	"directory_lookup": directory_lookup,
 	"secured_fields_setup": secured_fields_setup,
-	"skip_details": skip_details
+	"skip_details": skip_details,
+	"result_page": result_page
 }
 
 try:

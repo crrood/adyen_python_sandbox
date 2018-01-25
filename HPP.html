@@ -1,21 +1,39 @@
 <html>
 
+<head>
+	<link rel="stylesheet" type="text/css" href="styles/style.css"/>
+	<script src="scripts/reactComplete.js"></script>
+	<script id="reactScript" type="text/jsx" src="scripts/reactScript.js"></script>
+</head>
+
 <body>
-<form id="infoForm" class="clientForm" action="cgi-bin/submit.py">
-	AllowedMethods: <input type="text" id="allowedMethods" name="allowedMethods" value=""/><br>
-	Amount: <input type="text" id="paymentAmount" name="paymentAmount" value="199"/><br>
-	Currency: <input type="text" id="currencyCode" name="currencyCode" value="USD"/><br>
-	CountryCode: <input type="text" id="countryCode" name="countryCode" value="US"/><br>
-	ShopperLocale: <input type="text" id="shopperLocale" name="shopperLocale" value="en_GB"/><br>
-	ShopperReference: <input type="text" id="shopperReference" name="shopperReference" value="localhostCheckout1"/><br>
-	MerchantAccount: <input type="text" id="merchantAccount" name="merchantAccount" value="ColinRood"/><br>
-	SkinCode: <input type="text" id="skinCode" name="skinCode" value="rKJeo2Mf"/><br>
-	hmacKey: <input type="text" id="hmacKey" name="hmacKey" value="BE1C271E9CD9D2F6611D2C7064FE9EE314DA58539195E92BF5AC706209A514DB"/><br>
-	<input type="hidden" name="endpoint" value="HPP"/>
-	<input type="submit" class="submitBtn" id="checkoutBtn" value="Checkout"/>
-</form>
+	<div id="reactHolder"></div>
 </body>
 
-<link rel="stylesheet" type="text/css" href="styles/style.css"/>
 
 </html>
+
+<script>
+
+var formData = {
+	"fields": [
+		["allowedMethods", ""],
+		["paymentAmount", "1499"],
+		["currencyCode", "USD"],
+		["countryCode", "US"],
+		["shopperLocale", "en_GB"],
+		["shopperReference", "localhostShopper1"],
+		["merchantReference", "localhostHPP"],
+		["merchantAccount", "ColinRood"],
+		["skinCode", "rKJeo2Mf"],
+		["hmacKey", "BE1C271E9CD9D2F6611D2C7064FE9EE314DA58539195E92BF5AC706209A514DB"]],
+	"hiddenFields": [
+		["endpoint", "HPP"]],
+	"submitText": "Checkout"
+}
+
+function renderPage() {
+	renderReactForm(formData, "reactHolder");
+}
+
+</script>
