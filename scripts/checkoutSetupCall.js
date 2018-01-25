@@ -39,7 +39,7 @@ const setupCallback = function() {
 							document.getElementById("verifyResult").innerHTML = this.responseText;
 						});
 					});
-					document.getElementById("verifyBtn").classList.remove("inactive");
+					document.getElementById("verifyContainer").classList.remove("inactive");
 				}
 			}
 		}

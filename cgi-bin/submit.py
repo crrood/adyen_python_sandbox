@@ -26,23 +26,10 @@ READ_CREDENTIALS_FROM_FILE = False
 ##		AUTHENTICATION		##
 ##############################
 
-# NOTE
-# there are two options for how to store authentication credentials:
-# the more secure is to hardcode them here in the server
-# for ease of committing to github I have also included the option to read from a local file
-# production environments should always use hardcoded values
-
 # hardcoded authentication values
-WS_USERNAME = "your webservice user name"
-WS_PASSWORD = "your webservice password"
-CHECKOUT_API_KEY = "your checkout API key (passed in X-API-KEY)"
-
-# authentication read from local file
-if READ_CREDENTIALS_FROM_FILE:
-	with open("api_credentials.txt") as f:
-		 WS_USERNAME = f.readline().strip()
-		 WS_PASSWORD = f.readline().strip()
-		 CHECKOUT_API_KEY = f.readline().strip()
+WS_USERNAME = "ws_306326@Company.AdyenTechSupport"
+WS_PASSWORD = "7UuQQEmR=2Qq9ByCt4<3r2zq^"
+CHECKOUT_API_KEY = "AQEyhmfxLIrIaBdEw0m/n3Q5qf3VaY9UCJ1+XWZe9W27jmlZilETQsVk1ULvYgY9gREbDhYQwV1bDb7kfNy1WIxIIkxgBw==-CekguSzLVE/iCTVQQWGILQK0x8Lo88FEQ/VHTZuAoP0=-dqZewkA79CPfNISf"
 
 ##############################
 ##		HELPER METHODS		##
