@@ -137,6 +137,22 @@ def checkout_setup(data):
 	result = send_request(url, data, headers)
 	send_response(result, "application/json")
 
+# javascript checkout SDK
+def checkout_verify(data):
+
+	# URL and headers
+	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/verify"
+	headers = {
+		"Content-Type": "application/json",
+		"x-api-key": CHECKOUT_API_KEY
+	}
+	
+	# send_debug(data)
+
+	# get and return response
+	result = send_request(url, data, headers)
+	send_response(result, "application/json")
+
 ##############################
 ##		HMAC SIGNATURE		##
 ##############################
@@ -365,6 +381,7 @@ for param in request_data.keys():
 router = {
 	"HPP": HPP,
 	"checkout_setup": checkout_setup,
+	"checkout_verify": checkout_verify,
 	"hmac_signature": HMAC_signature,
 	"CSE": CSE,
 	"directory_lookup": directory_lookup,
@@ -389,5 +406,6 @@ try:
 	
 except KeyError as e:
 	# in case of errors echo data back to client
-	send_debug("Method not found: \n{}".format(e))
+	send_debug("SERVER ERROR")
+	send_debug("Method not found: \n{}".format(e), duplicate=True)
 	send_debug("\n{}".format(data), duplicate=True)

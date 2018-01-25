@@ -12,7 +12,7 @@ var sdkConfigObj = {
 document.getElementById("checkoutBtn").addEventListener("click", openCheckout);
 
 // Handle response from setup call
-callback = function() {
+const setupCallback = function() {
 
 	if (this.readyState == 4) {
 		console.log(this);
@@ -24,9 +24,23 @@ callback = function() {
 			var checkout = chckt.checkout(data, '.checkout', sdkConfigObj);
 
 			// Handle response from initiate call
-			chckt.hooks.beforeComplete = function(pNode, pHookData, pData){
-				document.getElementById("paymentResult").innerHTML = pData["resultCode"];	
-				console.log(JSON.stringify(pData));
+			chckt.hooks.beforeComplete = function(pNode, pHookData){
+				console.log(JSON.stringify(pHookData));
+				document.getElementById("paymentResult").innerHTML = pHookData["resultCode"];
+
+				if (pHookData.resultCode.toLowerCase() === "authorised") {
+					// Set up verify call
+					document.getElementById("verifyBtn").addEventListener("click", function() {
+						document.getElementById("verifyBtn").remove()
+						var url = "http://localhost:8000/cgi-bin/submit.py";
+						var postData = "endpoint=checkout_verify&payload=" + pHookData.payload;
+						
+						AJAXPost(url + "?" + postData, "", "", "POST", function() {
+							document.getElementById("verifyResult").innerHTML = this.responseText;
+						});
+					});
+					document.getElementById("verifyBtn").classList.remove("inactive");
+				}
 			}
 		}
 		catch (e) {
@@ -37,7 +51,7 @@ callback = function() {
 };
 
 // Send request to server
-function AJAXPost(path, headers, params, method) {
+function AJAXPost(path, headers, params, method, callback) {
 	var request = new XMLHttpRequest();
 	request.open(method || "POST", path, true);
 	request.onreadystatechange = callback;
@@ -65,5 +79,5 @@ function openCheckout() {
 	method = "POST";
 
 	// calls async javascript function to send to server
-	AJAXPost(encodeURI(url + "?" + formString), headers, {}, method);
+	AJAXPost(encodeURI(url + "?" + formString), headers, {}, method, setupCallback);
 }
