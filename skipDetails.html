@@ -2,7 +2,11 @@
 
 <head>
 	<link rel="stylesheet" type="text/css" href="styles/style.css"></link>
+	<script src="scripts/reactComplete.js"></script>
+	<script type="text/jsx" src="scripts/reactScript.js"></script>
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 </head>
+
 
 <body>
 <form id="infoForm" class="clientForm" action="cgi-bin/submit.py">
@@ -21,6 +25,34 @@
 	<input type="hidden" id="endpoint" name="endpoint" value="skip_details"/></div>
 	<input type="submit" class="submitBtn" id="checkoutBtn" value="Send request"/>
 </form>
+
+<div id="reactHolder"/>
 </body>
 
 </html>
+
+<script>
+
+var formData = {
+	"fields": [
+		["brandCode", "mc"],
+		["issuerId", ""],
+		["paymentAmount", "1499"],
+		["currencyCode", "USD"],
+		["countryCode", "US"],
+		["shopperLocale", "en_GB"],
+		["shopperReference", "localhostShopper1"],
+		["merchantReference", "localhostSkipDetails"],
+		["channel", "Web"],
+		["resURL", "http://www.example.com"],
+		["merchantAccount", "ColinRood"],
+		["skinCode", "rKJeo2Mf"]],
+	"hiddenFields": [
+		["endpoint", "skip_details"]]
+}
+
+$(document).ready(() => renderReactForm(formData, "reactHolder"));
+
+</script>
+
+
