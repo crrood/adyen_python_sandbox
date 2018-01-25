@@ -36,7 +36,6 @@ READ_CREDENTIALS_FROM_FILE = False
 WS_USERNAME = "your webservice user name"
 WS_PASSWORD = "your webservice password"
 CHECKOUT_API_KEY = "your checkout API key (passed in X-API-KEY)"
-HMAC_KEY = "your HMAC key" # may be overwritten by client
 
 # authentication read from local file
 if READ_CREDENTIALS_FROM_FILE:
@@ -44,7 +43,6 @@ if READ_CREDENTIALS_FROM_FILE:
 		 WS_USERNAME = f.readline().strip()
 		 WS_PASSWORD = f.readline().strip()
 		 CHECKOUT_API_KEY = f.readline().strip()
-		 HMAC_KEY = f.readline().strip() # may be overwritten by client
 
 ##############################
 ##		HELPER METHODS		##
