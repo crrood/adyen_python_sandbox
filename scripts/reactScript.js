@@ -36,6 +36,7 @@ function ReactForm(props) {
 			{props.hiddenFields.map((fieldObj) => 
 				<HiddenInput key={fieldObj[0]} fieldName={fieldObj[0]} fieldValue={fieldObj[1]}/>
 			)}
+			<input type="submit" className="submitBtn" value={props.submitText}/>
 		</form>
 	)
 };
@@ -43,12 +44,20 @@ function ReactForm(props) {
 // add text form to DOM
 //
 // data:
-//	 fields: [[fieldName1, fieldValue1],...,[fieldNameN, fieldValueN]]
-//	 hiddenFields: [[fieldName1, fieldValue1],...,[fieldNameN, fieldValueN]]
+//	fields: [[fieldName1, fieldValue1],...,[fieldNameN, fieldValueN]]
+//	hiddenFields: [[fieldName1, fieldValue1],...,[fieldNameN, fieldValueN]]
+//	submitText: text for submit button
 // id: id of DOM element to attach form to
 function renderReactForm(data, id) {
+	console.log("renderReactForm");
 	ReactDOM.render(
-		<ReactForm action="cgi-bin/submit.py" fields={data.fields} hiddenFields={data.hiddenFields}/>,
+		<ReactForm action="cgi-bin/submit.py" fields={data.fields} hiddenFields={data.hiddenFields} submitText={data.submitText}/>,
 		document.getElementById(id)
 	);
 };
+
+// function to be called by client HTML page
+//
+// should call renderReactForm with data and id values defined
+// and any other behavior to be defined after this script has loaded
+renderPage();
