@@ -48,15 +48,15 @@ function ReactForm(props) {
 //	hiddenFields: [[fieldName1, fieldValue1],...,[fieldNameN, fieldValueN]]
 //	submitText: text for submit button
 // id: id of DOM element to attach form to
-function renderReactForm(data, id, callback = null) {
+function renderReactForm(data, id, onComplete = null) {
 	console.log("renderReactForm");
 	ReactDOM.render(
-		<ReactForm action="cgi-bin/submit.py" fields={data.fields} hiddenFields={data.hiddenFields} submitText={data.submitText}/>,
+		<ReactForm {async ? : action="cgi-bin/submit.py"} fields={data.fields} hiddenFields={data.hiddenFields} submitText={data.submitText}/>,
 		document.getElementById(id)
 	);
 
-	if (callback != null) {
-		callback();
+	if (onComplete != null) {
+		onComplete();
 	}
 };
 
