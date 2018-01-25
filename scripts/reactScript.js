@@ -29,7 +29,7 @@ function HiddenInput(props) {
 // hiddenFields: [[fieldName1, fieldValue1],...,[fieldNameN, fieldValueN]]
 function ReactForm(props) {
 	return (
-		<form className="clientForm" action={props.action}>
+		<form id="reactForm" className="clientForm" action={props.action}>
 			{props.fields.map((fieldObj) => 
 				<TextInput key={fieldObj[0]} fieldName={fieldObj[0]} fieldValue={fieldObj[1]}/>
 			)}
@@ -48,12 +48,16 @@ function ReactForm(props) {
 //	hiddenFields: [[fieldName1, fieldValue1],...,[fieldNameN, fieldValueN]]
 //	submitText: text for submit button
 // id: id of DOM element to attach form to
-function renderReactForm(data, id) {
+function renderReactForm(data, id, callback = null) {
 	console.log("renderReactForm");
 	ReactDOM.render(
 		<ReactForm action="cgi-bin/submit.py" fields={data.fields} hiddenFields={data.hiddenFields} submitText={data.submitText}/>,
 		document.getElementById(id)
 	);
+
+	if (callback != null) {
+		callback();
+	}
 };
 
 // function to be called by client HTML page
