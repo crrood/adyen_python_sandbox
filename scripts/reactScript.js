@@ -36,7 +36,7 @@ function ReactForm(props) {
 			{props.hiddenFields.map((fieldObj) => 
 				<HiddenInput key={fieldObj[0]} fieldName={fieldObj[0]} fieldValue={fieldObj[1]}/>
 			)}
-			<input type="submit" className="submitBtn" value={props.submitText}/>
+			<input type="submit" className="submitBtn center" value={props.submitText}/>
 		</form>
 	)
 };

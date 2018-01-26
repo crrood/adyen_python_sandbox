@@ -32,6 +32,8 @@ function renderPage() {
 	renderReactForm(formData, "reactHolder", function() {
 
 		// add radio buttons after form has rendered
+		var container = document.createElement("div");
+		container.style = "text-align: center;"
 		var radio1 = document.createElement("input");
 		radio1.type = "radio";
 		radio1.name = "version";
@@ -44,14 +46,15 @@ function renderPage() {
 		var label1 = document.createElement("label");
 		label1.innerHTML = "V1"
 		var label2 = document.createElement("label");
-		label2.innerHTML = "V2"
+		label2.innerHTML = " V2"
 
 		// attach to DOM
 		var reactForm = document.getElementById("reactForm");
-		reactForm.insertBefore(radio2, reactForm.firstChild);
-		reactForm.insertBefore(label2, reactForm.firstChild);
-		reactForm.insertBefore(radio1, reactForm.firstChild);
-		reactForm.insertBefore(label1, reactForm.firstChild);
+		container.appendChild(label1);
+		container.appendChild(radio1);
+		container.appendChild(label2);
+		container.appendChild(radio2);
+		reactForm.insertBefore(container, reactForm.firstChild);
 	});
 }
 
