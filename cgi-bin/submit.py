@@ -20,6 +20,7 @@ import webbrowser
 ##################################
 
 LOCAL_ADDRESS = "http://localhost:8000"
+RETURN_URL = "http://localhost:8000/cgi-bin/submit.py?endpoint=result_page"
 READ_CREDENTIALS_FROM_FILE = False
 
 ##############################
@@ -80,15 +81,26 @@ def send_debug(data, content_type="text/plain", duplicate=False):
 	else:
 		print("\r\n\r\n")
 
+# indent fields in data object
+def indent_field(data, parent, target):
+	if not parent in data.keys():
+		data[parent] = {}
+	
+	data[parent][target] = data[target]
+	del data[target]
+
 # reformat amount data into indented object for Adyen
 def reformat_amount(data):
-	data["amount"] = {}
-	data["amount"]["value"] = data["value"]
-	data["amount"]["currency"] = data["currency"]
-	del data["value"]
-	del data["currency"]
+	indent_field(data, "amount", "value")
+	indent_field(data, "amount", "currency")
 
-	return data
+# reformat card data into indented object for Adyen
+def reformat_card(data):
+	indent_field(data, "card", "number")
+	indent_field(data, "card", "expiryMonth")
+	indent_field(data, "card", "expiryYear")
+	indent_field(data, "card", "holderName")
+	indent_field(data, "card", "cvc")
 
 # create basic auth header
 def create_basic_auth(user, WS_PASSWORD):
@@ -113,10 +125,10 @@ def checkout_setup(data):
 	# static fields
 	data["html"] = "true"
 	data["origin"] = LOCAL_ADDRESS
-	data["returnUrl"] = LOCAL_ADDRESS
+	data["returnUrl"] = RETURN_URL
 	data["reference"] = "Localhost checkout"
 
-	data = reformat_amount(data)
+	reformat_amount(data)
 
 	# get and return response
 	result = send_request(url, data, headers)
@@ -205,7 +217,7 @@ def CSE(data):
 	data["reference"] = "Localhost CSE"
 
 	# move value and currency into indented object
-	data = reformat_amount(data)
+	reformat_amount(data)
 
 	# check if recurring
 	if "shopperReference" in data.keys():
@@ -326,7 +338,7 @@ def skip_details(data):
 def secured_fields_setup(data):
 
 	# request info
-	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v32/setup"
+	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/setup"
 	headers = {
 		"Content-Type": "application/json",
 		"X-API-Key": CHECKOUT_API_KEY
@@ -334,14 +346,73 @@ def secured_fields_setup(data):
 
 	# static fields
 	data["origin"] = LOCAL_ADDRESS
-	data["returnUrl"] = LOCAL_ADDRESS
+	data["returnUrl"] = RETURN_URL
 
 	# move amount data into parent object
-	data = reformat_amount(data)
+	reformat_amount(data)
 
 	# get and return response
 	result = send_request(url, data, headers)
 	send_response(result, "application/json")
+
+##########################
+##		3D Secure		##
+##########################
+
+# API call with 3d Secure redirect
+def three_d_secure(data):
+
+	# request info
+	url = "https://pal-test.adyen.com/pal/servlet/Payment/authorise"
+	headers = {
+		"Content-Type": "application/json",
+		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD))
+	}
+
+	# static fields
+	data["returnUrl"] = RETURN_URL
+	data["additionalData"] = {
+		"executeThreeD": "true"
+	}
+
+	# move amount data into parent object
+	reformat_amount(data)
+
+	# move card data into parent object
+	reformat_card(data)
+
+	# move userAgent into browserInfo object
+	indent_field(data, "browserInfo", "userAgent")
+	data["browserInfo"]["acceptheader"] = "text/html"
+
+	# get response from Adyen
+	# and create a self-submitting form to redirect user to auth page
+	result = json.loads(send_request(url, data, headers).decode("utf8"))
+	result = '''
+		<body onload="document.getElementById('3dform').submit();">
+	        <form method="POST" action="{issuer_url}" id="3dform">
+	            <input type="hidden" name="PaReq" value="{pa_request}" />
+	            <input type="hidden" name="MD" value="{md}" />
+	            <input type="hidden" name="TermUrl" value="{term_url}" />
+	            <noscript>
+	                <br>
+	                <br>
+	                <div style="text-align: center">
+	                    <h1>Processing your 3D Secure Transaction</h1>
+	                    <p>Please click continue to continue the processing of your 3D Secure transaction.</p>
+	                    <input type="submit" class="button" value="continue"/>
+	                </div>
+	            </noscript>
+	        </form>
+	    </body>
+	    '''.format(
+	    	pa_request=result["paRequest"], 
+	    	issuer_url=result["issuerUrl"],
+	    	md=result["md"],
+	    	term_url=RETURN_URL
+	    )
+
+	send_response(result, "text/html")
 
 ##########################
 ##		RESULT PAGE		##
@@ -349,7 +420,7 @@ def secured_fields_setup(data):
 
 # landing page for complete transactions
 def result_page(data):
-	send_debug("Response from HPP:")
+	send_debug("Response from Adyen:")
 	send_debug(data, duplicate=True)
 
 ##############################
@@ -372,6 +443,7 @@ router = {
 	"directory_lookup": directory_lookup,
 	"secured_fields_setup": secured_fields_setup,
 	"skip_details": skip_details,
+	"three_d_secure": three_d_secure,
 	"result_page": result_page
 }
 
