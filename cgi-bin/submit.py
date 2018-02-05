@@ -319,6 +319,37 @@ def skip_details(data):
 
 	data["resURL"] = "http://localhost:8000/cgi-bin/submit.py?endpoint=result_page"
 
+	# open invoice fields for Klarna, etc
+	if "klarna" in data["brandCode"] or "afterpay" in data["brandCode"] or "ratepay" in data["brandCode"]:
+		data["openinvoicedata.line1.currencyCode"] = data["currencyCode"]
+		data["openinvoicedata.line1.description"] = "openinvoice description"
+		data["openinvoicedata.line1.itemAmount"] = data["paymentAmount"]
+		data["openinvoicedata.line1.itemVatAmount"] = data["paymentAmount"]
+		data["openinvoicedata.line1.itemVatPercentage"] = "7"
+		data["openinvoicedata.line1.numberOfItems"] = "1"
+		data["openinvoicedata.line1.vatCategory"] = "Low"
+		data["openinvoicedata.numberOfLines"] = "1"
+
+		data["shopperEmail"] = "colin.rood@adyen.com"
+		data["shopper.firstName"] = "Colin"
+		data["shopper.lastName"] = "Rood"
+		data["shopper.gender"] = "MALE"
+		data["shopper.telephoneNumber"] = "5555555555"
+		data["shopper.socialSecurityNumber"] = "1111"
+		
+		data["shopper.dateOfBirthDayOfMonth"] = "28"
+		data["shopper.dateOfBirthMonth"] = "9"
+		data["shopper.dateOfBirthYear"] = "1989"
+
+		data["billingAddress.country"] = data["countryCode"]
+		data["billingAddress.city"] = "Anytown"
+		data["billingAddress.houseNumberOrName"] = "123"
+		data["billingAddress.street"] = "Main St"
+		data["billingAddress.postalCode"] = "12345"
+		
+		data["shopperType"] = "1"
+		data["billingAddressType"] = "1"
+
 	# generate HMAC signature
 	data["merchantSig"] = HMAC_signature(data, False).decode("utf8")
 
