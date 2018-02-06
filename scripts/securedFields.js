@@ -3,13 +3,14 @@ var globals = {};
 
 // Config object
 globals.securedFieldsConfiguration = {
-    configObject : {
-        originKey: "YOUR_ORIGIN_KEY", // Comes from the setupResponseJSON object.
-        publicKeyToken : "YOUR_PUBLIC_KEY_TOKEN" // Comes from the setupResponseJSON object.
-    },
-    rootNode: '.secured-fields-form'
+	configObject : {
+		originKey: "YOUR_ORIGIN_KEY", // Comes from the setupResponseJSON object.
+		publicKeyToken : "YOUR_PUBLIC_KEY_TOKEN" // Comes from the setupResponseJSON object.
+	},
+	rootNode: '.secured-fields-form'
 };
 
+// Event listeners async form submissions
 function initForms() {
 	document.getElementById("setupBtn").addEventListener("click", setupSecuredFields);
 	document.getElementById("checkoutBtn").addEventListener("click", submitPayment);
@@ -17,6 +18,7 @@ function initForms() {
 	globals.brandImage = document.getElementById("brand-container");
 }
 
+// Helper method for log output
 function displayToWindow(text) {
 	document.getElementById("output").innerHTML = document.getElementById("output").innerHTML + "<br>" + text;
 }
@@ -47,12 +49,12 @@ callback = function() {
 
 			globals.securedFields.onBrand( function(brandObject){
 
-	            // Triggered when receiving a brand callback from the credit card number validation.
-	            if (brandObject.brand) {
-	                globals.brandImage.setAttribute("src", globals.data.logoBaseUrl + brandObject.brand + "@2x.png");
-	                globals.paymentMethodType = brandObject.brand;
-	            }
-	        });
+				// Triggered when receiving a brand callback from the credit card number validation.
+				if (brandObject.brand) {
+					globals.brandImage.setAttribute("src", globals.data.logoBaseUrl + brandObject.brand + "@2x.png");
+					globals.paymentMethodType = brandObject.brand;
+				}
+			});
 
 			// Un-gray out the entry fields
 			document.getElementById("secured-fields-container").classList.remove("inactive");
@@ -77,6 +79,7 @@ function AJAXPost(path, headers, params, method) {
 	request.send(params);
 };
 
+// Called on submitting payment data form
 function setupSecuredFields(e) {
 	e.preventDefault();
 
@@ -98,6 +101,7 @@ function setupSecuredFields(e) {
 	AJAXPost(encodeURI(url + "?" + formString), headers, {}, method);
 }
 
+// Called from JS library on successful payment
 function paymentSuccess(result) {
 	if (result.type === "complete") {
 		document.getElementById("secured-fields-container").remove();
@@ -111,25 +115,30 @@ function paymentSuccess(result) {
 	displayToWindow(JSON.stringify(result));
 }
 
+// Called from JS library on failed payment
 function paymentError(result) {
 	displayToWindow("Error!");
 	displayToWindow(result);
 }
 
+// Send payment using info from SecuredFields
 function submitPayment(e) {
 	e.preventDefault();
 
 	console.log(globals.securedFields);
 
-	 var initPayConfig = {
-	    responseData : globals.data, // This is the JSON object you received from the ‘setup’ call to the Checkout API.
-	    pmType : globals.paymentMethodType, // e.g. ‘visa’,’mc’, ‘amex’.
-	    formEl : document.getElementById("adyen-encrypted-form"), // The <form> element that holds your securedFields.
-	    onSuccess : paymentSuccess, // Callback function for the AJAX call that checkoutInitiatePayment makes.
-	    onError : paymentError // Callback function function for the AJAX call that checkoutInitiatePayment makes.
+	// Configuration object
+	var initPayConfig = {
+		responseData : globals.data, // This is the JSON object you received from the ‘setup’ call to the Checkout API.
+		pmType : globals.paymentMethodType, // e.g. ‘visa’,’mc’, ‘amex’.
+		formEl : document.getElementById("adyen-encrypted-form"), // The <form> element that holds your securedFields.
+		onSuccess : paymentSuccess, // Callback function for the AJAX call that checkoutInitiatePayment makes.
+		onError : paymentError // Callback function function for the AJAX call that checkoutInitiatePayment makes.
 	};
 
 	displayToWindow("sending payment...")
 	
+	// Sends data to server
+	// Using method from JS library
 	var res = chcktPay(initPayConfig);
 }

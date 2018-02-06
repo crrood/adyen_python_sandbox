@@ -1,0 +1,85 @@
+<head>
+	<script type="text/javascript" src="https://checkoutshopper-test.adyen.com/checkoutshopper/assets/js/sdk/checkoutSDK.1.2.0.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="styles/style.css"></link>
+</head>
+
+<body>
+	<div class="checkout" id="checkout">
+		<form class="clientForm" id="infoForm">
+			<div class="inputHolder">Amount: <input type="text" id="value" name="value" value="199"/><br></div>
+			<div class="inputHolder">Currency: <input type="text" id="currency" name="currency" value="USD"/><br></div>
+			<div class="inputHolder">CountryCode: <input type="text" id="countryCode" name="countryCode" value="US"/><br></div>
+			<div class="inputHolder">ShopperLocale: <input type="text" id="shopperLocale" name="shopperLocale" value="en_GB"/><br></div>
+			<div class="inputHolder">ShopperReference: <input type="text" id="shopperReference" name="shopperReference" value="localhostCheckout1"/><br></div>
+			<div class="inputHolder">Channel: <input type="text" id="channel" name="channel" value="Web"/><br></div>
+			<div class="inputHolder">MerchantAccount: <input type="text" id="merchantAccount" name="merchantAccount" value="ColinRood"/><br></div>
+			<input type="button" class="submitBtn" id="checkoutBtn" value="Checkout"/>
+		</form>
+	</div>
+</body>
+
+<script>
+
+// Styling for checkout
+var sdkConfigObj = {
+	base: {
+		fontSize: '16px',
+		background: "#68FFC1",
+		outline: "2px black",
+		color: "blue",
+	},
+	context: "test"
+};
+
+document.getElementById("checkoutBtn").addEventListener("click", openCheckout);
+
+// Handle response from setup call
+const setupCallback = function() {
+
+	if (this.readyState == 4) {
+		console.log(this);
+
+		try {
+			var data = JSON.parse(this.responseText);
+
+			// Initialize checkout
+			var checkout = chckt.checkout(data, '.checkout', sdkConfigObj);
+
+			// Handle response from initiate call
+			chckt.hooks.beforeComplete = function(pNode, pHookData){
+				console.log(JSON.stringify(pHookData));
+				
+				parent.setPaymentResult(pHookData.resultCode);
+
+				if (pHookData.resultCode.toLowerCase() === "authorised") {
+					parent.setupVerify(pHookData);
+				}
+			}
+		}
+		catch (e) {
+			console.log(e);
+			document.getElementById("checkout").innerHTML = this.responseText;
+		}
+	}
+};
+
+function openCheckout() {
+	var inputParams = document.querySelectorAll("input[type=text]");
+
+	// Get request details from html form
+	var formString = "";
+	for (var param of inputParams) {
+		formString = formString + param.name + "=" + param.value + "&";
+	}
+	formString = formString + "endpoint=checkout_setup";
+
+	// Set parameters for request to server
+	url = "cgi-bin/submit.py";
+	headers = { "Content-Type": "application/x-www-form-urlencoded" };
+	method = "POST";
+
+	// calls async javascript function to send to server
+	parent.AJAXPost(encodeURI(url + "?" + formString), headers, {}, method, setupCallback);
+}
+
+</script>

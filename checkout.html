@@ -1,26 +1,13 @@
 <html>
 
 <head>
-	<script type="text/javascript" src="https://checkoutshopper-test.adyen.com/checkoutshopper/assets/js/sdk/checkoutSDK.1.2.0.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="styles/style.css"></link>
 </head>
 
 <body>
 	<h4>Checkout should appear below:</h4>
-	<div id="spacer">
-		<div class="checkout" id="checkout">
-			<form class="clientForm" id="infoForm">
-				<div class="inputHolder">Amount: <input type="text" id="value" name="value" value="199"/><br></div>
-				<div class="inputHolder">Currency: <input type="text" id="currency" name="currency" value="USD"/><br></div>
-				<div class="inputHolder">CountryCode: <input type="text" id="countryCode" name="countryCode" value="US"/><br></div>
-				<div class="inputHolder">ShopperLocale: <input type="text" id="shopperLocale" name="shopperLocale" value="en_GB"/><br></div>
-				<div class="inputHolder">ShopperReference: <input type="text" id="shopperReference" name="shopperReference" value="localhostCheckout1"/><br></div>
-				<div class="inputHolder">Channel: <input type="text" id="channel" name="channel" value="Web"/><br></div>
-				<div class="inputHolder">MerchantAccount: <input type="text" id="merchantAccount" name="merchantAccount" value="ColinRood"/><br></div>
-				<input type="button" class="submitBtn" id="checkoutBtn" value="Checkout"/>
-			</form>
-		</div>
-	</div>
+	<iframe class="checkout-iframe" src="checkout_iframe.html"></iframe>
+
 	<h4>Payment result:</h4>
 	<div id="paymentResult">"Patience is a virtue" - Confucius probably</div>
 	<div id="verifyContainer" class="inactive">
@@ -32,4 +19,37 @@
 
 </html>
 
-<script type="text/javascript" src="scripts/checkoutSetupCall.js"></script>
+<script>
+
+// Send request to server
+function AJAXPost(path, headers, params, method, callback) {
+	var request = new XMLHttpRequest();
+	request.open(method || "POST", path, true);
+	request.onreadystatechange = callback;
+
+	for (var key in headers) {
+		request.setRequestHeader(key, headers[key]);
+	}
+
+	request.send(params);
+};
+
+function setPaymentResult(text) {
+	document.getElementById("paymentResult").innerHTML = text;
+}
+
+function setupVerify(pHookData) {
+	// Set up verify call
+	document.getElementById("verifyBtn").addEventListener("click", function() {
+		document.getElementById("verifyBtn").remove()
+		var url = "http://localhost:8000/cgi-bin/submit.py";
+		var postData = "endpoint=checkout_verify&payload=" + pHookData.payload;
+		
+		AJAXPost(url + "?" + postData, "", "", "POST", function() {
+			document.getElementById("verifyResult").innerHTML = this.responseText;
+		});
+	});
+	document.getElementById("verifyContainer").classList.remove("inactive");
+}
+
+</script>

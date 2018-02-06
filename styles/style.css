@@ -19,6 +19,13 @@
 	width: 350px;
 }
 
+.checkout-iframe {
+	border: 1px black dashed;
+	width: 80%;
+	height: 80%;
+	text-align: center;
+}
+
 .checkout {
 	margin-left: 15%;
 	margin-right: 15%;
@@ -42,7 +49,7 @@
 	margin: 10px;
 }
 
-.submitBtn {
+button, .submitBtn {
 	margin-bottom: 5px;
 	margin-top: 15px;
 
