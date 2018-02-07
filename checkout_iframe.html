@@ -47,8 +47,8 @@ const setupCallback = function() {
 
 			// Handle response from initiate call
 			chckt.hooks.beforeComplete = function(pNode, pHookData){
-				console.log(JSON.stringify(pHookData));
 				
+				// Send data back to parent page
 				parent.setPaymentResult(pHookData.resultCode);
 
 				if (pHookData.resultCode.toLowerCase() === "authorised") {

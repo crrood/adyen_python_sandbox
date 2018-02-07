@@ -24,11 +24,23 @@
 	width: 80%;
 	height: 80%;
 	text-align: center;
+
+	animation-duration: 2s;
 }
 
 .checkout {
 	margin-left: 15%;
 	margin-right: 15%;
+}
+
+@keyframes shrink-checkout {
+	from {
+		height: 80%;
+	}
+
+	to {
+		height: 100px;
+	}
 }
 
 .chckt-pm__name {

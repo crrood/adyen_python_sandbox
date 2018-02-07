@@ -6,7 +6,8 @@
 
 <body>
 	<h4>Checkout should appear below:</h4>
-	<iframe class="checkout-iframe" src="checkout_iframe.html"></iframe>
+	
+	<iframe class="checkout-iframe" src="checkout_iframe.html" id="checkout-iframe"></iframe>
 
 	<h4>Payment result:</h4>
 	<div id="paymentResult">"Patience is a virtue" - Confucius probably</div>
@@ -21,6 +22,8 @@
 
 <script>
 
+// document.getElementById("checkout-iframe").style = "animation-name: shrink-checkout;";
+
 // Send request to server
 function AJAXPost(path, headers, params, method, callback) {
 	var request = new XMLHttpRequest();
@@ -34,22 +37,34 @@ function AJAXPost(path, headers, params, method, callback) {
 	request.send(params);
 };
 
+// Sets the text inside paymentResult div
 function setPaymentResult(text) {
 	document.getElementById("paymentResult").innerHTML = text;
 }
 
+// Called on successful transaction
 function setupVerify(pHookData) {
+
+	// Un-hide verify HTML and hide Checkout container
+	document.getElementById("verifyContainer").classList.remove("inactive");
+	document.getElementById("checkout-iframe").style = "animation-name: shrink-checkout;";
+	document.getElementById("checkout-iframe").addEventListener("animationend", (e) => e.target.style = "height: 100px;");
+
 	// Set up verify call
 	document.getElementById("verifyBtn").addEventListener("click", function() {
+
+		// Hide button
 		document.getElementById("verifyBtn").remove()
+
+		// Send data to server
 		var url = "http://localhost:8000/cgi-bin/submit.py";
 		var postData = "endpoint=checkout_verify&payload=" + pHookData.payload;
-		
 		AJAXPost(url + "?" + postData, "", "", "POST", function() {
+
+			// Display response
 			document.getElementById("verifyResult").innerHTML = this.responseText;
 		});
 	});
-	document.getElementById("verifyContainer").classList.remove("inactive");
 }
 
 </script>
