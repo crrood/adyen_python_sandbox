@@ -116,7 +116,7 @@ def create_basic_auth(user, WS_PASSWORD):
 def checkout_setup(data):
 
 	# URL and headers
-	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/setup"
+	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v32/setup"
 	headers = {
 		"Content-Type": "application/json",
 		"x-api-key": CHECKOUT_API_KEY
@@ -127,6 +127,25 @@ def checkout_setup(data):
 	data["origin"] = LOCAL_ADDRESS
 	data["returnUrl"] = RETURN_URL
 	data["reference"] = "Localhost checkout"
+
+	data["shopperName"] = {}
+	data["shopperName"]["firstName"] = "Colin"
+	data["shopperName"]["lastName"] = "Rood"
+	data["shopperName"]["gender"] = "MALE"
+
+	data["configuration"] = {}
+	data["configuration"]["cardHolderNameRequired"] = "true"
+	data["configuration"]["avs"] = {}
+	data["configuration"]["avs"]["enabled"] = True
+	data["configuration"]["avs"]["addressEditable"] = True
+
+	data["billingAddress"] = {}
+	data["billingAddress"]["city"] = "Richmond"
+	data["billingAddress"]["country"] = "US"
+	data["billingAddress"]["houseNumberOrName"] = "3821"
+	data["billingAddress"]["postalCode"] = "94805"
+	data["billingAddress"]["stateOrProvince"] = "CA"
+	data["billingAddress"]["street"] = "Solano"
 
 	reformat_amount(data)
 
