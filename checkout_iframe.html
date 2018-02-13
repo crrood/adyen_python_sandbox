@@ -28,6 +28,24 @@ var translationObject = {
     }
 };
 
+var styleObject = {
+    base: {
+        color: '#000',
+        fontSize: '14px',
+        lineHeight: '14px',
+        fontSmoothing: 'antialiased'
+    },
+    error: {
+        color: 'red'
+    },
+    placeholder: {
+        color: '#d8d8d8'
+    },
+    validated: {
+        color: 'green'
+    }
+};
+
 // Styling for checkout
 var sdkConfigObj = {
 	base: {
@@ -35,6 +53,11 @@ var sdkConfigObj = {
 		background: "#68FFC1",
 		outline: "2px black",
 		color: "blue",
+	},
+	paymentMethods : {
+		card : {
+			sfStyles : styleObject
+		}
 	},
 	context: "test"
 };

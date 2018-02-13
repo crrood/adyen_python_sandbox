@@ -140,12 +140,12 @@ def checkout_setup(data):
 	data["configuration"]["avs"]["addressEditable"] = True
 
 	data["billingAddress"] = {}
-	data["billingAddress"]["city"] = "Richmond"
+	data["billingAddress"]["city"] = "Springfield"
 	data["billingAddress"]["country"] = "US"
-	data["billingAddress"]["houseNumberOrName"] = "3821"
-	data["billingAddress"]["postalCode"] = "94805"
-	data["billingAddress"]["stateOrProvince"] = "CA"
-	data["billingAddress"]["street"] = "Solano"
+	data["billingAddress"]["houseNumberOrName"] = "1234"
+	data["billingAddress"]["postalCode"] = "74629"
+	data["billingAddress"]["stateOrProvince"] = "OR"
+	data["billingAddress"]["street"] = "Main"
 
 	reformat_amount(data)
 
@@ -162,8 +162,6 @@ def checkout_verify(data):
 		"Content-Type": "application/json",
 		"x-api-key": CHECKOUT_API_KEY
 	}
-	
-	# send_debug(data)
 
 	# get and return response
 	result = send_request(url, data, headers)
@@ -349,16 +347,16 @@ def skip_details(data):
 		data["openinvoicedata.line1.vatCategory"] = "Low"
 		data["openinvoicedata.numberOfLines"] = "1"
 
-		data["shopperEmail"] = "colin.rood@adyen.com"
+		data["shopperEmail"] = "test@email.com"
 		data["shopper.firstName"] = "Colin"
 		data["shopper.lastName"] = "Rood"
 		data["shopper.gender"] = "MALE"
 		data["shopper.telephoneNumber"] = "5555555555"
 		data["shopper.socialSecurityNumber"] = "1111"
 		
-		data["shopper.dateOfBirthDayOfMonth"] = "28"
-		data["shopper.dateOfBirthMonth"] = "9"
-		data["shopper.dateOfBirthYear"] = "1989"
+		data["shopper.dateOfBirthDayOfMonth"] = "11"
+		data["shopper.dateOfBirthMonth"] = "2"
+		data["shopper.dateOfBirthYear"] = "1983"
 
 		data["billingAddress.country"] = data["countryCode"]
 		data["billingAddress.city"] = "Anytown"
