@@ -116,7 +116,7 @@ def create_basic_auth(user, WS_PASSWORD):
 def checkout_setup(data):
 
 	# URL and headers
-	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v32/setup"
+	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v30/setup"
 	headers = {
 		"Content-Type": "application/json",
 		"x-api-key": CHECKOUT_API_KEY
@@ -136,8 +136,8 @@ def checkout_setup(data):
 	data["configuration"] = {}
 	data["configuration"]["cardHolderNameRequired"] = "true"
 	data["configuration"]["avs"] = {}
-	data["configuration"]["avs"]["enabled"] = True
-	data["configuration"]["avs"]["addressEditable"] = True
+	data["configuration"]["avs"]["enabled"] = "yes"
+	data["configuration"]["avs"]["addressEditable"] = "true"
 
 	data["billingAddress"] = {}
 	data["billingAddress"]["city"] = "Springfield"
@@ -146,6 +146,8 @@ def checkout_setup(data):
 	data["billingAddress"]["postalCode"] = "74629"
 	data["billingAddress"]["stateOrProvince"] = "OR"
 	data["billingAddress"]["street"] = "Main"
+
+	data["enableRecurring"] = "true"
 
 	reformat_amount(data)
 
@@ -395,6 +397,9 @@ def secured_fields_setup(data):
 	# static fields
 	data["origin"] = LOCAL_ADDRESS
 	data["returnUrl"] = RETURN_URL
+
+	data["additionalData"] = {}
+	data["additionalData"]["executeThreeD"] = "True"
 
 	# move amount data into parent object
 	reformat_amount(data)
