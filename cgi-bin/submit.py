@@ -31,6 +31,7 @@ READ_CREDENTIALS_FROM_FILE = False
 WS_USERNAME = "ws_306326@Company.AdyenTechSupport"
 WS_PASSWORD = "7UuQQEmR=2Qq9ByCt4<3r2zq^"
 CHECKOUT_API_KEY = "AQEyhmfxLIrIaBdEw0m/n3Q5qf3VaY9UCJ1+XWZe9W27jmlZilETQsVk1ULvYgY9gREbDhYQwV1bDb7kfNy1WIxIIkxgBw==-CekguSzLVE/iCTVQQWGILQK0x8Lo88FEQ/VHTZuAoP0=-dqZewkA79CPfNISf"
+MERCHANT_ACCOUNT = "ColinRood"
 
 ##############################
 ##		HELPER METHODS		##
@@ -274,6 +275,10 @@ def HPP(data):
 	data["shipBeforeData"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
 	data["resURL"] = "http://localhost:8000/cgi-bin/submit.py?endpoint=result_page"
 
+	# account specific fields
+	data["skinCode"] = "rKJeo2Mf"
+	data["hmacKey"] = "BE1C271E9CD9D2F6611D2C7064FE9EE314DA58539195E92BF5AC706209A514DB"
+
 	# generate HMAC signature
 	data["merchantSig"] = HMAC_signature(data, False).decode("utf8")
 	
@@ -300,6 +305,10 @@ def directory_lookup(data):
 		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD)),
 		"Content-Type": "application/json"
 	}
+
+	# account specific fields
+	data["skinCode"] = "rKJeo2Mf"
+	data["hmacKey"] = "BE1C271E9CD9D2F6611D2C7064FE9EE314DA58539195E92BF5AC706209A514DB"
 
 	# generate HMAC signature
 	data["merchantSig"] = HMAC_signature(data, False).decode("utf8")
@@ -329,6 +338,10 @@ def skip_details(data):
 
 	# session validity
 	data["sessionValidity"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
+
+	# account specific fields
+	data["skinCode"] = "rKJeo2Mf"
+	data["hmacKey"] = "BE1C271E9CD9D2F6611D2C7064FE9EE314DA58539195E92BF5AC706209A514DB"
 
 	# populate empty but apparently mandatory fields
 	data["allowedMethods"] = ""
@@ -501,7 +514,7 @@ router = {
 }
 
 try:
-	# parse endpoing from request
+	# parse endpoint from request
 	endpoint = data["endpoint"]
 	del data["endpoint"]
 
@@ -509,6 +522,9 @@ except:
 	send_debug("endpoint value missing in request data:")
 	send_debug(data, duplicate=True)
 	exit(1)
+
+# add merchantAccount to data
+data["merchantAccount"] = MERCHANT_ACCOUNT
 
 try:
 	# send to proper method
