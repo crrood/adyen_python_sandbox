@@ -20,7 +20,7 @@ import webbrowser
 ##################################
 
 LOCAL_ADDRESS = "http://localhost:8000"
-RETURN_URL = "http://localhost:8000/cgi-bin/submit.py?endpoint=result_page"
+RETURN_URL = "{}/cgi-bin/submit.py?endpoint=result_page".format(LOCAL_ADDRESS)
 READ_CREDENTIALS_FROM_FILE = False
 
 ##############################
@@ -137,7 +137,7 @@ def checkout_setup(data):
 	data["configuration"] = {}
 	data["configuration"]["cardHolderNameRequired"] = "true"
 	data["configuration"]["avs"] = {}
-	data["configuration"]["avs"]["enabled"] = "yes"
+	data["configuration"]["avs"]["enabled"] = "automatic"
 	data["configuration"]["avs"]["addressEditable"] = "true"
 
 	data["billingAddress"] = {}
