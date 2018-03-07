@@ -67,7 +67,7 @@ callback = function() {
 };
 
 // Send request to server
-function AJAXPost(path, headers, params, method) {
+function AJAXPost(path, headers, params, method, callback) {
 	var request = new XMLHttpRequest();
 	request.open(method || "POST", path, true);
 	request.onreadystatechange = callback;
@@ -98,7 +98,7 @@ function setupSecuredFields(e) {
 	method = "POST";
 
 	// calls async javascript function to send to server
-	AJAXPost(encodeURI(url + "?" + formString), headers, {}, method);
+	AJAXPost(encodeURI(url + "?" + formString), headers, {}, method, callback);
 }
 
 // Called from JS library on successful payment
@@ -113,6 +113,27 @@ function paymentSuccess(result) {
 		}
 	}
 	displayToWindow(JSON.stringify(result));
+
+	// Show verify container
+	document.getElementById("verifyContainer").classList.remove("inactive");
+
+	// Set up verify call
+	document.getElementById("verifyBtn").addEventListener("click", function() {
+
+		// Disable verify button
+		document.getElementById("verifyBtn").disabled = true;
+
+		// Send data to server
+		var url = "./cgi-bin/submit.py";
+		var postData = "endpoint=checkout_verify&payload=" + result.payload;
+		var headers = { "Content-Type": "application/x-www-form-urlencoded" };
+		var method = "POST";
+
+		AJAXPost(url + "?" + postData, headers, {}, "POST", function() {
+			// Display response
+			document.getElementById("verifyResult").innerHTML = this.responseText;
+		});
+	});
 }
 
 // Called from JS library on failed payment
