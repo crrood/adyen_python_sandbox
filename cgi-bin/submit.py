@@ -1,7 +1,7 @@
 #!/Users/colinr/miniconda3/bin/python3
 
 # general utilities
-import json, os, datetime
+import json, os, datetime, csv
 
 # HMAC
 import base64, binascii, hmac, hashlib
@@ -28,10 +28,24 @@ READ_CREDENTIALS_FROM_FILE = False
 ##############################
 
 # hardcoded authentication values
-WS_USERNAME = "ws_306326@Company.AdyenTechSupport"
-WS_PASSWORD = "7UuQQEmR=2Qq9ByCt4<3r2zq^"
-CHECKOUT_API_KEY = "AQEyhmfxLIrIaBdEw0m/n3Q5qf3VaY9UCJ1+XWZe9W27jmlZilETQsVk1ULvYgY9gREbDhYQwV1bDb7kfNy1WIxIIkxgBw==-CekguSzLVE/iCTVQQWGILQK0x8Lo88FEQ/VHTZuAoP0=-dqZewkA79CPfNISf"
 MERCHANT_ACCOUNT = "ColinRood"
+
+# load credentials from file for specified Merchant Account
+with open("credentials.csv") as credentials_file:
+	reader = csv.DictReader(credentials_file)
+
+	merchant_account_found = False
+	for row in reader:
+		if row["merchantAccount"] == MERCHANT_ACCOUNT:
+			WS_USERNAME = row["wsUser"]
+			WS_PASSWORD = row["wsPass"]
+			CHECKOUT_API_KEY = row["apiKey"]
+			merchant_account_found = True
+
+	# send an error if credentials aren't provided for Merchant Account
+	if not merchant_account_found:
+		send_debug("Merchant Account {} not found in credentials.csv".format(MERCHANT_ACCOUNT))
+		exit(1)
 
 ##############################
 ##		HELPER METHODS		##
@@ -147,6 +161,11 @@ def checkout_setup(data):
 	data["billingAddress"]["postalCode"] = "74629"
 	data["billingAddress"]["stateOrProvince"] = "OR"
 	data["billingAddress"]["street"] = "Main"
+
+	data["metadata"] = {
+		"key1": "value1",
+		"key2": "value2"
+	}
 
 	data["enableRecurring"] = "true"
 

@@ -85,6 +85,14 @@ const setupCallback = function() {
 					parent.setupVerify(pHookData);
 				}
 			}
+
+			// Other hooks
+			chckt.hooks.getDataFromSubmissionProcess = function(checkoutNode, formData) {
+				console.log("checkoutNode");
+				console.log(checkoutNode);
+				console.log("formData");
+				console.log(formData.toString());
+			}
 		}
 		catch (e) {
 			console.log(e);
