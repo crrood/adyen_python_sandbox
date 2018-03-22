@@ -30,7 +30,16 @@ READ_CREDENTIALS_FROM_FILE = False
 # hardcoded authentication values
 MERCHANT_ACCOUNT = "ColinRood"
 
-# load credentials from file for specified Merchant Account
+'''
+load credentials from file for specified Merchant Account
+
+first row is keys
+subsequent rows are sets of credentials
+
+for example:
+merchantAccount,wsUser,wsPass,apiKey
+ColinRood,ws@Company.AdyenTechSupport,superSecurePassword,AQEyhmfxLIrIaBdEw0m...
+'''
 with open("credentials.csv") as credentials_file:
 	reader = csv.DictReader(credentials_file)
 
@@ -84,6 +93,8 @@ def send_response(result, content_type="text/html", skipHeaders=False):
 		print("{}\r\n".format(result.decode("utf8")), end="")
 	elif type(result) is str:
 		print("{}\r\n".format(result), end="")
+	else:
+		print("Invalid data type in send_response")
 
 # respond with raw data
 def send_debug(data, content_type="text/plain", duplicate=False):
@@ -179,7 +190,7 @@ def checkout_setup(data):
 def checkout_verify(data):
 
 	# URL and headers
-	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/verify"
+	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v30/verify"
 	headers = {
 		"Content-Type": "application/json",
 		"x-api-key": CHECKOUT_API_KEY
@@ -237,6 +248,7 @@ def HMAC_signature(data, respond=True):
 	# send response
 	if respond:
 		send_response("raw:\t\t{}\nencoded:\t{}".format(signature, urlencode({ "merchantSig": signature })), "text/plain")
+		send_response(urlencode(data), "text/plain", True)
 	else:
 		return signature
 
@@ -420,7 +432,7 @@ def skip_details(data):
 def secured_fields_setup(data):
 
 	# request info
-	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/setup"
+	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v30/setup"
 	headers = {
 		"Content-Type": "application/json",
 		"X-API-Key": CHECKOUT_API_KEY
