@@ -452,6 +452,33 @@ def secured_fields_setup(data):
 	result = send_request(url, data, headers)
 	send_response(result, "application/json")
 
+# send encrypted card data to Adyen
+def secured_fields_submit(data):
+
+	send_debug(data)
+	return
+
+	# request info
+	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v32/payments"
+	headers = {
+		"Content-Type": "application/json",
+		"X-API-Key": CHECKOUT_API_KEY
+	}
+
+	# static fields
+	data["origin"] = LOCAL_ADDRESS
+	data["returnUrl"] = RETURN_URL
+
+	# payouts
+	data["enablePayouts"] = "true"
+
+	# move amount data into parent object
+	reformat_amount(data)
+
+	# get and return response
+	result = send_request(url, data, headers)
+	send_response(result, "application/json")
+
 ##########################
 ##		3D Secure		##
 ##########################
@@ -541,7 +568,8 @@ router = {
 	"secured_fields_setup": secured_fields_setup,
 	"skip_details": skip_details,
 	"three_d_secure": three_d_secure,
-	"result_page": result_page
+	"result_page": result_page,
+	"secured_fields_submit": secured_fields_submit
 }
 
 try:
