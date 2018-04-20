@@ -179,6 +179,7 @@ def checkout_setup(data):
 	}
 
 	data["enableRecurring"] = "true"
+	data["storeDetails"] = "true"
 
 	reformat_amount(data)
 

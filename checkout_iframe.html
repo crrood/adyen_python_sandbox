@@ -24,6 +24,9 @@ var translationObject = {
     "payButton": {
         "en-US": "Subscribe",
         "nl-NL": "Meer opties"
+    },
+    "creditCard.numberField.placeholder": {
+    	"en-US": ""
     }
 };
 
@@ -53,12 +56,8 @@ var sdkConfigObj = {
 		outline: "2px black",
 		color: "blue",
 	},
-	paymentMethods : {
-		card : {
-			sfStyles : styleObject
-		}
-	},
-	context: "test"
+	context: "test",
+	translations: translationObject
 };
 
 document.getElementById("checkoutBtn").addEventListener("click", openCheckout);
