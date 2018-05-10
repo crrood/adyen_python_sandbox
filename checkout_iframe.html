@@ -1,5 +1,5 @@
 <head>
-	<script type="text/javascript" src="https://checkoutshopper-test.adyen.com/checkoutshopper/assets/js/sdk/checkoutSDK.1.2.0.min.js"></script>
+	<script type="text/javascript" src="https://checkoutshopper-test.adyen.com/checkoutshopper/assets/js/sdk/checkoutSDK.1.3.0.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="styles/style.css"></link>
 </head>
 
@@ -57,7 +57,12 @@ var sdkConfigObj = {
 		color: "blue",
 	},
 	context: "test",
-	translations: translationObject
+	translations: translationObject,
+	paymentMethods: {
+		card: {
+			showOptionalHolderNameField: "true"
+		}
+	}
 };
 
 document.getElementById("checkoutBtn").addEventListener("click", openCheckout);

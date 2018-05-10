@@ -142,13 +142,15 @@ def create_basic_auth(user, WS_PASSWORD):
 def checkout_setup(data):
 
 	# URL and headers
-	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v30/setup"
+	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v33/setup"
 	headers = {
 		"Content-Type": "application/json",
 		"x-api-key": CHECKOUT_API_KEY
 	}
 
 	# static fields
+	data["sdkVersion"] = "1.3.0"
+
 	data["html"] = "true"
 	data["origin"] = LOCAL_ADDRESS
 	data["returnUrl"] = RETURN_URL
@@ -173,12 +175,16 @@ def checkout_setup(data):
 	data["billingAddress"]["stateOrProvince"] = "OR"
 	data["billingAddress"]["street"] = "Main"
 
+	# data["allowedPaymentMethods"] = ["scheme"]
+	# data["blockedPaymentMethods"] = ["visa"]
+
 	data["metadata"] = {
 		"key1": "value1",
 		"key2": "value2"
 	}
 
-	data["enableRecurring"] = "true"
+	data["enableRecurring"] = "false"
+	data["enableOneClick"] = "false"
 	data["storeDetails"] = "true"
 
 	reformat_amount(data)
