@@ -29,6 +29,8 @@ READ_CREDENTIALS_FROM_FILE = False
 
 # hardcoded authentication values
 MERCHANT_ACCOUNT = "ColinRood"
+HMAC_KEY = "BE1C271E9CD9D2F6611D2C7064FE9EE314DA58539195E92BF5AC706209A514DB"
+SKIN_CODE = "rKJeo2Mf"
 
 '''
 load credentials from file for specified Merchant Account
@@ -183,9 +185,9 @@ def checkout_setup(data):
 		"key2": "value2"
 	}
 
-	data["enableRecurring"] = "false"
-	data["enableOneClick"] = "false"
-	data["storeDetails"] = "true"
+	# data["enableRecurring"] = "false"
+	# data["enableOneClick"] = "false"
+	# data["storeDetails"] = "true"
 
 	reformat_amount(data)
 
@@ -314,8 +316,8 @@ def HPP(data):
 	data["resURL"] = "http://localhost:8000/cgi-bin/submit.py?endpoint=result_page"
 
 	# account specific fields
-	data["skinCode"] = "rKJeo2Mf"
-	data["hmacKey"] = "BE1C271E9CD9D2F6611D2C7064FE9EE314DA58539195E92BF5AC706209A514DB"
+	data["skinCode"] = SKIN_CODE
+	data["hmacKey"] = HMAC_KEY
 
 	# generate HMAC signature
 	data["merchantSig"] = HMAC_signature(data, False).decode("utf8")
@@ -345,8 +347,8 @@ def directory_lookup(data):
 	}
 
 	# account specific fields
-	data["skinCode"] = "rKJeo2Mf"
-	data["hmacKey"] = "BE1C271E9CD9D2F6611D2C7064FE9EE314DA58539195E92BF5AC706209A514DB"
+	data["skinCode"] = SKIN_CODE
+	data["hmacKey"] = HMAC_KEY
 
 	# generate HMAC signature
 	data["merchantSig"] = HMAC_signature(data, False).decode("utf8")
@@ -378,8 +380,10 @@ def skip_details(data):
 	data["sessionValidity"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
 
 	# account specific fields
-	data["skinCode"] = "rKJeo2Mf"
-	data["hmacKey"] = "BE1C271E9CD9D2F6611D2C7064FE9EE314DA58539195E92BF5AC706209A514DB"
+	data["skinCode"] = SKIN_CODE
+	data["hmacKey"] = HMAC_KEY
+
+	data["orderData"] = "<h1>Order Data!</h1>"
 
 	# populate empty but apparently mandatory fields
 	data["allowedMethods"] = ""
