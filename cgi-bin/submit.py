@@ -21,7 +21,6 @@ import webbrowser
 
 LOCAL_ADDRESS = "http://localhost:8000"
 RETURN_URL = "{}/cgi-bin/submit.py?endpoint=result_page".format(LOCAL_ADDRESS)
-READ_CREDENTIALS_FROM_FILE = False
 
 ##############################
 ##		AUTHENTICATION		##
@@ -129,6 +128,29 @@ def reformat_card(data):
 	indent_field(data, "card", "expiryYear")
 	indent_field(data, "card", "holderName")
 	indent_field(data, "card", "cvc")
+
+def reformat_card_checkout(data, encrypted=True):
+	if encrypted:
+		indent_field(data, "paymentMethod", "encryptedCardNumber")
+		indent_field(data, "paymentMethod", "encryptedExpiryMonth")
+		indent_field(data, "paymentMethod", "encryptedExpiryYear")
+		indent_field(data, "paymentMethod", "holderName")
+		indent_field(data, "paymentMethod", "encryptedSecurityCode")
+		data["paymentMethod"]["type"] = "scheme"
+
+		# change spaces back to plus signs
+		data["paymentMethod"]["encryptedCardNumber"] = data["paymentMethod"]["encryptedCardNumber"].replace(" ", "+")
+		data["paymentMethod"]["encryptedExpiryMonth"] = data["paymentMethod"]["encryptedExpiryMonth"].replace(" ", "+")
+		data["paymentMethod"]["encryptedExpiryYear"] = data["paymentMethod"]["encryptedExpiryYear"].replace(" ", "+")
+		data["paymentMethod"]["holderName"] = data["paymentMethod"]["holderName"].replace(" ", "+")
+		data["paymentMethod"]["encryptedSecurityCode"] = data["paymentMethod"]["encryptedSecurityCode"].replace(" ", "+")
+	else:
+		indent_field(data, "paymentMethod", "number")
+		indent_field(data, "paymentMethod", "expiryMonth")
+		indent_field(data, "paymentMethod", "expiryYear")
+		indent_field(data, "paymentMethod", "holderName")
+		indent_field(data, "paymentMethod", "cvc")
+		data["paymentMethod"]["type"] = "scheme"
 
 # create basic auth header
 def create_basic_auth(user, WS_PASSWORD):
@@ -466,9 +488,6 @@ def secured_fields_setup(data):
 # send encrypted card data to Adyen
 def secured_fields_submit(data):
 
-	send_debug(data)
-	return
-
 	# request info
 	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v32/payments"
 	headers = {
@@ -480,11 +499,11 @@ def secured_fields_submit(data):
 	data["origin"] = LOCAL_ADDRESS
 	data["returnUrl"] = RETURN_URL
 
-	# payouts
-	data["enablePayouts"] = "true"
-
 	# move amount data into parent object
 	reformat_amount(data)
+
+	# move card data into paymentMethod object
+	reformat_card_checkout(data)
 
 	# get and return response
 	result = send_request(url, data, headers)

@@ -82,13 +82,17 @@ function initForms() {
 		for (elem of elems) {
 			paramString = paramString + elem.name + "=" + elem.value + "&";
 		}
+
+		console.log("Data sent to local server:");
 		console.log(paramString);
-		document.querySelector("#encrypted-month");
-		document.querySelector("#encrypted-year");
-		document.querySelector("#encrypted-hostedSecurityCodeField");
 
 		AJAXPost(url + paramString, "", "", "POST", function() {
-			console.log(this.responseText);
+			if (this.readyState == 4) {
+				console.log("Response from local server:");
+				console.log(this.responseText);
+
+				document.querySelector("#output").innerHTML = this.responseText;
+			}
 		});
 	});
 }

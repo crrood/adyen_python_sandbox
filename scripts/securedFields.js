@@ -56,6 +56,13 @@ callback = function() {
 				}
 			});
 
+			globals.securedFields.onAllValid(function(allValidObject){
+				// Triggers when all credit card input fields are valid - and triggers again if this state changes.
+				if(allValidObject.allValid === true){
+					console.log('All credit card input is valid :-)');
+				}
+			});
+
 			// Un-gray out the entry fields
 			document.getElementById("secured-fields-container").classList.remove("inactive");
 		}
