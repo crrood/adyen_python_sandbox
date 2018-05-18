@@ -227,6 +227,9 @@ def checkout_verify(data):
 		"x-api-key": CHECKOUT_API_KEY
 	}
 
+	# fix overzealous URL encoding
+	data["payload"] = data["payload"].replace(" ", "+")
+
 	# get and return response
 	result = send_request(url, data, headers)
 	send_response(result, "application/json")
