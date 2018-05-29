@@ -37,7 +37,16 @@ function initForms() {
 	// Logging
 	document.querySelector("#logInputs").addEventListener("click", function() {
 		console.log(document.querySelectorAll("input:not([type='button']):not([type='submit'])"));
+		console.log(document.querySelector("div.cards-div.js-chckt-pm__pm-holder"));
 	});
+
+	// Mutation observer
+	// Logs to console when a child is added to the card form
+	var observer = new MutationObserver(function(mutationsList) {
+		console.log(mutationsList);
+	});
+	var config = { attributes: true, childList: true };
+	observer.observe(document.querySelector("div.cards-div.js-chckt-pm__pm-holder"), config);
 
 	// Initialize object
 	var securedFields = csf(
@@ -71,6 +80,11 @@ function initForms() {
 		if(brandObject.brand) {
 			document.getElementById('card-type').innerHTML = brandObject.brand;
 		}
+	});
+
+	securedFields.onConfigSuccess(function(someObject){
+		console.log("onClientSuccess");
+		console.log(someObject);
 	});
 
 	// Send data to server

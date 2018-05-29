@@ -71,12 +71,18 @@
 // log the encrypted form object (for debugging)
 document.getElementById("logBtn").addEventListener("click", function(e) {
 	console.log(encryptedForm);
+	document.getElementById("adyen-encrypted-form").elements["adyen-encrypted-data"].value;
 });
 document.getElementById("logBtnGeneric").addEventListener("click", function(e) {
 	console.log(encryptedFormGeneric);
+	form = document.getElementById("adyen-encrypted-form-generic")
+	console.log(form);
+	console.log(form.elements);
+	console.log(form.elements["adyen-encrypted-data"].value);
 });
 document.getElementById("logBtnRecurring").addEventListener("click", function(e) {
 	console.log(encryptedFormRecurring);
+	document.getElementById("adyen-encrypted-form-recurring").elements["adyen-encrypted-data"].value;
 });
 
 // set up options and initialize encrypted form object
@@ -96,10 +102,10 @@ function initCardsCheckout() {
 
 	// See https://github.com/Adyen/CSE-JS/blob/master/Options.md for details on the options to use.
 	var options = {
-		"enableValidations": true,
+		"enableValidations": false,
 	};
 	var optionsGeneric = {
-		"enableValidations": true,
+		"enableValidations": false,
 	};
 	var optionsRecurring = {
 		"enableValidations": false,
@@ -157,6 +163,8 @@ function onSubmit(e) {
 
 	// get encrypted card data from form element
 	params = params + "encryptedData=" + encodeURIComponent(form.elements["adyen-encrypted-data"].value) + "&";
+
+	console.log(params);
 
 	// redirect to server
 	window.location = "./cgi-bin/submit.py" + params;

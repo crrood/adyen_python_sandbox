@@ -199,6 +199,9 @@ def checkout_setup(data):
 	data["billingAddress"]["stateOrProvince"] = "OR"
 	data["billingAddress"]["street"] = "Main"
 
+	data["additionalData"] = {}
+	data["additionalData"]["enhancedSchemeData.totalTaxAmount"] = "100"
+
 	# data["allowedPaymentMethods"] = ["scheme"]
 	# data["blockedPaymentMethods"] = ["visa"]
 
