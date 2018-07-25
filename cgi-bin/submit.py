@@ -1,6 +1,4 @@
 #!/Users/colinr/miniconda3/bin/python3
-
-# general utilities
 import json, os, datetime, csv
 
 # HMAC
@@ -166,7 +164,7 @@ def create_basic_auth(user, WS_PASSWORD):
 def checkout_setup(data):
 
 	# URL and headers
-	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v33/setup"
+	url = "https://checkout-test.adyen.com/v32/paymentSession"
 	headers = {
 		"Content-Type": "application/json",
 		"x-api-key": CHECKOUT_API_KEY
@@ -180,39 +178,38 @@ def checkout_setup(data):
 	data["returnUrl"] = RETURN_URL
 	data["reference"] = "Localhost checkout"
 
-	data["shopperName"] = {}
-	data["shopperName"]["firstName"] = "Colin"
-	data["shopperName"]["lastName"] = "Rood"
-	data["shopperName"]["gender"] = "MALE"
+	# data["shopperName"] = {}
+	# data["shopperName"]["firstName"] = "Colin"
+	# data["shopperName"]["lastName"] = "Rood"
+	# data["shopperName"]["gender"] = "MALE"
 
-	data["configuration"] = {}
-	data["configuration"]["cardHolderNameRequired"] = "true"
-	data["configuration"]["avs"] = {}
-	data["configuration"]["avs"]["enabled"] = "automatic"
-	data["configuration"]["avs"]["addressEditable"] = "true"
+	# data["configuration"] = {}
+	# data["configuration"]["cardHolderNameRequired"] = "true"
+	# data["configuration"]["avs"] = {}
+	# data["configuration"]["avs"]["enabled"] = "automatic"
+	# data["configuration"]["avs"]["addressEditable"] = "true"
 
-	data["billingAddress"] = {}
-	data["billingAddress"]["city"] = "Springfield"
-	data["billingAddress"]["country"] = "US"
-	data["billingAddress"]["houseNumberOrName"] = "1234"
-	data["billingAddress"]["postalCode"] = "74629"
-	data["billingAddress"]["stateOrProvince"] = "OR"
-	data["billingAddress"]["street"] = "Main"
+	# data["billingAddress"] = {}
+	# data["billingAddress"]["city"] = "Springfield"
+	# data["billingAddress"]["country"] = "US"
+	# data["billingAddress"]["houseNumberOrName"] = "1234"
+	# data["billingAddress"]["postalCode"] = "74629"
+	# data["billingAddress"]["stateOrProvince"] = "OR"
+	# data["billingAddress"]["street"] = "Main"
 
-	data["additionalData"] = {}
-	data["additionalData"]["enhancedSchemeData.totalTaxAmount"] = "100"
+	# data["additionalData"] = {}
+	# data["additionalData"]["enhancedSchemeData.totalTaxAmount"] = "100"
 
 	# data["allowedPaymentMethods"] = ["scheme"]
 	# data["blockedPaymentMethods"] = ["visa"]
 
-	data["metadata"] = {
-		"key1": "value1",
-		"key2": "value2"
-	}
+	# data["metadata"] = {
+	# 	"key1": "value1",
+	# 	"key2": "value2"
+	# }
 
-	# data["enableRecurring"] = "false"
-	# data["enableOneClick"] = "false"
-	# data["storeDetails"] = "true"
+	data["enableRecurring"] = "true"
+	data["enableOneClick"] = "false"
 
 	reformat_amount(data)
 
@@ -224,7 +221,7 @@ def checkout_setup(data):
 def checkout_verify(data):
 
 	# URL and headers
-	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v30/verify"
+	url = "https://checkout-test.adyen.com/v32/payments/result"
 	headers = {
 		"Content-Type": "application/json",
 		"x-api-key": CHECKOUT_API_KEY
@@ -341,7 +338,8 @@ def HPP(data):
 	# server side fields
 	data["sessionValidity"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
 	data["shipBeforeData"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
-	data["resURL"] = "http://localhost:8000/cgi-bin/submit.py?endpoint=result_page"
+	# data["resURL"] = "http://localhost:8000/cgi-bin/submit.py?endpoint=result_page"
+	data["resURL"] = "FOOBAR"
 
 	# account specific fields
 	data["skinCode"] = SKIN_CODE
@@ -510,6 +508,8 @@ def secured_fields_submit(data):
 
 	# move card data into paymentMethod object
 	reformat_card_checkout(data)
+
+	send_debug(data)
 
 	# get and return response
 	result = send_request(url, data, headers)
