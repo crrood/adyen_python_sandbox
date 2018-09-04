@@ -339,11 +339,14 @@ def HPP(data):
 	data["sessionValidity"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
 	data["shipBeforeData"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
 	# data["resURL"] = "http://localhost:8000/cgi-bin/submit.py?endpoint=result_page"
-	data["resURL"] = "FOOBAR"
+	data["resURL"] = "http://localhost:8000/cgi-bin/submit.py?endpoint=result_page"
 
 	# account specific fields
 	data["skinCode"] = SKIN_CODE
 	data["hmacKey"] = HMAC_KEY
+
+	data["additionalData.enhancedSchemeData.totalTaxAmount"] = "190"
+	data["additionalData.enhancedSchemeData.customerReference"] = "12345"
 
 	# generate HMAC signature
 	data["merchantSig"] = HMAC_signature(data, False).decode("utf8")
@@ -530,7 +533,7 @@ def three_d_secure(data):
 	}
 
 	# static fields
-	data["returnUrl"] = RETURN_URL
+	data["returnUrl"] = "www.example.com"
 	data["additionalData"] = {
 		"executeThreeD": "true"
 	}
@@ -569,7 +572,7 @@ def three_d_secure(data):
 	    	pa_request=result["paRequest"], 
 	    	issuer_url=result["issuerUrl"],
 	    	md=result["md"],
-	    	term_url=RETURN_URL
+	    	term_url="www.example.com"
 	    )
 
 	send_response(result, "text/html")

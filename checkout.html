@@ -51,6 +51,7 @@ function setupVerify(pHookData) {
 	document.getElementById("checkout-iframe").addEventListener("animationend", (e) => e.target.style = "height: 100px;");
 
 	// Set up verify call
+	console.log(pHookData.payload);
 	document.getElementById("verifyBtn").addEventListener("click", function() {
 
 		// Hide button

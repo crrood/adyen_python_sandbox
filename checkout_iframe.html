@@ -50,19 +50,15 @@ var styleObject = {
 
 // Styling for checkout
 var sdkConfigObj = {
-	base: {
-		fontSize: '16px',
-		background: "#68FFC1",
-		outline: "2px black",
-		color: "blue",
-	},
 	context: "test",
-	translations: translationObject,
 	paymentMethods: {
 		card: {
-			showOptionalHolderNameField: "true"
+			sfStyles: styleObject,
+			showOptionalHolderNameField: "false"
 		}
-	}
+	},
+	translations: translationObject,
+	useDefaultCSS: "false"
 };
 
 document.getElementById("checkoutBtn").addEventListener("click", openCheckout);
@@ -73,14 +69,19 @@ const setupCallback = function() {
 	if (this.readyState == 4) {
 		console.log(this);
 
-		try {
+		// try {
 			var data = JSON.parse(this.responseText);
+			console.log(data);
 
 			// Initialize checkout
 			var checkout = chckt.checkout(data, '.checkout', sdkConfigObj);
 
 			// Handle response from initiate call
 			chckt.hooks.beforeComplete = function(pNode, pHookData){
+
+				// logging
+				console.log("pHookData");
+				console.log(pHookData);
 				
 				// Send data back to parent page
 				parent.setPaymentResult(pHookData.resultCode);
@@ -97,11 +98,11 @@ const setupCallback = function() {
 				console.log("formData");
 				console.log(formData.toString());
 			}
-		}
-		catch (e) {
-			console.log(e);
-			document.getElementById("checkout").innerHTML = "this.responseText: " + this.responseText;
-		}
+		// }
+		// catch (e) {
+		// 	console.log(e);
+		// 	document.getElementById("checkout").innerHTML = "this.responseText: " + this.responseText;
+		// }
 	}
 };
 
