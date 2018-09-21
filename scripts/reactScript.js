@@ -7,7 +7,7 @@ console.log("reactScript loaded");
 function TextInput(props) {
 	return (
 		<div className="inputHolder">
-			{props.fieldName}: <input type="text" name={props.fieldName} defaultValue={props.fieldValue}/><br/>
+			{props.fieldName}: <input type="text" className="reactInput" name={props.fieldName} defaultValue={props.fieldValue}/><br/>
 		</div>
 	)
 };
@@ -18,7 +18,7 @@ function TextInput(props) {
 // fieldName, fieldValue
 function HiddenInput(props) {
 	return (
-		<input type="hidden" name={props.fieldName} defaultValue={props.fieldValue}/>
+		<input type="hidden" className="reactInput" name={props.fieldName} defaultValue={props.fieldValue}/>
 	)
 };
 

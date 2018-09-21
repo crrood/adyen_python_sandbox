@@ -577,6 +577,73 @@ def three_d_secure(data):
 
 	send_response(result, "text/html")
 
+# API call with 3d Secure 2.0
+# part 1
+def three_d_secure_2_part_1(data):
+
+	# request info
+	url = "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise"
+	headers = {
+		"Content-Type": "application/json",
+		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD))
+	}
+
+	# move amount data into parent object
+	reformat_amount(data)
+
+	# move card data into parent object
+	reformat_card(data)
+
+	# move userAgent into browserInfo object
+	indent_field(data, "browserInfo", "userAgent")
+	data["browserInfo"]["acceptHeader"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+	data["browserInfo"]["language"] = "EN-GB"
+	data["browserInfo"]["colorDepth"] = 32
+	data["browserInfo"]["screenHeight"] = 1200
+	data["browserInfo"]["screenWidth"] = 600
+	data["browserInfo"]["timeZoneOffset"] = 1
+	data["browserInfo"]["javaEnabled"] = "true"
+
+	# add threeDS2RequestData
+	data["threeDS2RequestData"] = {}
+	data["threeDS2RequestData"]["deviceChannel"] = "browser"
+	data["threeDS2RequestData"]["notificationURL"] = RETURN_URL
+
+	# send request to Adyen
+	result = send_request(url, data, headers)
+
+	# create response object with request and response both
+	response = {}
+	response["request"] = str(data)
+	response["response"] = result.decode("utf8")
+	send_response(str(response), "text/plain")
+
+# API call with 3d Secure 2.0
+# part 2
+def three_d_secure_2_part_2(data):
+
+	# request info
+	url = "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2"
+	headers = {
+		"Content-Type": "application/json",
+		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD))
+	}
+
+	data["merchantAccount"] = MERCHANT_ACCOUNT
+	indent_field(data, "threeDS2RequestData", "threeDSCompInd")
+
+	# fix overzealous URL formatting
+	data["threeDS2Token"] = data["threeDS2Token"].replace(" ", "+").replace("\\", "")
+
+	# send request to adyen
+	result = send_request(url, data, headers)
+	
+	# send request and response to client
+	response = {}
+	response["request"] = str(data)
+	response["response"] = result.decode("utf8")
+	send_response(str(response), "text/plain")
+
 ##########################
 ##		RESULT PAGE		##
 ##########################
@@ -607,6 +674,8 @@ router = {
 	"secured_fields_setup": secured_fields_setup,
 	"skip_details": skip_details,
 	"three_d_secure": three_d_secure,
+	"three_d_secure_2_part_1": three_d_secure_2_part_1,
+	"three_d_secure_2_part_2": three_d_secure_2_part_2,
 	"result_page": result_page,
 	"secured_fields_submit": secured_fields_submit
 }
