@@ -25,7 +25,7 @@
 	<h3>Network activity</h3>
 	<div id="output" style="width: 50%"></div>
 	<div id="sdkContainer"></div>
-	<button onClick="logGlobalSdkPromise()">Log globalSdkPromise</button>
+	<button onClick="logGlobalSdkPromise()" style="display: none;">Log globalSdkPromise</button>
 </body>
 
 </html>
@@ -41,8 +41,6 @@ function logGlobalSdkPromise() {
 	console.log(globalSdkPromise);
 };
 
-var outputCount = 0;
-
 // send form data to server
 function submitForm(e) {	
 	var url = SERVER_URL;
@@ -57,7 +55,7 @@ function submitForm(e) {
 	}
 	url = url + params;
 
-	output("Request from client to server:<br>" + JSON.stringify(jsonData, null, 4));
+	output(0, "Request from client to server:<br>" + JSON.stringify(jsonData, null, 4));
 
 	$.get(url, authoriseCallback);
 
@@ -71,8 +69,8 @@ function authoriseCallback(data, status) {
 	const request = data.request;
 	const response = data.response;
 
-	output("Request from server to Adyen:<br>" + JSON.stringify(request, null, 4));
-	output("Response from Adyen to server:<br>" + JSON.stringify(response, null, 4));
+	output(1, "Request from server to Adyen:<br>" + JSON.stringify(request, null, 4));
+	output(2, "Response from Adyen to server:<br>" + JSON.stringify(response, null, 4));
 
 	// give the server data to the SDK
 	var sdkPromise = threedsSDK.get3DSMethodStatus(
@@ -84,14 +82,14 @@ function authoriseCallback(data, status) {
 
 	// handle SDK promise callbacks
 	sdkPromise.then((successfulPromiseResponse) => {
-		output("Response from verification request to SDK:<br>threeDSCompInd=" + successfulPromiseResponse.threeDSCompInd);
+		output(3, "Response from verification request to SDK:<br>threeDSCompInd=" + successfulPromiseResponse.threeDSCompInd);
 		console.log("Response from verification request to SDK:");
 		console.log(successfulPromiseResponse);
 
 		SDKCallback(successfulPromiseResponse, response.additionalData["threeds2.threeDS2Token"]);
 
 	}, (failedPromiseResponse) => {
-		output("Verification request to SDK failed - check log for more details");
+		output(3, "Verification request to SDK failed - check log for more details");
 		console.log("Verification request to SDK failed:");
 		console.log(failedPromiseResponse);
 	});
@@ -113,8 +111,8 @@ function authorise3ds2Callback(data, status) {
 	const request = data.request;
 	const response = data.response;
 
-	output("Request from server to Adyen:<br>" + JSON.stringify(request, null, 4));
-	output("Response from Adyen to server:<br>" + JSON.stringify(response, null, 4));
+	output(4, "Request from server to Adyen:<br>" + JSON.stringify(request, null, 4));
+	output(5, "Response from Adyen to server:<br>" + JSON.stringify(response, null, 4));
 
 	console.log("authorise3ds2Callback:");
 	console.log(data);
@@ -144,14 +142,14 @@ function authorise3ds2Callback(data, status) {
 
 		// handle SDK promise callbacks
 		globalSdkPromise.then((successfulPromiseResponse) => {
-			output("Response from challenge request to SDK:<br>threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + response.transStatus);
+			output(6, "Response from challenge request to SDK:<br>threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + response.transStatus);
 			console.log("Response from challenge request to SDK:");
 			console.log(successfulPromiseResponse);
 
 			SDKChallengeCallback(successfulPromiseResponse);
 
 		}, (failedPromiseResponse) => {
-			output("Challenge request to SDK failed - check log for more details");
+			output(6, "Challenge request to SDK failed - check log for more details");
 			console.log("Challenge request to SDK failed:");
 			console.log(failedPromiseResponse);
 		});
@@ -175,13 +173,12 @@ function unfuckJSON(data) {
 };
 
 // utility to output to web page
-function output(text) {
+function output(number, text) {
 	var containerEl = $("#output");
 
 	var countEl = document.createElement("div");
-	countEl.innerHTML = "--------------- " + outputCount + " ---------------";
+	countEl.innerHTML = "--------------- " + number + " ---------------";
 	containerEl.append(countEl);
-	outputCount++;
 
 	// create element to be added
 	var outputContainer = document.createElement("pre");
