@@ -2,7 +2,12 @@
 Snippets of code to communicate with the test Adyen payments server
 
 ## Setup:
-Add authentication credentials to credentials.csv in the format:
+Download the source code to your local computer and enter the directory:
+```shell
+git clone https://github.com/crrood/adyen_python_sandbox.git
+cd adyen_python_sandbox
+```
+Add authentication credentials to credentials.csv:
 ```
 merchantAccount,wsUser,wsPass,apiKey
 YourMerchantAccount,ws_xxxxx@Company.YourCompany,YourWebServicePassword,YourCheckoutAPIKey
@@ -20,4 +25,4 @@ Start a server in the root directory using
 ./start_server.sh
 ```
 
-Then go to [localhost:8000](http://localhost:8000) in your browser
+Then go to [localhost:8000](http://localhost:8000) in your browser to view a list of integrations.
