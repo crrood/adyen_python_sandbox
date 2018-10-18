@@ -21,9 +21,3 @@ Start a server in the root directory using
 ```
 
 Then go to [localhost:8000](http://localhost:8000) in your browser
-
-## Troubleshooting
-If you get permission problems, run
-```bash
-chmod +x cgi-bin/submit.py
-```
