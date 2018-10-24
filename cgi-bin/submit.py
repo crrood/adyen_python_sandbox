@@ -523,7 +523,7 @@ def secured_fields_submit(data):
 ##########################
 
 # API call with 3d Secure redirect
-def three_d_secure(data):
+def threeds1(data):
 
 	# request info
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/authorise"
@@ -583,7 +583,7 @@ def three_d_secure(data):
 
 # API call with 3d Secure 2.0
 # part 1
-def three_d_secure_2_part_1(data):
+def threeds2_part1(data):
 
 	# request info
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise"
@@ -609,6 +609,7 @@ def three_d_secure_2_part_1(data):
 	data["browserInfo"]["javaEnabled"] = "true"
 
 	# add threeDS2RequestData
+	data["threeDS2RequestData"] = {}
 	data["threeDS2RequestData"]["deviceChannel"] = "browser"
 	data["threeDS2RequestData"]["notificationURL"] = RETURN_URL
 
@@ -623,7 +624,7 @@ def three_d_secure_2_part_1(data):
 
 # API call with 3d Secure 2.0
 # part 2
-def three_d_secure_2_part_2(data):
+def threeds2_part2(data):
 
 	# request info
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2"
@@ -689,6 +690,9 @@ def threeds2_adv_initial_auth(data):
 	response["response"] = result.decode("utf8")
 	send_response(str(response), "text/plain")
 
+def threeds2_result_page(data):
+	send_debug(data)
+
 ##########################
 ##		RESULT PAGE		##
 ##########################
@@ -718,10 +722,11 @@ router = {
 	"directory_lookup": directory_lookup,
 	"secured_fields_setup": secured_fields_setup,
 	"skip_details": skip_details,
-	"three_d_secure": three_d_secure,
-	"three_d_secure_2_part_1": three_d_secure_2_part_1,
-	"three_d_secure_2_part_2": three_d_secure_2_part_2,
+	"threeds1": threeds1,
+	"threeds2_part1": threeds2_part1,
+	"threeds2_part2": threeds2_part2,
 	"threeds2_adv_initial_auth": threeds2_adv_initial_auth,
+	"threeds2_result_page": threeds2_result_page,
 	"result_page": result_page,
 	"secured_fields_submit": secured_fields_submit
 }

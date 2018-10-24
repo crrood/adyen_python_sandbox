@@ -18,8 +18,8 @@
 		value: <input class="formEls" type="text" name="value" value="1499"></input><br>
 		currency: <input class="formEls" type="text" name="currency" value="EUR"></input><br>
 		reference: <input class="formEls" type="text" name="reference" value="Localhost 3DS 2.0"></input><br>
-		<input class="formEls" type="hidden" name="endpoint" value="three_d_secure_2_part_1"></input>
-		<input class="formEls" type="hidden" name="userAgent" value="three_d_secure_2_part_1"></input>
+		<input class="formEls" type="hidden" name="endpoint" value="threeds2_part1"></input>
+		<input class="formEls" type="hidden" name="userAgent" value="threeds2_part1"></input>
 	</form>
 	<button onClick="submitForm()">Authorise</button>
 	<h3>Network activity</h3>
@@ -63,7 +63,8 @@ function submitForm(e) {
 };
 
 // callback from sending form to server
-function authoriseCallback(data, status) {	
+function authoriseCallback(data, status) {
+	console.log(data);
 	data = unfuckJSON(data);
 
 	const request = data.request;
@@ -98,7 +99,7 @@ function authoriseCallback(data, status) {
 // called by successful return of promise from threedsSDK.doChallenge
 function SDKCallback(response, threeDS2Token) {
 	var url = SERVER_URL;
-	var params = "?threeDSCompInd=" + response.threeDSCompInd + "&threeDS2Token=" + threeDS2Token + "&endpoint=three_d_secure_2_part_2";
+	var params = "?threeDSCompInd=" + response.threeDSCompInd + "&threeDS2Token=" + threeDS2Token + "&endpoint=threeds2_part2";
 
 	$.get(url + params, authorise3ds2Callback)
 };
