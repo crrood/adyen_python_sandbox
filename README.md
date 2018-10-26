@@ -7,11 +7,8 @@ Download the source code to your local computer and enter the directory:
 git clone https://github.com/crrood/adyen_python_sandbox.git
 cd adyen_python_sandbox
 ```
-Add authentication credentials to credentials.csv:
-```
-merchantAccount,wsUser,wsPass,apiKey
-YourMerchantAccount,ws_xxxxx@Company.YourCompany,YourWebServicePassword,YourCheckoutAPIKey
-```
+Add authentication credentials to config.ini.  See example_config.ini for file format.
+
 Update file permissions and python path:
 ```bash
 chmod +x start_server.sh
