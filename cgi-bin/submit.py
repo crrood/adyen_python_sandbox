@@ -1,5 +1,5 @@
 #!/Users/colinr/miniconda3/bin/python3
-import json, os, datetime, csv
+import json, os, datetime, configparser
 
 # HMAC
 import base64, binascii, hmac, hashlib
@@ -24,37 +24,21 @@ RETURN_URL = "{}/cgi-bin/submit.py?endpoint=result_page".format(LOCAL_ADDRESS)
 ##############################
 ##		AUTHENTICATION		##
 ##############################
-
-# hardcoded authentication values
-MERCHANT_ACCOUNT = "ColinRood"
-HMAC_KEY = "BE1C271E9CD9D2F6611D2C7064FE9EE314DA58539195E92BF5AC706209A514DB"
-SKIN_CODE = "rKJeo2Mf"
-
 '''
-load credentials from file for specified Merchant Account
+load credentials from config.ini
 
-first row is keys
-subsequent rows are sets of credentials
-
-for example:
-merchantAccount,wsUser,wsPass,apiKey
-ColinRood,ws@Company.AdyenTechSupport,superSecurePassword,AQEyhmfxLIrIaBdEw0m...
+see example_config.ini for file format
 '''
-with open("credentials.csv") as credentials_file:
-	reader = csv.DictReader(credentials_file)
+config = configparser.ConfigParser()
+config.read("config.ini")
+credentials = config["credentials"]
 
-	merchant_account_found = False
-	for row in reader:
-		if row["merchantAccount"] == MERCHANT_ACCOUNT:
-			WS_USERNAME = row["wsUser"]
-			WS_PASSWORD = row["wsPass"]
-			CHECKOUT_API_KEY = row["apiKey"]
-			merchant_account_found = True
-
-	# send an error if credentials aren't provided for Merchant Account
-	if not merchant_account_found:
-		send_debug("Merchant Account {} not found in credentials.csv".format(MERCHANT_ACCOUNT))
-		exit(1)
+MERCHANT_ACCOUNT = credentials["merchantAccount"]
+WS_USERNAME = credentials["wsUser"]
+WS_PASSWORD = credentials["wsPass"]
+API_KEY = credentials["apiKey"]
+HMAC_KEY = credentials["hmacKey"]
+SKIN_CODE = credentials["skinCode"]
 
 ##############################
 ##		HELPER METHODS		##
@@ -168,7 +152,7 @@ def checkout_setup(data):
 	url = "https://checkout-test.adyen.com/v32/paymentSession"
 	headers = {
 		"Content-Type": "application/json",
-		"x-api-key": CHECKOUT_API_KEY
+		"x-api-key": API_KEY
 	}
 
 	# static fields
@@ -225,7 +209,7 @@ def checkout_verify(data):
 	url = "https://checkout-test.adyen.com/v32/payments/result"
 	headers = {
 		"Content-Type": "application/json",
-		"x-api-key": CHECKOUT_API_KEY
+		"x-api-key": API_KEY
 	}
 
 	# fix overzealous URL encoding
@@ -476,7 +460,7 @@ def secured_fields_setup(data):
 	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v30/setup"
 	headers = {
 		"Content-Type": "application/json",
-		"X-API-Key": CHECKOUT_API_KEY
+		"X-API-Key": API_KEY
 	}
 
 	# static fields
@@ -500,7 +484,7 @@ def secured_fields_submit(data):
 	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v32/payments"
 	headers = {
 		"Content-Type": "application/json",
-		"X-API-Key": CHECKOUT_API_KEY
+		"X-API-Key": API_KEY
 	}
 
 	# static fields
