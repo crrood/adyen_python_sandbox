@@ -140,18 +140,7 @@ function initiateChallenge(authoriseResponse) {
 	}
 
 	// create the iframe for the promise
-	threedsSDK.doChallenge(acsURL, cReqData, iframeConfig).then((successfulPromiseResponse) => {
-		output(6, "Response from challenge request to SDK:<br>threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus);
-		console.log("Response from challenge request to SDK:");
-		console.log(successfulPromiseResponse);
-
-		finalAuthorisation(successfulPromiseResponse.transStatus);
-
-	}, (failedPromiseResponse) => {
-		output(6, "Challenge request to SDK failed - check log for more details");
-		console.log("Challenge request to SDK failed:");
-		console.log(failedPromiseResponse);
-	});
+	threedsSDK.doChallenge(acsURL, cReqData, iframeConfig).then(handleSuccessfulSDKChallengePromise, handleFailedSDKChallengePromise);
 
 	// listen for redirect in challenge iframe
 	// once it's redirected, decode cres
@@ -165,10 +154,22 @@ function initiateChallenge(authoriseResponse) {
 			var transStatus = JSON.parse(window.atob(getCRESFromIframe())).transStatus;
 			document.querySelector("[name=threeDSIframe]").contentWindow.location.href = document.querySelector("[name=threeDSIframe]").contentWindow.location.href + "&transStatus=" + transStatus;
 			document.querySelector("#threeDSIframeContainer").style.display = "none";
-
-			output(6, "Challenge completed: <br>cres: " + getCRESFromIframe().trim());
 		}
 	}, 1000);
+}
+
+// doChallenge successful resolution
+function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
+	output(6, "Response from challenge request to SDK:<br>threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus);
+	
+	finalAuthorisation(successfulPromiseResponse.transStatus);
+}
+
+// doChallenge failed resolution
+function handleFailedSDKChallengePromise(failedPromiseResponse) {
+	output(6, "Challenge request to SDK failed - check log for more details");
+	console.log("Challenge request to SDK failed:");
+	console.log(failedPromiseResponse);
 }
 
 // perform authorisation with completed challenge

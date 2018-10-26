@@ -62,9 +62,6 @@ function fingerprintDevice(threeDSMethodURL) {
 	// handle SDK promise callbacks
 	sdkPromise.then((successfulPromiseResponse) => {
 		output(0, "Response from verification request to SDK:<br>threeDSCompInd=" + successfulPromiseResponse.threeDSCompInd);
-		console.log("Response from verification request to SDK:");
-		console.log(successfulPromiseResponse);
-
 		globals.fingerprintResponse = successfulPromiseResponse;
 
 	}, (failedPromiseResponse) => {
@@ -142,26 +139,7 @@ function doChallenge(authoriseResponse) {
 	}
 
 	// create the iframe for the promise
-	challengePromise = threedsSDK.doChallenge(acsURL, cReqData, iframeConfig);
-
-	// handle SDK promise callbacks
-	challengePromise.then((successfulPromiseResponse) => {
-		output(100, "Response from challenge request to SDK:<br>threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus);
-		console.log("Response from challenge request to SDK:");
-		console.log(successfulPromiseResponse);
-
-		if (globals.authenticationOnly) {
-			retrieve3ds2Result();
-		}
-		else {
-			adyenTokenAuth(successfulPromiseResponse.transStatus);
-		}
-
-	}, (failedPromiseResponse) => {
-		output(100, "Challenge request to SDK failed - check log for more details");
-		console.log("Challenge request to SDK failed:");
-		console.log(failedPromiseResponse);
-	});
+	threedsSDK.doChallenge(acsURL, cReqData, iframeConfig).then(handleSuccessfulSDKChallengePromise, handleFailedSDKChallengePromise);
 
 	// listen for redirect in challenge iframe
 	// once it's redirected, decode cres
@@ -175,10 +153,27 @@ function doChallenge(authoriseResponse) {
 			var transStatus = JSON.parse(window.atob(getCRESFromIframe())).transStatus;
 			document.querySelector("[name=threeDSIframe]").contentWindow.location.href = document.querySelector("[name=threeDSIframe]").contentWindow.location.href + "&transStatus=" + transStatus;
 			document.querySelector("#threeDSIframeContainer").style.display = "none";
-
-			output(4, "Challenge completed: <br>cres: " + getCRESFromIframe().trim());
 		}
 	}, 1000);
+}
+
+// doChallenge successful resolution
+function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
+	output(4, "Response from challenge request to SDK:<br>threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus);
+
+	if (globals.authenticationOnly) {
+		retrieve3ds2Result();
+	}
+	else {
+		adyenTokenAuth(successfulPromiseResponse.transStatus);
+	}
+}
+
+// doChallenge failed resolution
+function handleFailedSDKChallengePromise(failedPromiseResponse) {
+	output(4, "Challenge request to SDK failed - check log for more details");
+	console.log("Challenge request to SDK failed:");
+	console.log(failedPromiseResponse);
 }
 
 // retrieve cavv and eci values
@@ -209,8 +204,6 @@ function adyenTokenAuth(transStatus) {
 
 // get response from authorise3ds2 call
 function adyenTokenAuthCallback(data) {
-	console.log(data);
-
 	data = unfuckJSON(data);
 
 	const request = data.request;
@@ -219,14 +212,6 @@ function adyenTokenAuthCallback(data) {
 	output(5, "Request from server to Adyen:<br>" + JSON.stringify(request, null, 4));
 	output(6, "Response from Adyen to server:<br>" + JSON.stringify(response, null, 4));
 }
-
-// CURRENTLY NEVER REACHED
-// called by the SDK's promise after a successful challenge
-function SDKChallengeCallback(response) {
-	output(100, "Challenge completed: <br>" + response);
-	console.log("SDKChallengeCallback");
-	console.log(response);
-};
 
 //////////////////////////////////
 //			UTILITIES			//
