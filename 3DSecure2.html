@@ -120,7 +120,7 @@ function authorise3ds2Callback(data, status) {
 
 	// if challenge required
 	console.log(response.resultCode);
-	if (response.resultCode === "ThreeDS2Challenge") {
+	if (response.resultCode === "ChallengeShopper") {
 		const acsURL = response.additionalData["threeds2.threeDS2ResponseData.acsURL"].replace(/\\/g, "");
 		console.log(acsURL);
 

@@ -33,7 +33,7 @@
 <script>
 
 const SERVER_URL = "http://localhost:8000/cgi-bin/submit.py";
-const RETURN_URL = SERVER_URL + "?endpoint=threeds2_result_page";
+const NOTIFICATION_URL = SERVER_URL + "?endpoint=threeds2_result_page";
 
 const CACHED_THREEDS_URL = "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml"
 
@@ -49,7 +49,7 @@ function fingerprintDevice(threeDSMethodURL) {
 	var sdkPromise = threedsSDK.get3DSMethodStatus(
 		globals.threeDSServerTransID, 
 		CACHED_THREEDS_URL, 
-		RETURN_URL, 
+		NOTIFICATION_URL, 
 		document.querySelector("#sdkContainer")
 	);
 
@@ -108,7 +108,7 @@ function initialAuthoriseCallback(data, status) {
 	output(2, "Request from server to Adyen:<br>" + JSON.stringify(request, null, 4));
 	output(3, "Response from Adyen to server:<br>" + JSON.stringify(response, null, 4));
 
-	if (response.resultCode == "ThreeDS2Challenge") {
+	if (response.resultCode == "ChallengeShopper") {
 		doChallenge(response);
 	}
 }
@@ -116,15 +116,18 @@ function initialAuthoriseCallback(data, status) {
 // perform challenge via SDK
 function doChallenge(authoriseResponse) {
 	const acsURL = authoriseResponse.additionalData["threeds2.threeDS2ResponseData.acsURL"].replace(/\\/g, "");
-	console.log(acsURL);
 
+	// save token and pspReference for later
+	globals.threeDS2Token = authoriseResponse.additionalData["threeds2.threeDS2Token"].replace(/\\/g, "");
+	globals.challengePspReference = authoriseResponse.pspReference;
+
+	// config data for SDK to execute challenge
 	const cReqData = {
 		threeDSServerTransID : authoriseResponse.additionalData['threeds2.threeDS2ResponseData.threeDSServerTransID'],
 		acsTransID : authoriseResponse.additionalData['threeds2.threeDS2ResponseData.acsTransID'],
 		messageVersion : authoriseResponse.additionalData['threeds2.threeDS2ResponseData.messageVersion'],
 		messageType : 'CReq'
 	}
-
 	const iframeConfig = {
 		size: '01', // The size you'd like the iframe to be can be '01' - '05' as documented
 		container: document.querySelector("#sdkContainer") // Container to place the generated iframe into OR an actual iframe
@@ -135,29 +138,75 @@ function doChallenge(authoriseResponse) {
 
 	// handle SDK promise callbacks
 	challengePromise.then((successfulPromiseResponse) => {
-		output(4, "Response from challenge request to SDK:<br>threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + response.transStatus);
+		output(100, "Response from challenge request to SDK:<br>threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + response.transStatus);
 		console.log("Response from challenge request to SDK:");
 		console.log(successfulPromiseResponse);
 
 		SDKChallengeCallback(successfulPromiseResponse);
 
 	}, (failedPromiseResponse) => {
-		output(4, "Challenge request to SDK failed - check log for more details");
+		output(100, "Challenge request to SDK failed - check log for more details");
 		console.log("Challenge request to SDK failed:");
 		console.log(failedPromiseResponse);
 	});
+
+	// listen for redirect in challenge iframe
+	globals.checkIFrameInterval = setInterval(() => {
+		if (checkIfChallengeIsCompleted()) {
+			clearInterval(globals.checkIFrameInterval);
+			document.querySelector("#threeDSIframeContainer").style.display = "none";
+			output(4, "Challenge completed: <br>cres: " + getCRESFromIframe().trim());
+			authAfterChallenge();
+		}
+	}, 1000);
 }
 
+// CURRENTLY NEVER REACHED
 // called by the SDK's promise after a successful challenge
 function SDKChallengeCallback(response) {
-	output(5, "Challenge completed: <br>" + response);
+	output(100, "Challenge completed: <br>" + response);
 	console.log("SDKChallengeCallback");
 	console.log(response);
 };
 
+// send authorise3ds2 call with stored token
+function authAfterChallenge() {
+	url = SERVER_URL + "?endpoint=threeds2_adv_authorise3ds2" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token);
+	$.get(url, authAfterChallengeCallback);
+}
+
+// get response from authorise3ds2 call
+function authAfterChallengeCallback(data) {
+	console.log(data);
+
+	data = unfuckJSON(data);
+
+	const request = data.request;
+	const response = data.response;
+
+	output(5, "Request from server to Adyen:<br>" + JSON.stringify(request, null, 4));
+	output(6, "Response from Adyen to server:<br>" + JSON.stringify(response, null, 4));
+}
+
 //////////////////////////////////
 //			UTILITIES			//
 //////////////////////////////////
+
+// check location of challenge iframe
+function checkIfChallengeIsCompleted() {
+	try {
+		return (document.querySelector("[name=threeDSIframe]").contentWindow.location.href == NOTIFICATION_URL)
+	}
+	catch(error) {
+		// will return CORS error if challenge hasn't been completed yet
+		return false;
+	}
+}
+
+// returned when the challenge completes and redirects to result page
+function getCRESFromIframe() {
+	return document.querySelector("[name=threeDSIframe]").contentDocument.querySelector("pre").innerHTML;
+}
 
 // fuck knows why you have to go through this crap everytime with JSON
 // I must be building the python server wrong somehow

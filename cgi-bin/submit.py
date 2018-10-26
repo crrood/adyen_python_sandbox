@@ -6,6 +6,7 @@ import base64, binascii, hmac, hashlib
 from collections import OrderedDict
 
 # HTTP parsing
+import cgi
 from urllib.parse import parse_qs, urlencode
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
@@ -658,6 +659,7 @@ def threeds2_adv_initial_auth(data):
 		"Content-Type": "application/json",
 		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD))
 	}
+	notificationURL = LOCAL_ADDRESS + "/cgi-bin/submit.py?endpoint=threeds2_result_page"
 
 	# move amount data into parent object
 	reformat_amount(data)
@@ -679,7 +681,7 @@ def threeds2_adv_initial_auth(data):
 	indent_field(data, "threeDS2RequestData", "threeDSServerTransID")
 	indent_field(data, "threeDS2RequestData", "threeDSCompInd")
 	data["threeDS2RequestData"]["deviceChannel"] = "browser"
-	data["threeDS2RequestData"]["notificationURL"] = RETURN_URL
+	data["threeDS2RequestData"]["notificationURL"] = notificationURL
 
 	# send request to Adyen
 	result = send_request(url, data, headers)
@@ -691,7 +693,28 @@ def threeds2_adv_initial_auth(data):
 	send_response(str(response), "text/plain")
 
 def threeds2_result_page(data):
-	send_debug(data)
+	cres = cgi.FieldStorage().getvalue("cres")
+	send_debug(cres)
+
+def threeds2_adv_authorise3ds2(data):
+	url = "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2"
+	headers = {
+		"Content-Type": "application/json",
+		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD))
+	}
+
+	# hardcoding successful challenge for now
+	data["threeDS2Result"] = {}
+	data["threeDS2Result"]["transStatus"] = "Y"
+
+	# send request to Adyen
+	result = send_request(url, data, headers)
+
+	# create response object with request and response both
+	response = {}
+	response["request"] = str(data)
+	response["response"] = result.decode("utf8")
+	send_response(str(response), "text/plain")
 
 ##########################
 ##		RESULT PAGE		##
@@ -727,6 +750,7 @@ router = {
 	"threeds2_part2": threeds2_part2,
 	"threeds2_adv_initial_auth": threeds2_adv_initial_auth,
 	"threeds2_result_page": threeds2_result_page,
+	"threeds2_adv_authorise3ds2": threeds2_adv_authorise3ds2,
 	"result_page": result_page,
 	"secured_fields_submit": secured_fields_submit
 }
