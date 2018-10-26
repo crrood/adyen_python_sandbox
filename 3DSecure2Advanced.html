@@ -146,11 +146,16 @@ function doChallenge(authoriseResponse) {
 
 	// handle SDK promise callbacks
 	challengePromise.then((successfulPromiseResponse) => {
-		output(100, "Response from challenge request to SDK:<br>threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + response.transStatus);
+		output(100, "Response from challenge request to SDK:<br>threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus);
 		console.log("Response from challenge request to SDK:");
 		console.log(successfulPromiseResponse);
 
-		SDKChallengeCallback(successfulPromiseResponse);
+		if (globals.authenticationOnly) {
+			retrieve3ds2Result();
+		}
+		else {
+			adyenTokenAuth(successfulPromiseResponse.transStatus);
+		}
 
 	}, (failedPromiseResponse) => {
 		output(100, "Challenge request to SDK failed - check log for more details");
@@ -159,22 +164,19 @@ function doChallenge(authoriseResponse) {
 	});
 
 	// listen for redirect in challenge iframe
+	// once it's redirected, decode cres
+	// and append transStatus as GET param to its location
+	// that prompts threedsSDK.doChallenge to resolve
 	globals.checkIFrameInterval = setInterval(() => {
 		if (checkIfChallengeIsCompleted()) {
-
-			// hide challenge iframe
 			clearInterval(globals.checkIFrameInterval);
+			
+			// redirect and hide challenge iframe
+			var transStatus = JSON.parse(window.atob(getCRESFromIframe())).transStatus;
+			document.querySelector("[name=threeDSIframe]").contentWindow.location.href = document.querySelector("[name=threeDSIframe]").contentWindow.location.href + "&transStatus=" + transStatus;
 			document.querySelector("#threeDSIframeContainer").style.display = "none";
 
 			output(4, "Challenge completed: <br>cres: " + getCRESFromIframe().trim());
-
-			// complete authorisation
-			if (globals.authenticationOnly) {
-				retrieve3ds2Result();
-			}
-			else {
-				adyenTokenAuth();
-			}
 		}
 	}, 1000);
 }
@@ -188,8 +190,6 @@ function retrieve3ds2Result() {
 
 // send auth request using cavv and eci values
 function acquirerAgnosticAuth(data) {
-	console.log(data);
-
 	data = unfuckJSON(data);
 
 	const request = data.request;
@@ -202,8 +202,8 @@ function acquirerAgnosticAuth(data) {
 }
 
 // send authorise3ds2 call with stored token
-function adyenTokenAuth() {
-	url = SERVER_URL + "?endpoint=threeds2_adv_authorise3ds2" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token);
+function adyenTokenAuth(transStatus) {
+	url = SERVER_URL + "?endpoint=threeds2_auth_via_token" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token) + "&transStatus=" + transStatus;
 	$.get(url, adyenTokenAuthCallback);
 }
 

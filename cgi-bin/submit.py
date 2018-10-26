@@ -646,7 +646,7 @@ def threeds2_part2(data):
 	response["response"] = result.decode("utf8")
 	send_response(str(response), "text/plain")
 
-def threeds2_final_auth(data):
+def threeds2_auth_via_token(data):
 
 	# request info
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2"
@@ -656,10 +656,7 @@ def threeds2_final_auth(data):
 	}
 
 	data["merchantAccount"] = MERCHANT_ACCOUNT
-	
-	# hardcoding successful challenge for now
-	data["threeDS2Result"] = {}
-	data["threeDS2Result"]["transStatus"] = "Y"
+	indent_field(data, "threeDS2Result", "transStatus")
 
 	# send request to adyen
 	result = send_request(url, data, headers)
@@ -797,7 +794,7 @@ router = {
 	"threeds1": threeds1,
 	"threeds2_part1": threeds2_part1,
 	"threeds2_part2": threeds2_part2,
-	"threeds2_final_auth": threeds2_final_auth,
+	"threeds2_auth_via_token": threeds2_auth_via_token,
 	"threeds2_adv_initial_auth": threeds2_adv_initial_auth,
 	"threeds2_adv_authorise3ds2": threeds2_adv_authorise3ds2,
 	"threeds2_adv_retrieve3ds2Result": threeds2_adv_retrieve3ds2Result,

@@ -25,7 +25,6 @@
 	<h3>Network activity</h3>
 	<div id="output" style="width: 50%"></div>
 	<div id="sdkContainer"></div>
-	<button onClick="logGlobalSdkPromise()">Log globalSdkPromise</button>
 </body>
 
 </html>
@@ -36,10 +35,6 @@ const SERVER_URL = "http://localhost:8000/cgi-bin/submit.py";
 const NOTIFICATION_URL = SERVER_URL + "?endpoint=threeds2_result_page";
 
 var globals = {};
-
-function logGlobalSdkPromise() {
-	console.log(globals.sdkChallengePromise);
-};
 
 // send form data to server
 function submitForm(e) {	
@@ -145,15 +140,12 @@ function initiateChallenge(authoriseResponse) {
 	}
 
 	// create the iframe for the promise
-	globals.sdkChallengePromise = threedsSDK.doChallenge(acsURL, cReqData, iframeConfig);
-
-	// handle SDK promise callbacks
-	globals.sdkChallengePromise.then((successfulPromiseResponse) => {
-		output(6, "Response from challenge request to SDK:<br>threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + response.transStatus);
+	threedsSDK.doChallenge(acsURL, cReqData, iframeConfig).then((successfulPromiseResponse) => {
+		output(6, "Response from challenge request to SDK:<br>threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus);
 		console.log("Response from challenge request to SDK:");
 		console.log(successfulPromiseResponse);
 
-		SDKChallengeCallback(successfulPromiseResponse);
+		finalAuthorisation(successfulPromiseResponse.transStatus);
 
 	}, (failedPromiseResponse) => {
 		output(6, "Challenge request to SDK failed - check log for more details");
@@ -162,30 +154,31 @@ function initiateChallenge(authoriseResponse) {
 	});
 
 	// listen for redirect in challenge iframe
+	// once it's redirected, decode cres
+	// and append transStatus as GET param to its location
+	// that prompts threedsSDK.doChallenge to resolve
 	globals.checkIFrameInterval = setInterval(() => {
 		if (checkIfChallengeIsCompleted()) {
-
-			// hide challenge iframe
 			clearInterval(globals.checkIFrameInterval);
+			
+			// redirect and hide challenge iframe
+			var transStatus = JSON.parse(window.atob(getCRESFromIframe())).transStatus;
+			document.querySelector("[name=threeDSIframe]").contentWindow.location.href = document.querySelector("[name=threeDSIframe]").contentWindow.location.href + "&transStatus=" + transStatus;
 			document.querySelector("#threeDSIframeContainer").style.display = "none";
 
 			output(6, "Challenge completed: <br>cres: " + getCRESFromIframe().trim());
-
-			// complete authorisation
-			finalAuthorisation();
 		}
 	}, 1000);
 }
 
 // perform authorisation with completed challenge
-function finalAuthorisation() {
-	url = SERVER_URL + "?endpoint=threeds2_final_auth" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token);
+function finalAuthorisation(transStatus) {
+	url = SERVER_URL + "?endpoint=threeds2_auth_via_token" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token) + "&transStatus=" + transStatus;
 	$.get(url, finalAuthorisationCallback);
 }
 
 // final auth result
 function finalAuthorisationCallback(data) {
-	console.log(data);
 	data = unfuckJSON(data);
 
 	const request = data.request;
@@ -194,13 +187,6 @@ function finalAuthorisationCallback(data) {
 	output(7, "Request from server to Adyen:<br>" + JSON.stringify(request, null, 4));
 	output(8, "Response from Adyen to server:<br>" + JSON.stringify(response, null, 4));
 }
-
-// NEVER REACHED CURRENTLY
-// called by the SDK's promise after a successful challenge
-function SDKChallengeCallback(response) {
-	console.log("SDKChallengeCallback");
-	console.log(response);
-};
 
 //////////////////////////////////////
 //			UTILITIES				//
