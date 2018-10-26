@@ -21,11 +21,17 @@
 		<input class="formEls" type="hidden" name="endpoint" value="threeds2_adv_initial_auth"></input>
 		<input class="formEls" type="hidden" name="userAgent" value="browser"></input>
 	</form>
+	<div>
+		<input id="adyenTokenAuth" type="radio" name="transactionTypeRadio" value="adyenTokenAuth" checked="checked">
+		<label for="adyenTokenAuth" style="user-select: none">Adyen Token Auth</label>
+		<input id="acquirerAgnosticAuth" type="radio" name="transactionTypeRadio" value="acquirerAgnosticAuth">
+		<label for="acquirerAgnosticAuth" style="user-select: none">Acquirer Agnostic Auth</label>
+	</div>
+
 	<button onClick="submitForm()">Authorise</button>
 	<h3>Network activity</h3>
 	<div id="output" style="width: 50%"></div>
 	<div id="sdkContainer"></div>
-	<button onClick="logGlobalSdkPromise()" style="display: none;">Log globalSdkPromise</button>
 </body>
 
 </html>
@@ -79,6 +85,8 @@ function submitForm(e) {
 		url = url + encodeURIComponent(formEls[i].name) + "=" + encodeURIComponent(formEls[i].value) + "&"
 		jsonData[formEls[i].name] = formEls[i].value;
 	}
+	globals.authenticationOnly = (document.querySelector('input[name="transactionTypeRadio"]:checked').value == "acquirerAgnosticAuth");
+	url = url + "&authenticationOnly=" + globals.authenticationOnly;
 
 	initialAuthoriseCall(url, jsonData);
 
@@ -153,30 +161,54 @@ function doChallenge(authoriseResponse) {
 	// listen for redirect in challenge iframe
 	globals.checkIFrameInterval = setInterval(() => {
 		if (checkIfChallengeIsCompleted()) {
+
+			// hide challenge iframe
 			clearInterval(globals.checkIFrameInterval);
 			document.querySelector("#threeDSIframeContainer").style.display = "none";
+
 			output(4, "Challenge completed: <br>cres: " + getCRESFromIframe().trim());
-			authAfterChallenge();
+
+			// complete authorisation
+			if (globals.authenticationOnly) {
+				retrieve3ds2Result();
+			}
+			else {
+				adyenTokenAuth();
+			}
 		}
 	}, 1000);
 }
 
-// CURRENTLY NEVER REACHED
-// called by the SDK's promise after a successful challenge
-function SDKChallengeCallback(response) {
-	output(100, "Challenge completed: <br>" + response);
-	console.log("SDKChallengeCallback");
-	console.log(response);
-};
+// retrieve cavv and eci values
+// to potential send to another acquirer
+function retrieve3ds2Result() {
+	url = SERVER_URL + "?endpoint=threeds2_adv_retrieve3ds2Result" + "&pspReference=" + globals.challengePspReference;
+	$.get(url, acquirerAgnosticAuth);
+}
+
+// send auth request using cavv and eci values
+function acquirerAgnosticAuth(data) {
+	console.log(data);
+
+	data = unfuckJSON(data);
+
+	const request = data.request;
+	const response = data.response;
+
+	output(5, "Request from server to Adyen:<br>" + JSON.stringify(request, null, 4));
+	output(6, "Response from Adyen to server:<br>" + JSON.stringify(response, null, 4));
+
+	url = SERVER_URL + "?endpoint=threeds2_adv_acquirerAgnosticAuth" + "&eci="
+}
 
 // send authorise3ds2 call with stored token
-function authAfterChallenge() {
+function adyenTokenAuth() {
 	url = SERVER_URL + "?endpoint=threeds2_adv_authorise3ds2" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token);
-	$.get(url, authAfterChallengeCallback);
+	$.get(url, adyenTokenAuthCallback);
 }
 
 // get response from authorise3ds2 call
-function authAfterChallengeCallback(data) {
+function adyenTokenAuthCallback(data) {
 	console.log(data);
 
 	data = unfuckJSON(data);
@@ -188,9 +220,22 @@ function authAfterChallengeCallback(data) {
 	output(6, "Response from Adyen to server:<br>" + JSON.stringify(response, null, 4));
 }
 
+// CURRENTLY NEVER REACHED
+// called by the SDK's promise after a successful challenge
+function SDKChallengeCallback(response) {
+	output(100, "Challenge completed: <br>" + response);
+	console.log("SDKChallengeCallback");
+	console.log(response);
+};
+
 //////////////////////////////////
 //			UTILITIES			//
 //////////////////////////////////
+
+// gets state of auth flow radio buttons
+function getSelectedAuthFlow() {
+	return document.querySelector('input[name="transactionTypeRadio"]:checked').value;
+}
 
 // check location of challenge iframe
 function checkIfChallengeIsCompleted() {
