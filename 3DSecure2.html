@@ -25,7 +25,7 @@
 	<h3>Network activity</h3>
 	<div id="output" style="width: 50%"></div>
 	<div id="sdkContainer"></div>
-	<button onClick="logGlobalSdkPromise()" style="display: none;">Log globalSdkPromise</button>
+	<button onClick="logGlobalSdkPromise()">Log globalSdkPromise</button>
 </body>
 
 </html>
@@ -33,12 +33,12 @@
 <script>
 
 const SERVER_URL = "http://localhost:8000/cgi-bin/submit.py";
-const RETURN_URL = SERVER_URL + "?endpoint=result_page";
+const NOTIFICATION_URL = SERVER_URL + "?endpoint=threeds2_result_page";
 
-var globalSdkPromise;
+var globals = {};
 
 function logGlobalSdkPromise() {
-	console.log(globalSdkPromise);
+	console.log(globals.sdkChallengePromise);
 };
 
 // send form data to server
@@ -64,7 +64,6 @@ function submitForm(e) {
 
 // callback from sending form to server
 function authoriseCallback(data, status) {
-	console.log(data);
 	data = unfuckJSON(data);
 
 	const request = data.request;
@@ -73,38 +72,47 @@ function authoriseCallback(data, status) {
 	output(1, "Request from server to Adyen:<br>" + JSON.stringify(request, null, 4));
 	output(2, "Response from Adyen to server:<br>" + JSON.stringify(response, null, 4));
 
+	// store token for later
+	globals.threeDS2Token = response.additionalData["threeds2.threeDS2Token"].replace(/\\/g, "");
+
+	// fingerprint device if applicable
+	if (response.resultCode == "IdentifyShopper") {
+		fingerprintDevice(response);
+	}
+};
+
+// perform fingerprint via SDK
+function fingerprintDevice(authoriseResponse) {
 	// give the server data to the SDK
 	var sdkPromise = threedsSDK.get3DSMethodStatus(
-		response.additionalData["threeds2.threeDSServerTransID"], 
-		response.additionalData["threeds2.threeDSMethodURL"].replace(/\\/g, ""), 
-		RETURN_URL, 
+		authoriseResponse.additionalData["threeds2.threeDSServerTransID"], 
+		authoriseResponse.additionalData["threeds2.threeDSMethodURL"].replace(/\\/g, ""), 
+		NOTIFICATION_URL, 
 		document.querySelector("#sdkContainer")
 	);
 
 	// handle SDK promise callbacks
 	sdkPromise.then((successfulPromiseResponse) => {
 		output(3, "Response from verification request to SDK:<br>threeDSCompInd=" + successfulPromiseResponse.threeDSCompInd);
-		console.log("Response from verification request to SDK:");
-		console.log(successfulPromiseResponse);
-
-		SDKCallback(successfulPromiseResponse, response.additionalData["threeds2.threeDS2Token"]);
+		SDKFingerprintCallback(successfulPromiseResponse);
 
 	}, (failedPromiseResponse) => {
 		output(3, "Verification request to SDK failed - check log for more details");
 		console.log("Verification request to SDK failed:");
 		console.log(failedPromiseResponse);
 	});
-};
+}
 
 // called by successful return of promise from threedsSDK.doChallenge
-function SDKCallback(response, threeDS2Token) {
+// sends a request to /authorise3ds2
+function SDKFingerprintCallback(response) {
 	var url = SERVER_URL;
-	var params = "?threeDSCompInd=" + response.threeDSCompInd + "&threeDS2Token=" + threeDS2Token + "&endpoint=threeds2_part2";
+	var params = "?threeDSCompInd=" + response.threeDSCompInd + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token) + "&endpoint=threeds2_part2";
 
 	$.get(url + params, authorise3ds2Callback)
 };
 
-// reads response from initial authorise call
+// reads response from /authorise3ds2 call following fingerprinting
 // initiates SDK challenge if (response.resultCode === "ThreeDS2Challenge")
 function authorise3ds2Callback(data, status) {
 	data = unfuckJSON(data);
@@ -115,48 +123,79 @@ function authorise3ds2Callback(data, status) {
 	output(4, "Request from server to Adyen:<br>" + JSON.stringify(request, null, 4));
 	output(5, "Response from Adyen to server:<br>" + JSON.stringify(response, null, 4));
 
-	console.log("authorise3ds2Callback:");
-	console.log(data);
-
 	// if challenge required
-	console.log(response.resultCode);
 	if (response.resultCode === "ChallengeShopper") {
-		const acsURL = response.additionalData["threeds2.threeDS2ResponseData.acsURL"].replace(/\\/g, "");
-		console.log(acsURL);
-
-		const cReqData = {
-			threeDSServerTransID : response.additionalData['threeds2.threeDS2ResponseData.threeDSServerTransID'],
-			acsTransID : response.additionalData['threeds2.threeDS2ResponseData.acsTransID'],
-			messageVersion : response.additionalData['threeds2.threeDS2ResponseData.messageVersion'],
-			messageType : 'CReq'
-		}
-
-		const iframeConfig = {
-			size: '01', // The size you'd like the iframe to be can be '01' - '05' as documented
-			container: document.querySelector("#sdkContainer") // Container to place the generated iframe into OR an actual iframe
-		}
-
-		// create the iframe for the promise
-		globalSdkPromise = threedsSDK.doChallenge(acsURL, cReqData, iframeConfig);
-
-		console.log(globalSdkPromise);
-
-		// handle SDK promise callbacks
-		globalSdkPromise.then((successfulPromiseResponse) => {
-			output(6, "Response from challenge request to SDK:<br>threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + response.transStatus);
-			console.log("Response from challenge request to SDK:");
-			console.log(successfulPromiseResponse);
-
-			SDKChallengeCallback(successfulPromiseResponse);
-
-		}, (failedPromiseResponse) => {
-			output(6, "Challenge request to SDK failed - check log for more details");
-			console.log("Challenge request to SDK failed:");
-			console.log(failedPromiseResponse);
-		});
+		initiateChallenge(response);
 	}
 };
 
+// passes information from /authorise3ds2 call to SDK to perform challenge
+function initiateChallenge(authoriseResponse) {
+	// configs for SDK challenge
+	const acsURL = authoriseResponse.additionalData["threeds2.threeDS2ResponseData.acsURL"].replace(/\\/g, "");
+	const cReqData = {
+		threeDSServerTransID : authoriseResponse.additionalData['threeds2.threeDS2ResponseData.threeDSServerTransID'],
+		acsTransID : authoriseResponse.additionalData['threeds2.threeDS2ResponseData.acsTransID'],
+		messageVersion : authoriseResponse.additionalData['threeds2.threeDS2ResponseData.messageVersion'],
+		messageType : 'CReq'
+	}
+	const iframeConfig = {
+		size: '01', // The size you'd like the iframe to be can be '01' - '05' as documented
+		container: document.querySelector("#sdkContainer") // Container to place the generated iframe into OR an actual iframe
+	}
+
+	// create the iframe for the promise
+	globals.sdkChallengePromise = threedsSDK.doChallenge(acsURL, cReqData, iframeConfig);
+
+	// handle SDK promise callbacks
+	globals.sdkChallengePromise.then((successfulPromiseResponse) => {
+		output(6, "Response from challenge request to SDK:<br>threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + response.transStatus);
+		console.log("Response from challenge request to SDK:");
+		console.log(successfulPromiseResponse);
+
+		SDKChallengeCallback(successfulPromiseResponse);
+
+	}, (failedPromiseResponse) => {
+		output(6, "Challenge request to SDK failed - check log for more details");
+		console.log("Challenge request to SDK failed:");
+		console.log(failedPromiseResponse);
+	});
+
+	// listen for redirect in challenge iframe
+	globals.checkIFrameInterval = setInterval(() => {
+		if (checkIfChallengeIsCompleted()) {
+
+			// hide challenge iframe
+			clearInterval(globals.checkIFrameInterval);
+			document.querySelector("#threeDSIframeContainer").style.display = "none";
+
+			output(6, "Challenge completed: <br>cres: " + getCRESFromIframe().trim());
+
+			// complete authorisation
+			finalAuthorisation();
+		}
+	}, 1000);
+}
+
+// perform authorisation with completed challenge
+function finalAuthorisation() {
+	url = SERVER_URL + "?endpoint=threeds2_final_auth" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token);
+	$.get(url, finalAuthorisationCallback);
+}
+
+// final auth result
+function finalAuthorisationCallback(data) {
+	console.log(data);
+	data = unfuckJSON(data);
+
+	const request = data.request;
+	const response = data.response;
+
+	output(7, "Request from server to Adyen:<br>" + JSON.stringify(request, null, 4));
+	output(8, "Response from Adyen to server:<br>" + JSON.stringify(response, null, 4));
+}
+
+// NEVER REACHED CURRENTLY
 // called by the SDK's promise after a successful challenge
 function SDKChallengeCallback(response) {
 	console.log("SDKChallengeCallback");
@@ -166,6 +205,22 @@ function SDKChallengeCallback(response) {
 //////////////////////////////////////
 //			UTILITIES				//
 //////////////////////////////////////
+
+// see if the iframe has redirected after completed challenge
+function checkIfChallengeIsCompleted() {
+	try {
+		return (document.querySelector("[name=threeDSIframe]").contentWindow.location.href == NOTIFICATION_URL)
+	}
+	catch(error) {
+		// will return CORS error if challenge hasn't been completed yet
+		return false;
+	}
+}
+
+// returned when the challenge completes and redirects to result page
+function getCRESFromIframe() {
+	return document.querySelector("[name=threeDSIframe]").contentDocument.querySelector("pre").innerHTML;
+}
 
 // fuck knows why you have to go through this crap everytime with JSON
 // I must be building the python server wrong somehow

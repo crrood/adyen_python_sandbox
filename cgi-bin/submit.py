@@ -612,7 +612,7 @@ def threeds2_part1(data):
 	# add threeDS2RequestData
 	data["threeDS2RequestData"] = {}
 	data["threeDS2RequestData"]["deviceChannel"] = "browser"
-	data["threeDS2RequestData"]["notificationURL"] = RETURN_URL
+	data["threeDS2RequestData"]["notificationURL"] = LOCAL_ADDRESS + "/cgi-bin/submit.py?endpoint=threeds2_result_page"
 
 	# send request to Adyen
 	result = send_request(url, data, headers)
@@ -637,8 +637,29 @@ def threeds2_part2(data):
 	data["merchantAccount"] = MERCHANT_ACCOUNT
 	indent_field(data, "threeDS2RequestData", "threeDSCompInd")
 
-	# fix overzealous URL formatting
-	data["threeDS2Token"] = data["threeDS2Token"].replace(" ", "+").replace("\\", "")
+	# send request to adyen
+	result = send_request(url, data, headers)
+	
+	# send request and response to client
+	response = {}
+	response["request"] = str(data)
+	response["response"] = result.decode("utf8")
+	send_response(str(response), "text/plain")
+
+def threeds2_final_auth(data):
+
+	# request info
+	url = "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2"
+	headers = {
+		"Content-Type": "application/json",
+		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD))
+	}
+
+	data["merchantAccount"] = MERCHANT_ACCOUNT
+	
+	# hardcoding successful challenge for now
+	data["threeDS2Result"] = {}
+	data["threeDS2Result"]["transStatus"] = "Y"
 
 	# send request to adyen
 	result = send_request(url, data, headers)
@@ -653,13 +674,13 @@ def threeds2_part2(data):
 ##		3D SECURE 2.0 ADVANCED FLOW 	##
 ##########################################
 def threeds2_adv_initial_auth(data):
+
 	# request info
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise"
 	headers = {
 		"Content-Type": "application/json",
 		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD))
 	}
-	notificationURL = LOCAL_ADDRESS + "/cgi-bin/submit.py?endpoint=threeds2_result_page"
 
 	# move amount data into parent object
 	reformat_amount(data)
@@ -682,7 +703,7 @@ def threeds2_adv_initial_auth(data):
 	indent_field(data, "threeDS2RequestData", "threeDSCompInd")
 	indent_field(data, "threeDS2RequestData", "authenticationOnly")
 	data["threeDS2RequestData"]["deviceChannel"] = "browser"
-	data["threeDS2RequestData"]["notificationURL"] = notificationURL
+	data["threeDS2RequestData"]["notificationURL"] = LOCAL_ADDRESS + "/cgi-bin/submit.py?endpoint=threeds2_result_page"
 
 	# send request to Adyen
 	result = send_request(url, data, headers)
@@ -694,10 +715,14 @@ def threeds2_adv_initial_auth(data):
 	send_response(str(response), "text/plain")
 
 def threeds2_result_page(data):
+
+	# echo cres value
 	cres = cgi.FieldStorage().getvalue("cres")
 	send_debug(cres)
 
 def threeds2_adv_authorise3ds2(data):
+
+	# request info
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2"
 	headers = {
 		"Content-Type": "application/json",
@@ -718,6 +743,8 @@ def threeds2_adv_authorise3ds2(data):
 	send_response(str(response), "text/plain")
 
 def threeds2_adv_retrieve3ds2Result(data):
+
+	# request info
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/v40/retrieve3ds2Result"
 	headers = {
 		"Content-Type": "application/json",
@@ -770,11 +797,12 @@ router = {
 	"threeds1": threeds1,
 	"threeds2_part1": threeds2_part1,
 	"threeds2_part2": threeds2_part2,
+	"threeds2_final_auth": threeds2_final_auth,
 	"threeds2_adv_initial_auth": threeds2_adv_initial_auth,
-	"threeds2_result_page": threeds2_result_page,
 	"threeds2_adv_authorise3ds2": threeds2_adv_authorise3ds2,
 	"threeds2_adv_retrieve3ds2Result": threeds2_adv_retrieve3ds2Result,
 	"threeds2_adv_acquirerAgnosticAuth": threeds2_adv_acquirerAgnosticAuth,
+	"threeds2_result_page": threeds2_result_page,
 	"result_page": result_page,
 	"secured_fields_submit": secured_fields_submit
 }
