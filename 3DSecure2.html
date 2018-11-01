@@ -59,7 +59,7 @@ function submitForm(e) {
 
 // callback from sending form to server
 function authoriseCallback(data, status) {
-	data = unfuckJSON(data);
+	data = sanitizeJSON(data);
 
 	const request = data.request;
 	const response = data.response;
@@ -110,7 +110,7 @@ function SDKFingerprintCallback(response) {
 // reads response from /authorise3ds2 call following fingerprinting
 // initiates SDK challenge if (response.resultCode === "ThreeDS2Challenge")
 function authorise3ds2Callback(data, status) {
-	data = unfuckJSON(data);
+	data = sanitizeJSON(data);
 
 	const request = data.request;
 	const response = data.response;
@@ -180,7 +180,7 @@ function finalAuthorisation(transStatus) {
 
 // final auth result
 function finalAuthorisationCallback(data) {
-	data = unfuckJSON(data);
+	data = sanitizeJSON(data);
 
 	const request = data.request;
 	const response = data.response;
@@ -209,9 +209,8 @@ function getCRESFromIframe() {
 	return document.querySelector("[name=threeDSIframe]").contentDocument.querySelector("pre").innerHTML;
 }
 
-// fuck knows why you have to go through this crap everytime with JSON
-// I must be building the python server wrong somehow
-function unfuckJSON(data) {
+// this shouldn't be necessary.. I must be building the response wrong somehow
+function sanitizeJSON(data) {
 	return JSON.parse(data.replace(/'/g, '"').replace(/"\{/g, "{").replace(/\}"/g, '}'));
 };
 

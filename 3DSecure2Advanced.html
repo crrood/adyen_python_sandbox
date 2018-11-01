@@ -105,7 +105,7 @@ function initialAuthoriseCall(url, jsonData) {
 
 // receive response from initialAuthoriseCall
 function initialAuthoriseCallback(data, status) {
-	data = unfuckJSON(data);
+	data = sanitizeJSON(data);
 
 	const request = data.request;
 	const response = data.response;
@@ -163,7 +163,6 @@ function doChallenge() {
 			var transStatus = JSON.parse(window.atob(getCRESFromIframe())).transStatus;
 			document.querySelector("[name=threeDSIframe]").contentWindow.location.href = document.querySelector("[name=threeDSIframe]").contentWindow.location.href + "&transStatus=" + transStatus;
 			console.log("iframe location: " + document.querySelector("[name=threeDSIframe]").contentWindow.location.href);
-			// document.querySelector("#threeDSIframeContainer").style.display = "none";
 		}
 	}, 1000);
 }
@@ -173,6 +172,9 @@ function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 	console.log("successful challenge");
 	console.log(successfulPromiseResponse);
 	output(4, "Response from challenge request to SDK:<br>threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus);
+
+	// hide SDK challenge
+	document.querySelector("#threeDSIframeContainer").style.display = "none";
 
 	if (globals.authenticationOnly) {
 		retrieve3ds2Result();
@@ -197,7 +199,7 @@ function retrieve3ds2Result() {
 
 // send auth request using cavv and eci values
 function acquirerAgnosticAuth(data) {
-	data = unfuckJSON(data);
+	data = sanitizeJSON(data);
 
 	const request = data.request;
 	const response = data.response;
@@ -216,7 +218,7 @@ function adyenTokenAuth(transStatus) {
 
 // get response from authorise3ds2 call
 function adyenTokenAuthCallback(data) {
-	data = unfuckJSON(data);
+	data = sanitizeJSON(data);
 
 	const request = data.request;
 	const response = data.response;
@@ -250,9 +252,8 @@ function getCRESFromIframe() {
 	return document.querySelector("[name=threeDSIframe]").contentDocument.querySelector("pre").innerHTML.trim();
 }
 
-// fuck knows why you have to go through this crap everytime with JSON
-// I must be building the python server wrong somehow
-function unfuckJSON(data) {
+// this shouldn't be necessary.. I must be building the response wrong somehow
+function sanitizeJSON(data) {
 	return JSON.parse(data.replace(/'/g, '"').replace(/"\{/g, "{").replace(/\}"/g, '}'));
 };
 
