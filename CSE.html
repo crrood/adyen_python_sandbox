@@ -85,6 +85,10 @@ document.getElementById("logBtnRecurring").addEventListener("click", function(e)
 	document.getElementById("adyen-encrypted-form-recurring").elements["adyen-encrypted-data"].value;
 });
 
+function onvalidate(event) {
+	console.log(event);
+}
+
 // set up options and initialize encrypted form object
 function initCardsCheckout() {
 
@@ -102,7 +106,8 @@ function initCardsCheckout() {
 
 	// See https://github.com/Adyen/CSE-JS/blob/master/Options.md for details on the options to use.
 	var options = {
-		"enableValidations": false,
+		"enableValidations": true,
+		"onvalidate": onvalidate
 	};
 	var optionsGeneric = {
 		"enableValidations": false,

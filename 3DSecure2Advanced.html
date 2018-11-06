@@ -187,7 +187,7 @@ function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 // doChallenge failed resolution
 function handleFailedSDKChallengePromise(failedPromiseResponse) {
 	output("3b", "Challenge failed - retrying<br>" + JSON.stringify(failedPromiseResponse, null, 4));
-	doChallenge();
+	// doChallenge();
 }
 
 // retrieve cavv and eci values

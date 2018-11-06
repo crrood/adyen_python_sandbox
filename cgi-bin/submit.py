@@ -1,5 +1,6 @@
-#!/Users/colinr/miniconda3/bin/python3
+#!/usr/local/adyen/python3/bin/
 import json, os, datetime, configparser
+import time, logging
 
 # HMAC
 import base64, binascii, hmac, hashlib
@@ -20,6 +21,32 @@ import webbrowser
 
 LOCAL_ADDRESS = "http://localhost:8000"
 RETURN_URL = "{}/cgi-bin/submit.py?endpoint=result_page".format(LOCAL_ADDRESS)
+
+######################
+##		LOGGING		##
+######################
+
+logging.basicConfig(format='%(message)s', level=logging.DEBUG, datefmt='%Y-%m-%d %X %Z')
+
+# class custom_logger(logging):
+
+# 	def info(self, msg, *args, **kwargs):
+# 		msg = f"{os.environ['REMOTE_ADDR']} - - [{log_date_time_string()}] {msg}"
+# 		super(self, msg, args, kwargs)
+
+# 	def log_date_time_string():
+# 		"""Return the current time formatted for logging."""
+# 		monthname = [None,
+# 		             'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+# 		             'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+# 		now = time.time()
+# 		year, month, day, hh, mm, ss, x, y, z = time.localtime(now)
+# 		s = "%02d/%3s/%04d %02d:%02d:%02d" % (
+# 				day, monthname[month], year, hh, mm, ss)
+# 		return s
+
+# custom_logger("test log")
+
 
 ##############################
 ##		AUTHENTICATION		##
@@ -538,27 +565,27 @@ def threeds1(data):
 	result = json.loads(send_request(url, data, headers).decode("utf8"))
 	result = '''
 		<body onload="document.getElementById('3dform').submit();">
-	        <form method="POST" action="{issuer_url}" id="3dform">
-	            <input type="hidden" name="PaReq" value="{pa_request}" />
-	            <input type="hidden" name="MD" value="{md}" />
-	            <input type="hidden" name="TermUrl" value="{term_url}" />
-	            <noscript>
-	                <br>
-	                <br>
-	                <div style="text-align: center">
-	                    <h1>Processing your 3D Secure Transaction</h1>
-	                    <p>Please click continue to continue the processing of your 3D Secure transaction.</p>
-	                    <input type="submit" class="button" value="continue"/>
-	                </div>
-	            </noscript>
-	        </form>
-	    </body>
-	    '''.format(
-	    	pa_request=result["paRequest"], 
-	    	issuer_url=result["issuerUrl"],
-	    	md=result["md"],
-	    	term_url="www.example.com"
-	    )
+			<form method="POST" action="{issuer_url}" id="3dform">
+				<input type="hidden" name="PaReq" value="{pa_request}" />
+				<input type="hidden" name="MD" value="{md}" />
+				<input type="hidden" name="TermUrl" value="{term_url}" />
+				<noscript>
+					<br>
+					<br>
+					<div style="text-align: center">
+						<h1>Processing your 3D Secure Transaction</h1>
+						<p>Please click continue to continue the processing of your 3D Secure transaction.</p>
+						<input type="submit" class="button" value="continue"/>
+					</div>
+				</noscript>
+			</form>
+		</body>
+		'''.format(
+			pa_request=result["paRequest"], 
+			issuer_url=result["issuerUrl"],
+			md=result["md"],
+			term_url="www.example.com"
+		)
 
 	send_response(result, "text/html")
 
@@ -698,8 +725,15 @@ def threeds2_adv_initial_auth(data):
 def threeds2_result_page(data):
 
 	# echo cres value
-	cres = cgi.FieldStorage().getvalue("cres")
+	form = cgi.FieldStorage()
+	cres = form.getvalue("cres")
 	send_debug(cres)
+
+	# output to file for debugging
+	with open("log.txt", "a") as log_file:
+		log_file.write("--------\n")
+		for key in form.keys():
+			log_file.write("{}: {}\n".format(key, form.getvalue(key)))
 
 def threeds2_adv_authorise3ds2(data):
 
@@ -758,6 +792,10 @@ def result_page(data):
 ##############################
 ##		ROUTER METHOD		##
 ##############################
+
+logging.info("test log")
+logging.info("address: {}".format(parse_qs(os.environ['REMOTE_ADDR'])))
+logging.info(os.environ["REMOTE_ADDR"])
 
 # parse payment data from URL params 
 request_data = parse_qs(os.environ["QUERY_STRING"])
