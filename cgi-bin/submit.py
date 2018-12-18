@@ -1,4 +1,4 @@
-#!/usr/local/adyen/python3/bin/
+#!/usr/local/adyen/python3/bin/python3
 import json, os, datetime, configparser
 import time, logging
 
@@ -26,27 +26,39 @@ RETURN_URL = "{}/cgi-bin/submit.py?endpoint=result_page".format(LOCAL_ADDRESS)
 ##		LOGGING		##
 ######################
 
-logging.basicConfig(format='%(message)s', level=logging.DEBUG, datefmt='%Y-%m-%d %X %Z')
+class CustomLogger(logging.Logger):
 
-# class custom_logger(logging):
+	def debug(self, msg, *args, **kwargs):
+		super().debug(self.format_msg(msg), *args, **kwargs)
 
-# 	def info(self, msg, *args, **kwargs):
-# 		msg = f"{os.environ['REMOTE_ADDR']} - - [{log_date_time_string()}] {msg}"
-# 		super(self, msg, args, kwargs)
+	def info(self, msg, *args, **kwargs):
+		super().info(self.format_msg(msg), *args, **kwargs)
 
-# 	def log_date_time_string():
-# 		"""Return the current time formatted for logging."""
-# 		monthname = [None,
-# 		             'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-# 		             'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-# 		now = time.time()
-# 		year, month, day, hh, mm, ss, x, y, z = time.localtime(now)
-# 		s = "%02d/%3s/%04d %02d:%02d:%02d" % (
-# 				day, monthname[month], year, hh, mm, ss)
-# 		return s
+	def warn(self, msg, *args, **kwargs):
+		super().warn(self.format_msg(msg), *args, **kwargs)
 
-# custom_logger("test log")
+	def error(self, msg, *args, **kwargs):
+		super().error(self.format_msg(msg), *args, **kwargs)
 
+	def critical(self, msg, *args, **kwargs):
+		super().critical(self.format_msg(msg), *args, **kwargs)
+
+	def format_msg(self, msg):
+		return "[{}] {}".format(self.log_date_time_string(), msg)
+
+	def log_date_time_string(self):
+		"""Return the current time formatted for logging."""
+		monthname = [None,
+		             'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+		             'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+		now = time.time()
+		year, month, day, hh, mm, ss, x, y, z = time.localtime(now)
+		s = "%02d/%3s/%04d %02d:%02d:%02d" % (
+				day, monthname[month], year, hh, mm, ss)
+		return s
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)s:%(levelname)s %(message)s', datefmt='[%d/%m/%Y %X %Z]')
+logger = logging.getLogger("CGI")
 
 ##############################
 ##		AUTHENTICATION		##
@@ -82,6 +94,11 @@ def send_request(url, data, headers, data_type="json"):
 	else:
 		formatted_data = data
 
+	# logging
+	logging.info("")
+	logging.info("sending outgoing request to {}".format(url))
+	logging.info("request data: {}".format(data))
+
 	# create request object
 	request = Request(url, formatted_data, headers)
 
@@ -100,12 +117,17 @@ def send_response(result, content_type="text/html", skipHeaders=False):
 		print("Content-length:{}\r\n".format(len(result)), end="")
 		print("\r\n", end="")
 
+
 	if type(result) is bytes:
-		print("{}\r\n".format(result.decode("utf8")), end="")
+		formatted_result = "{}\r\n".format(result.decode("utf8"))
 	elif type(result) is str:
-		print("{}\r\n".format(result), end="")
+		formatted_result = "{}\r\n".format(result)
 	else:
 		print("Invalid data type in send_response")
+
+	logging.info("")
+	logging.info("responding to client with data: {}".format(formatted_result))
+	print(formatted_result, end="")
 
 # respond with raw data
 def send_debug(data, content_type="text/plain", duplicate=False):
@@ -167,6 +189,16 @@ def create_basic_auth(user, WS_PASSWORD):
 	combined_string = "{}:{}".format(user, WS_PASSWORD)
 	return base64.b64encode(combined_string.encode("utf8")).decode("utf8")
 
+# convert FieldStorage to dict
+# NOTE this can only be called once per request
+def get_dict_from_fieldstorage():
+	form = cgi.FieldStorage()
+	result = {}
+
+	for key in form.keys():
+		result[key] = form.getvalue(key)
+
+	return result
 
 ##############################
 ##		CHECKOUT API		##
@@ -712,6 +744,10 @@ def threeds2_adv_initial_auth(data):
 	indent_field(data, "threeDS2RequestData", "authenticationOnly")
 	data["threeDS2RequestData"]["deviceChannel"] = "browser"
 	data["threeDS2RequestData"]["notificationURL"] = LOCAL_ADDRESS + "/cgi-bin/submit.py?endpoint=threeds2_result_page"
+	
+	# if data["threeDS2RequestData"]["authenticationOnly"] == "true":
+		# data["threeDS2RequestData"]["acquirerBIN"] = "526567"
+		# data["threeDS2RequestData"]["acquirerMerchantID"] = "526567000000005"
 
 	# send request to Adyen
 	result = send_request(url, data, headers)
@@ -725,15 +761,14 @@ def threeds2_adv_initial_auth(data):
 def threeds2_result_page(data):
 
 	# echo cres value
-	form = cgi.FieldStorage()
-	cres = form.getvalue("cres")
-	send_debug(cres)
+	logger.info(post_data)
 
-	# output to file for debugging
-	with open("log.txt", "a") as log_file:
-		log_file.write("--------\n")
-		for key in form.keys():
-			log_file.write("{}: {}\n".format(key, form.getvalue(key)))
+	# return cres if available
+	# TODO there should be a separate endpoint to return cres
+	if "cres" in post_data.keys():
+		send_debug(post_data["cres"])
+	else:
+		send_debug(post_data)
 
 def threeds2_adv_authorise3ds2(data):
 
@@ -786,16 +821,19 @@ def threeds2_adv_acquirerAgnosticAuth(data):
 
 # landing page for complete transactions
 def result_page(data):
+	# send POST params to logger
+	logger.info(post_data)
+
+	# echo URL params to client
 	send_debug("Response from Adyen:")
+	send_debug("URL params:", duplicate=True)
 	send_debug(data, duplicate=True)
+	send_debug("POST data:", duplicate=True)
+	send_debug(post_data, duplicate=True)
 
 ##############################
 ##		ROUTER METHOD		##
 ##############################
-
-logging.info("test log")
-logging.info("address: {}".format(parse_qs(os.environ['REMOTE_ADDR'])))
-logging.info(os.environ["REMOTE_ADDR"])
 
 # parse payment data from URL params 
 request_data = parse_qs(os.environ["QUERY_STRING"])
@@ -832,19 +870,34 @@ try:
 	del data["endpoint"]
 
 except:
+	logger.critical("endpoint value missing in request data")
 	send_debug("endpoint value missing in request data:")
 	send_debug(data, duplicate=True)
 	exit(1)
 
+# get data from POST fields
+post_data = get_dict_from_fieldstorage()
+del post_data["endpoint"]
+
+# log request
+logger.info("")
+logger.info("------- NEW REQUEST -------")
+logger.info("receiving incoming request to {}".format(endpoint))
+logger.info("incoming URL params: {}".format(data))
+logger.info("incoming POST data: {}".format(post_data))
+
 # add merchantAccount to data
 data["merchantAccount"] = MERCHANT_ACCOUNT
 
-try:
-	# send to proper method
-	router[endpoint](data)
-	
-except KeyError as e:
-	# in case of errors echo data back to client
+# make sure endpoint is valid
+if not endpoint in router.keys():
+	logger.critical("method not found: {}".format(endpoint))
 	send_debug("SERVER ERROR")
 	send_debug("Method not found: \n{}".format(e), duplicate=True)
 	send_debug("\n{}".format(data), duplicate=True)
+
+# send to proper method
+else:
+	router[endpoint](data)
+
+	

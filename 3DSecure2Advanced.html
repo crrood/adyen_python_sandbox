@@ -31,7 +31,7 @@
 	<button onClick="submitForm()">Authorise</button>
 	<h3>Network activity</h3>
 	<div id="output" style="width: 50%"></div>
-	<div id="sdkContainer"></div>
+	<div id="sdkContainer" style="border: 1px black solid; display: inline-block"></div>
 </body>
 
 </html>
@@ -59,13 +59,24 @@ function fingerprintDevice(threeDSMethodURL) {
 		document.querySelector("#sdkContainer")
 	);
 
+	output("Fingerprint request to SDK", "threedsSDK.get3DSMethodStatus<br><br>" + JSON.stringify(
+		{
+			"threeDSServerTransID": globals.threeDSServerTransID,
+			"threeDSMethodURL": CACHED_THREEDS_URL, 
+			"YOUR_NOTIFICATION_ENDPOINT": NOTIFICATION_URL, 
+			'CONTAINER': document.querySelector("#sdkContainer")
+		},
+		null,
+		4
+	));
+
 	// handle SDK promise callbacks
 	sdkPromise.then((successfulPromiseResponse) => {
-		output(0, "Response from verification request to SDK:<br>threeDSCompInd=" + successfulPromiseResponse.threeDSCompInd);
+		output("Fingerprint response from SDK", "threedsSDK.get3DSMethodStatus<br><br>threeDSCompInd=" + successfulPromiseResponse.threeDSCompInd);
 		globals.fingerprintResponse = successfulPromiseResponse;
 
 	}, (failedPromiseResponse) => {
-		output(0, "Verification request to SDK failed - check log for more details");
+		output("Fingerprint response from SDK", "Verification request to SDK failed - check log for more details");
 		console.log("Verification request to SDK failed:");
 		console.log(failedPromiseResponse);
 	});
@@ -98,7 +109,7 @@ function initialAuthoriseCall(url, jsonData) {
 	jsonData["threeDSCompInd"] = globals.fingerprintResponse.threeDSCompInd;
 	jsonData["threeDSServerTransID"] = globals.threeDSServerTransID;
 
-	output(1, "Request from client to server:<br>" + JSON.stringify(jsonData, null, 4));
+	// output("Request from client to server", JSON.stringify(jsonData, null, 4));
 
 	$.get(url, initialAuthoriseCallback)
 };
@@ -110,8 +121,8 @@ function initialAuthoriseCallback(data, status) {
 	const request = data.request;
 	const response = data.response;
 
-	output(2, "Request from server to Adyen:<br>" + JSON.stringify(request, null, 4));
-	output(3, "Response from Adyen to server:<br>" + JSON.stringify(response, null, 4));
+	output("Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise<br><br>" + JSON.stringify(request, null, 4));
+	output("Response from Adyen to server", JSON.stringify(response, null, 4));
 
 	if (response.resultCode == "ChallengeShopper") {
 		// put all of the required 3DS 2.0 data into the global namespace
@@ -120,7 +131,8 @@ function initialAuthoriseCallback(data, status) {
 			threeDSServerTransID : response.additionalData['threeds2.threeDS2ResponseData.threeDSServerTransID'],
 			acsTransID : response.additionalData['threeds2.threeDS2ResponseData.acsTransID'],
 			messageVersion : response.additionalData['threeds2.threeDS2ResponseData.messageVersion'],
-			messageType : 'CReq'
+			messageType : 'CReq',
+			challengeWindowSize: '04'
 		}
 		globals.acsURL = response.additionalData["threeds2.threeDS2ResponseData.acsURL"].replace(/\\/g, "");
 
@@ -143,6 +155,8 @@ function doChallenge() {
 		size: '01', // The size you'd like the iframe to be can be '01' - '05' as documented
 		container: document.querySelector("#sdkContainer") // Container to place the generated iframe into OR an actual iframe
 	}
+
+	output("Challenge request to SDK", "threedsSDK.doChallenge<br><br>acsURL: " + globals.acsURL + "<br>iframeConfig: " + JSON.stringify(iframeConfig, null, 4) + "<br>cReqData: " + JSON.stringify(globals.cReqData, null, 4))
 
 	// create the iframe for the promise
 	threedsSDK.doChallenge(globals.acsURL, globals.cReqData, iframeConfig).then(
@@ -171,7 +185,7 @@ function doChallenge() {
 function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 	console.log("successful challenge");
 	console.log(successfulPromiseResponse);
-	output(4, "Response from challenge request to SDK:<br>threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus);
+	output("Challenge succeeded", "threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus);
 
 	// hide SDK challenge
 	document.querySelector("#threeDSIframeContainer").style.display = "none";
@@ -186,7 +200,7 @@ function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 
 // doChallenge failed resolution
 function handleFailedSDKChallengePromise(failedPromiseResponse) {
-	output("3b", "Challenge failed - retrying<br>" + JSON.stringify(failedPromiseResponse, null, 4));
+	output("Challenge failed", "Challenge failed - retrying<br>" + JSON.stringify(failedPromiseResponse, null, 4));
 	// doChallenge();
 }
 
@@ -204,8 +218,8 @@ function acquirerAgnosticAuth(data) {
 	const request = data.request;
 	const response = data.response;
 
-	output(5, "Request from server to Adyen:<br>" + JSON.stringify(request, null, 4));
-	output(6, "Response from Adyen to server:<br>" + JSON.stringify(response, null, 4));
+	output("Request from server to Adyen", JSON.stringify(request, null, 4));
+	output("Response from Adyen to server", JSON.stringify(response, null, 4));
 
 	url = SERVER_URL + "?endpoint=threeds2_adv_acquirerAgnosticAuth" + "&eci="
 }
@@ -223,8 +237,8 @@ function adyenTokenAuthCallback(data) {
 	const request = data.request;
 	const response = data.response;
 
-	output(5, "Request from server to Adyen:<br>" + JSON.stringify(request, null, 4));
-	output(6, "Response from Adyen to server:<br>" + JSON.stringify(response, null, 4));
+	output("Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2<br><br>" + JSON.stringify(request, null, 4));
+	output("Response from Adyen to server", JSON.stringify(response, null, 4));
 }
 
 //////////////////////////////////
@@ -258,11 +272,11 @@ function sanitizeJSON(data) {
 };
 
 // utility to output to web page
-function output(number, text) {
+function output(id, text) {
 	var containerEl = $("#output");
 
 	var countEl = document.createElement("div");
-	countEl.innerHTML = "--------------- " + number + " ---------------";
+	countEl.innerHTML = "--------------- " + id + " ---------------";
 	containerEl.append(countEl);
 
 	// create element to be added

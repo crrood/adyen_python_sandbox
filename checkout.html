@@ -59,8 +59,8 @@ function setupVerify(pHookData) {
 
 		// Send data to server
 		var url = "http://localhost:8000/cgi-bin/submit.py";
-		var postData = "endpoint=checkout_verify&payload=" + pHookData.payload;
-		AJAXPost(url + "?" + postData, "", "", "POST", function() {
+		var postData = "endpoint=checkout_verify&payload=" + encodeURIComponent(pHookData.payload);
+		AJAXPost(url + "?" + postData, {"enctype":"multipart/form-data"}, "", "POST", function() {
 
 			// Display response
 			document.getElementById("verifyResult").innerHTML = this.responseText;

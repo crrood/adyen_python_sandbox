@@ -132,7 +132,8 @@ function initiateChallenge(authoriseResponse) {
 		threeDSServerTransID : authoriseResponse.additionalData['threeds2.threeDS2ResponseData.threeDSServerTransID'],
 		acsTransID : authoriseResponse.additionalData['threeds2.threeDS2ResponseData.acsTransID'],
 		messageVersion : authoriseResponse.additionalData['threeds2.threeDS2ResponseData.messageVersion'],
-		messageType : 'CReq'
+		messageType : 'CReq',
+		challengeWindowSize: '01'
 	}
 	const iframeConfig = {
 		size: '01', // The size you'd like the iframe to be can be '01' - '05' as documented
