@@ -195,8 +195,13 @@ def get_dict_from_fieldstorage():
 	form = cgi.FieldStorage()
 	result = {}
 
-	for key in form.keys():
-		result[key] = form.getvalue(key)
+	try:
+		for key in form.keys():
+			result[key] = form.getvalue(key)
+
+		del result["endpoint"]
+	except:
+		logging.warn("Could not retrieve FieldStorage data")
 
 	return result
 
@@ -875,13 +880,14 @@ except:
 	send_debug(data, duplicate=True)
 	exit(1)
 
-# get data from POST fields
-post_data = get_dict_from_fieldstorage()
-del post_data["endpoint"]
-
-# log request
+# note incoming request
 logger.info("")
 logger.info("------- NEW REQUEST -------")
+
+# get data from POST fields
+post_data = get_dict_from_fieldstorage()
+
+# log request data
 logger.info("receiving incoming request to {}".format(endpoint))
 logger.info("incoming URL params: {}".format(data))
 logger.info("incoming POST data: {}".format(post_data))
