@@ -200,8 +200,10 @@ function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 
 // doChallenge failed resolution
 function handleFailedSDKChallengePromise(failedPromiseResponse) {
-	output("Challenge failed", "Challenge failed - retrying<br>" + JSON.stringify(failedPromiseResponse, null, 4));
-	// doChallenge();
+	output("Challenge failed", "Challenge failed<br>" + JSON.stringify(failedPromiseResponse, null, 4));
+
+	// hide SDK challenge
+	document.querySelector("#threeDSIframeContainer").style.display = "none";
 }
 
 // retrieve cavv and eci values

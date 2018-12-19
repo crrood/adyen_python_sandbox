@@ -148,12 +148,12 @@ def indent_field(data, parent, target):
 	data[parent][target] = data[target]
 	del data[target]
 
-# reformat amount data into indented object for Adyen
+# reformat amount data into indented object
 def reformat_amount(data):
 	indent_field(data, "amount", "value")
 	indent_field(data, "amount", "currency")
 
-# reformat card data into indented object for Adyen
+# reformat card data into indented object for PAL API
 def reformat_card(data):
 	indent_field(data, "card", "number")
 	indent_field(data, "card", "expiryMonth")
@@ -161,6 +161,7 @@ def reformat_card(data):
 	indent_field(data, "card", "holderName")
 	indent_field(data, "card", "cvc")
 
+# reformat card data into indented object for Checkout API
 def reformat_card_checkout(data, encrypted=True):
 	if encrypted:
 		indent_field(data, "paymentMethod", "encryptedCardNumber")
@@ -559,7 +560,7 @@ def secured_fields_submit(data):
 	reformat_amount(data)
 
 	# move card data into paymentMethod object
-	reformat_card_checkout(data)
+	reformat_card_checkout(data, encrypted=True)
 
 	send_debug(data)
 
@@ -575,14 +576,14 @@ def secured_fields_submit(data):
 def threeds1(data):
 
 	# request info
-	url = "https://pal-test.adyen.com/pal/servlet/Payment/authorise"
+	url = "https://checkout-test.adyen.com/v40/payments"
 	headers = {
 		"Content-Type": "application/json",
-		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD))
+		"x-api-key": API_KEY
 	}
 
 	# static fields
-	data["returnUrl"] = "www.example.com"
+	data["returnUrl"] = RETURN_URL
 	data["additionalData"] = {
 		"executeThreeD": "true"
 	}
@@ -591,40 +592,21 @@ def threeds1(data):
 	reformat_amount(data)
 
 	# move card data into parent object
-	reformat_card(data)
+	reformat_card_checkout(data, encrypted=False)
 
 	# move userAgent into browserInfo object
 	indent_field(data, "browserInfo", "userAgent")
 	data["browserInfo"]["acceptheader"] = "text/html"
 
 	# get response from Adyen
-	# and create a self-submitting form to redirect user to auth page
-	result = json.loads(send_request(url, data, headers).decode("utf8"))
-	result = '''
-		<body onload="document.getElementById('3dform').submit();">
-			<form method="POST" action="{issuer_url}" id="3dform">
-				<input type="hidden" name="PaReq" value="{pa_request}" />
-				<input type="hidden" name="MD" value="{md}" />
-				<input type="hidden" name="TermUrl" value="{term_url}" />
-				<noscript>
-					<br>
-					<br>
-					<div style="text-align: center">
-						<h1>Processing your 3D Secure Transaction</h1>
-						<p>Please click continue to continue the processing of your 3D Secure transaction.</p>
-						<input type="submit" class="button" value="continue"/>
-					</div>
-				</noscript>
-			</form>
-		</body>
-		'''.format(
-			pa_request=result["paRequest"], 
-			issuer_url=result["issuerUrl"],
-			md=result["md"],
-			term_url="www.example.com"
-		)
+	payments_result = json.loads(send_request(url, data, headers).decode("utf8"))
 
-	send_response(result, "text/html")
+	logging.debug(payments_result)
+
+	# craft url for user redirect
+	redirect_url = "{issuer_url}?{params}".format(issuer_url=payments_result["redirect"]["url"], params=urlencode(payments_result["redirect"]["data"]))
+
+	send_response(redirect_url, "text/plain")
 
 ######################################
 ##		3D SECURE 2.0 BASIC FLOW	##
@@ -828,6 +810,9 @@ def threeds2_adv_acquirerAgnosticAuth(data):
 def result_page(data):
 	# send POST params to logger
 	logger.info(post_data)
+
+	# remove merchant account from params since it was added by server
+	del data["merchantAccount"]
 
 	# echo URL params to client
 	send_debug("Response from Adyen:")
