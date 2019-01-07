@@ -24,7 +24,7 @@ function displayToWindow(text) {
 }
 
 // Handle response from setup call
-callback = function() {
+const setupCallback = function() {
 
 	if (this.readyState == 4) {
 		console.log("response:" );
@@ -73,39 +73,12 @@ callback = function() {
 	}
 };
 
-// Send request to server
-function AJAXPost(path, headers, params, method, callback) {
-	var request = new XMLHttpRequest();
-	request.open(method || "POST", path, true);
-	request.onreadystatechange = callback;
-
-	for (var key in headers) {
-		request.setRequestHeader(key, headers[key]);
-	}
-
-	request.send(params);
-};
-
 // Called on submitting payment data form
 function setupSecuredFields(e) {
 	e.preventDefault();
 
-	var inputParams = document.querySelectorAll("input[class=payment-data]");
-
-	// Get request details from html form
-	var formString = "";
-	for (var param of inputParams) {
-		formString = formString + param.name + "=" + param.value + "&";
-	}
-	formString = formString + "endpoint=secured_fields_setup";
-
-	// Set parameters for request to server
-	url = "cgi-bin/submit.py";
-	headers = { "Content-Type": "application/x-www-form-urlencoded" };
-	method = "POST";
-
 	// calls async javascript function to send to server
-	AJAXPost(encodeURI(url + "?" + formString), headers, {}, method, callback);
+	AJAXPost(buildFormURL(), setupCallback);
 }
 
 // Called from JS library on successful payment
@@ -133,10 +106,8 @@ function paymentSuccess(result) {
 		// Send data to server
 		var url = "./cgi-bin/submit.py";
 		var postData = "endpoint=checkout_verify&payload=" + result.payload;
-		var headers = { "Content-Type": "application/x-www-form-urlencoded" };
-		var method = "POST";
 
-		AJAXPost(url + "?" + postData, headers, {}, "POST", function() {
+		AJAXPost(url + "?" + postData, function() {
 			// Display response
 			document.getElementById("verifyResult").innerHTML = this.responseText;
 		});

@@ -3,6 +3,7 @@
 <head>
 	<script type="text/javascript" src="https://checkoutshopper-test.adyen.com/checkoutshopper/assets/js/sdk/checkoutSecuredFields.1.1.3.js"></script>
 	<script type="text/javascript" src="https://checkoutshopper-test.adyen.com/checkoutshopper/js/checkoutInitiatePayment.min.js"></script>
+	<script type="text/javascript" src="scripts/common.js"></script>
 	<script type="text/javascript" src="scripts/securedFields.js"></script>
 	<link rel="stylesheet" type="text/css" href="styles/style.css"></link>
 </head>
@@ -19,6 +20,7 @@
 			ShopperLocale: <input type="text" class="payment-data" name="shopperLocale" value="en_GB"/><br>
 			Channel: <input type="text" class="payment-data" name="channel" value="Web"/><br>
 			ShopperReference: <input type="text" class="payment-data" name="shopperReference" value="Shopper1"/><br>
+			<input type="hidden" class="payment-data" name="endpoint" value="secured_fields_setup"/>
 			<input type="submit" class="submitBtn" id="setupBtn" value="Checkout"/>
 		</form>
 	</div>

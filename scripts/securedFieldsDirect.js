@@ -19,19 +19,6 @@ var styleObject = {
 
 window._$bsdl = true;
 
-// Send request to server
-function AJAXPost(path, headers, params, method, callback) {
-	var request = new XMLHttpRequest();
-	request.open(method || "POST", path, true);
-	request.onreadystatechange = callback;
-
-	for (var key in headers) {
-		request.setRequestHeader(key, headers[key]);
-	}
-
-	request.send(params);
-};
-
 // Called on page load
 function initForms() {
 	// Logging
@@ -90,17 +77,12 @@ function initForms() {
 	// Send data to server
 	document.querySelector("#submitPayment").addEventListener("click", function() {
 
-		url = "http://localhost:8000/cgi-bin/submit.py";
-		paramString = "?";
-		elems = document.querySelectorAll("input:not([type='button']):not([type='submit'])");
-		for (elem of elems) {
-			paramString = paramString + elem.name + "=" + elem.value + "&";
-		}
+		paramString = buildFormURL();
 
 		console.log("Data sent to local server:");
 		console.log(paramString);
 
-		AJAXPost(url + paramString, "", "", "POST", function() {
+		AJAXPost(paramString, function() {
 			if (this.readyState == 4) {
 				console.log("Response from local server:");
 				console.log(this.responseText);
