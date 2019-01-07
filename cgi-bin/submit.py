@@ -884,7 +884,7 @@ data["merchantAccount"] = MERCHANT_ACCOUNT
 if not endpoint in router.keys():
 	logger.critical("method not found: {}".format(endpoint))
 	send_debug("SERVER ERROR")
-	send_debug("Method not found: \n{}".format(e), duplicate=True)
+	send_debug("Method not found: \n{}".format(endpoint), duplicate=True)
 	send_debug("\n{}".format(data), duplicate=True)
 
 # send to proper method

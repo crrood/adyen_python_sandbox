@@ -1,35 +1,38 @@
 <HTML>
 	<head>
 		<link rel="stylesheet" type="text/css" href="styles/style.css"/>
-		<script src="scripts/reactComplete.js"></script>
-		<script type="text/jsx" src="scripts/reactScript.js"></script>
+		<script src="scripts/common.js"></script>
 	</head>
 	<body>
-		<div id="reactHolder"></div>
-		Please note that transactions cannot be completed on TEST
+		<form class="clientForm" id="infoForm">
+			<div class="inputHolder">amount: <input type="text" id="value" name="value" value="199"/><br></div>
+			<div class="inputHolder">currency: <input type="text" id="currency" name="currency" value="USD"/><br></div>
+			<div class="inputHolder">number: <input type="text" id="number" name="number" value="5212345678901234"/><br></div>
+			<div class="inputHolder">expiryMonth: <input type="text" id="expiryMonth" name="expiryMonth" value="10"/><br></div>
+			<div class="inputHolder">expiryYear: <input type="text" id="expiryYear" name="expiryYear" value="2020"/><br></div>
+			<div class="inputHolder">cvc: <input type="text" id="cvc" name="cvc" value="737"/><br></div>
+			<div class="inputHolder">holderName: <input type="text" id="holderName" name="holderName" value="Test Shopper"/><br></div>
+			<div class="inputHolder">reference: <input type="text" id="reference" name="reference" value="Localhost 3DS 1"/><br></div>
+			<input type="hidden" name="endpoint" value="threeds1"/>
+			<input type="button" class="submitBtn center" id="checkoutBtn" value="Send request"/>
+		</form>
+		<div>(not currently working)</div>
 	</body>
 </HTML>
 
 <script>
 
-var formData = {
-	"fields": [
-		["number", "5212345678901234"],
-		["expiryMonth", "08"],
-		["expiryYear", "2018"],
-		["holderName", "Test Shopper"],
-		["cvc", "737"],
-		["value", "1499"],
-		["currency", "USD"],
-		["reference", "Localhost 3DS"]],
-	"hiddenFields": [
-		["endpoint", "threeds1"],
-		["userAgent", navigator.userAgent]],
-	"submitText": "Send request"
-}
+// Sends form params to server
+document.querySelector("#checkoutBtn").addEventListener("click", () => {
+	AJAXPost(buildFormURL({"userAgent": navigator.userAgent}), checkoutCallback);
+});
 
-function renderPage() {
-	renderReactForm(formData, "reactHolder");
+// Redirects user to result URL via POST call
+function checkoutCallback() {
+	if (this.readyState == 4) {
+		// TODO create a self-submitting form and redirect the user
+		console.log(this.responseText);
+	}
 }
 
 </script>
