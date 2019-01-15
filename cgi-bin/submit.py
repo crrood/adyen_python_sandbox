@@ -123,7 +123,9 @@ def send_response(result, content_type="text/html", skipHeaders=False):
 	elif type(result) is str:
 		formatted_result = "{}\r\n".format(result)
 	else:
-		print("Invalid data type in send_response")
+		logging.error("Invalid data type in send_response")
+		logging.error(type(result))
+		return
 
 	logging.info("")
 	logging.info("responding to client with data: {}".format(formatted_result))
@@ -388,7 +390,6 @@ def HPP(data):
 	# server side fields
 	data["sessionValidity"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
 	data["shipBeforeData"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
-	# data["resURL"] = "http://localhost:8000/cgi-bin/submit.py?endpoint=result_page"
 	data["resURL"] = "http://localhost:8000/cgi-bin/submit.py?endpoint=result_page"
 
 	# account specific fields
@@ -397,6 +398,11 @@ def HPP(data):
 
 	data["additionalData.enhancedSchemeData.totalTaxAmount"] = "190"
 	data["additionalData.enhancedSchemeData.customerReference"] = "12345"
+
+	# seveneleven fields
+	data["shopper.firstName"] = "Test"
+	data["shopper.lastName"] = "Shopper"
+	data["shopper.telephoneNumber"] = "123456789"
 
 	# generate HMAC signature
 	data["merchantSig"] = HMAC_signature(data, False).decode("utf8")
@@ -583,7 +589,7 @@ def threeds1(data):
 	}
 
 	# static fields
-	data["returnUrl"] = RETURN_URL
+	data["returnUrl"] = "{}/cgi-bin/submit.py?endpoint=threeds1_notification_url".format(LOCAL_ADDRESS)
 	data["additionalData"] = {
 		"executeThreeD": "true"
 	}
@@ -599,14 +605,30 @@ def threeds1(data):
 	data["browserInfo"]["acceptheader"] = "text/html"
 
 	# get response from Adyen
-	payments_result = json.loads(send_request(url, data, headers).decode("utf8"))
+	payments_result = send_request(url, data, headers).decode("utf8")
 
-	logging.debug(payments_result)
+	send_response(payments_result, "application/json")
 
-	# craft url for user redirect
-	redirect_url = "{issuer_url}?{params}".format(issuer_url=payments_result["redirect"]["url"], params=urlencode(payments_result["redirect"]["data"]))
+# handler for callback from issuing bank
+def threeds1_notification_url(data):
 
-	send_response(redirect_url, "text/plain")
+	# request info
+	url = "https://pal-test.adyen.com/pal/servlet/Payment/authorise3d"
+	headers = {
+		"Content-Type": "application/json",
+		"x-api-key": API_KEY
+	}
+
+	# reformat request to match required fields
+	request_data = {}
+	request_data["merchantAccount"] = MERCHANT_ACCOUNT
+	request_data["md"] = data["MD"]
+	request_data["paResponse"] = data["PaRes"]
+
+	# get response from Adyen
+	payments_result = send_request(url, request_data, headers).decode("utf8")
+
+	send_response(payments_result, "application/json")
 
 ######################################
 ##		3D SECURE 2.0 BASIC FLOW	##
@@ -748,14 +770,14 @@ def threeds2_adv_initial_auth(data):
 def threeds2_result_page(data):
 
 	# echo cres value
-	logger.info(post_data)
+	logger.info(data)
 
 	# return cres if available
 	# TODO there should be a separate endpoint to return cres
-	if "cres" in post_data.keys():
-		send_debug(post_data["cres"])
+	if "cres" in data.keys():
+		send_debug(data["cres"])
 	else:
-		send_debug(post_data)
+		send_debug(data)
 
 def threeds2_adv_authorise3ds2(data):
 
@@ -808,18 +830,16 @@ def threeds2_adv_acquirerAgnosticAuth(data):
 
 # landing page for complete transactions
 def result_page(data):
+
 	# send POST params to logger
-	logger.info(post_data)
+	logger.info(data)
 
 	# remove merchant account from params since it was added by server
 	del data["merchantAccount"]
 
 	# echo URL params to client
 	send_debug("Response from Adyen:")
-	send_debug("URL params:", duplicate=True)
 	send_debug(data, duplicate=True)
-	send_debug("POST data:", duplicate=True)
-	send_debug(post_data, duplicate=True)
 
 ##############################
 ##		ROUTER METHOD		##
@@ -842,6 +862,7 @@ router = {
 	"secured_fields_setup": secured_fields_setup,
 	"skip_details": skip_details,
 	"threeds1": threeds1,
+	"threeds1_notification_url": threeds1_notification_url,
 	"threeds2_part1": threeds2_part1,
 	"threeds2_part2": threeds2_part2,
 	"threeds2_auth_via_token": threeds2_auth_via_token,
@@ -876,6 +897,9 @@ post_data = get_dict_from_fieldstorage()
 logger.info("receiving incoming request to {}".format(endpoint))
 logger.info("incoming URL params: {}".format(data))
 logger.info("incoming POST data: {}".format(post_data))
+
+# combine URL and POST params
+data.update(post_data)
 
 # add merchantAccount to data
 data["merchantAccount"] = MERCHANT_ACCOUNT

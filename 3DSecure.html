@@ -16,7 +16,7 @@
 			<input type="hidden" name="endpoint" value="threeds1"/>
 			<input type="button" class="submitBtn center" id="checkoutBtn" value="Send request"/>
 		</form>
-		<div>(not currently working)</div>
+		<div id="constructedFormHolder"/>
 	</body>
 </HTML>
 
@@ -30,8 +30,30 @@ document.querySelector("#checkoutBtn").addEventListener("click", () => {
 // Redirects user to result URL via POST call
 function checkoutCallback() {
 	if (this.readyState == 4) {
-		// TODO create a self-submitting form and redirect the user
-		console.log(this.responseText);
+		
+		// parse response
+		data = JSON.parse(this.responseText);
+		issuerURL = data.redirect.url;
+		redirectData = data.redirect.data;
+
+		// because the redirect has to be done as a POST...
+		// create an HTML form and redirect the user
+		var form = document.createElement("form");
+		form.setAttribute("method", "POST");
+		form.setAttribute("action", issuerURL);
+
+		// iteract through redirect params
+		for (var param in redirectData) {
+			var input = document.createElement("input");
+			input.setAttribute("type", "hidden");
+			input.setAttribute("name", param);
+			input.setAttribute("value", redirectData[param]);
+
+			form.appendChild(input);
+		}
+
+		document.querySelector("#constructedFormHolder").appendChild(form);
+		form.submit();
 	}
 }
 
