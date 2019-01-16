@@ -2,8 +2,8 @@
 
 <head>
 	<script type="text/javascript" src="https://checkoutshopper-test.adyen.com/checkoutshopper/assets/js/sdk/checkoutSecuredFields.1.1.4.js"></script>
-	<script type="text/javascript" src="scripts/common.js"></script>
-	<script type="text/javascript" src="scripts/securedFieldsDirect.js"></script>
+	<script type="module" src="scripts/common.js"></script>
+	<script type="module" src="scripts/securedFieldsDirect.js"></script>
 	<link rel="stylesheet" type="text/css" href="styles/style.css"></link>
 </head>
 
@@ -48,7 +48,9 @@
 	<div id="output"></div>
 </body>
 
-<script>
+<script type="module">
+
+import { initForms } from "./scripts/securedFieldsDirect.js";
 
 document.addEventListener("DOMContentLoaded", initForms);
 

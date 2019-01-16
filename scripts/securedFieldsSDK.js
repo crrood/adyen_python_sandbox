@@ -1,3 +1,5 @@
+import { AJAXPost, buildFormURL } from "./common.js";
+
 // Global vars
 var globals = {};
 
@@ -11,7 +13,7 @@ globals.securedFieldsConfiguration = {
 };
 
 // Event listeners async form submissions
-function initForms() {
+export function initForms() {
 	document.getElementById("setupBtn").addEventListener("click", setupSecuredFields);
 	document.getElementById("checkoutBtn").addEventListener("click", submitPayment);
 

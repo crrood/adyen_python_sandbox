@@ -1,5 +1,7 @@
+import { AJAXPost, buildFormURL } from "./common.js";
+
 // Define a custom style.
-var styleObject = {
+const styleObject = {
 	base: {
 		color: 'black',
 		fontSize: '16px',
@@ -20,7 +22,7 @@ var styleObject = {
 window._$bsdl = true;
 
 // Called on page load
-function initForms() {
+export function initForms() {
 	// Logging
 	document.querySelector("#logInputs").addEventListener("click", function() {
 		console.log(document.querySelectorAll("input:not([type='button']):not([type='submit'])"));
@@ -77,7 +79,7 @@ function initForms() {
 	// Send data to server
 	document.querySelector("#submitPayment").addEventListener("click", function() {
 
-		paramString = buildFormURL();
+		const paramString = buildFormURL();
 
 		console.log("Data sent to local server:");
 		console.log(paramString);

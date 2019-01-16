@@ -3,7 +3,7 @@
 <head>
 	<title>3DS 2.0</title>
 	<link rel="stylesheet" type="text/css" href="styles/style.css"/>
-	<script type="text/javascript" src="scripts/common.js"></script>
+	<script type="module" src="scripts/common.js"></script>
 	<script id="SDK" type="text/javascript" src="scripts/threedsSDK.0.9.5.min.js"></script>
 	<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 </head>
@@ -29,7 +29,7 @@
 		<label for="acquirerAgnosticAuth" style="user-select: none">Acquirer Agnostic Auth</label>
 	</div>
 
-	<button onClick="submitForm()">Authorise</button>
+	<div id="authoriseBtnHolder"></div>
 	<h3>Network activity</h3>
 	<div id="output" style="width: 50%"></div>
 	<div id="sdkContainer" style="border: 1px black solid; display: inline-block"></div>
@@ -37,12 +37,20 @@
 
 </html>
 
-<script>
+<script type="module">
+
+import { SERVER_URL, uuid } from "./scripts/common.js";
 
 const NOTIFICATION_URL = SERVER_URL + "?endpoint=threeds2_result_page";
 const CACHED_THREEDS_URL = "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml";
 
 var globals = {};
+
+// Add submit button to DOM
+let button = document.createElement("button");
+button.onclick = submitForm;
+button.innerHTML = "Authorise";
+document.getElementById("authoriseBtnHolder").appendChild(button);
 
 // perform fingerprint via SDK on page load
 fingerprintDevice();
@@ -88,7 +96,7 @@ function submitForm(e) {
 	
 	// form encode data and add to jsonData
 	var formEls = $(".formEls");
-	for (i = 0; i < formEls.length; i++) {
+	for (let i = 0; i < formEls.length; i++) {
 		url = url + encodeURIComponent(formEls[i].name) + "=" + encodeURIComponent(formEls[i].value) + "&";
 		jsonData[formEls[i].name] = formEls[i].value;
 	}
@@ -208,7 +216,7 @@ function handleFailedSDKChallengePromise(failedPromiseResponse) {
 // retrieve cavv and eci values
 // to potentially send to another acquirer
 function retrieve3ds2Result() {
-	url = SERVER_URL + "?endpoint=threeds2_adv_retrieve3ds2Result" + "&pspReference=" + globals.challengePspReference;
+	let url = SERVER_URL + "?endpoint=threeds2_adv_retrieve3ds2Result" + "&pspReference=" + globals.challengePspReference;
 	$.get(url, acquirerAgnosticAuth);
 }
 
@@ -221,13 +229,11 @@ function acquirerAgnosticAuth(data) {
 
 	output("Request from server to Adyen", JSON.stringify(request, null, 4));
 	output("Response from Adyen to server", JSON.stringify(response, null, 4));
-
-	url = SERVER_URL + "?endpoint=threeds2_adv_acquirerAgnosticAuth" + "&eci=";
 }
 
 // send authorise3ds2 call with stored token
 function adyenTokenAuth(transStatus) {
-	url = SERVER_URL + "?endpoint=threeds2_auth_via_token" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token) + "&transStatus=" + transStatus;
+	let url = SERVER_URL + "?endpoint=threeds2_auth_via_token" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token) + "&transStatus=" + transStatus;
 	$.get(url, adyenTokenAuthCallback);
 }
 

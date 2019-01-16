@@ -1,9 +1,9 @@
 // constants
-const FORM_ENCODED_HEADER = { "Content-Type": "application/x-www-form-urlencoded" };
-const SERVER_URL = "http://localhost:8000/cgi-bin/submit.py";
+export const FORM_ENCODED_HEADER = { "Content-Type": "application/x-www-form-urlencoded" };
+export const SERVER_URL = "http://localhost:8000/cgi-bin/submit.py";
 
 // wrapper to send requests to server
-function AJAXPost(path, callback, headers = FORM_ENCODED_HEADER, params = {}, method = "POST") {
+export function AJAXPost(path, callback, headers = FORM_ENCODED_HEADER, params = {}, method = "POST") {
 	let request = new XMLHttpRequest();
 	request.open("POST", path, true);
 	request.onreadystatechange = callback;
@@ -17,7 +17,7 @@ function AJAXPost(path, callback, headers = FORM_ENCODED_HEADER, params = {}, me
 
 // pulls parameters from HTML form and sends to server
 // accepts an optional object of parameters to add
-function buildFormURL(customParams = null) {
+export function buildFormURL(customParams = null) {
 	let inputParams = document.querySelectorAll("input[type='text'], input[type='hidden']");
 
 	// Get request details from html form
@@ -35,7 +35,7 @@ function buildFormURL(customParams = null) {
 }
 
 // generate UUID
-function uuid() {
+export function uuid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
