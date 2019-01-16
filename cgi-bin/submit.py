@@ -48,16 +48,18 @@ class CustomLogger(logging.Logger):
 
 	def log_date_time_string(self):
 		"""Return the current time formatted for logging."""
-		monthname = [None,
-		             'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-		             'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+		monthname = [None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+					'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 		now = time.time()
 		year, month, day, hh, mm, ss, x, y, z = time.localtime(now)
 		s = "%02d/%3s/%04d %02d:%02d:%02d" % (
-				day, monthname[month], year, hh, mm, ss)
+			day, monthname[month], year, hh, mm, ss)
 		return s
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)s:%(levelname)s %(message)s', datefmt='[%d/%m/%Y %X %Z]')
+logging.basicConfig(
+	level=logging.DEBUG,
+	format='%(asctime)s %(name)s:%(levelname)s %(message)s',
+	datefmt='[%d/%m/%Y %X %Z]')
 logger = logging.getLogger("CGI")
 
 ##############################
@@ -117,7 +119,6 @@ def send_response(result, content_type="text/html", skipHeaders=False):
 		print("Content-length:{}\r\n".format(len(result)), end="")
 		print("\r\n", end="")
 
-
 	if type(result) is bytes:
 		formatted_result = "{}\r\n".format(result.decode("utf8"))
 	elif type(result) is str:
@@ -136,7 +137,7 @@ def send_debug(data, content_type="text/plain", duplicate=False):
 	if not duplicate:
 		print("Content-type:{}\r\n".format(content_type))
 	print(data)
-	
+
 	if content_type == "text/html":
 		print("<br><br>")
 	else:
@@ -144,9 +145,9 @@ def send_debug(data, content_type="text/plain", duplicate=False):
 
 # indent fields in data object
 def indent_field(data, parent, target):
-	if not parent in data.keys():
+	if parent not in data.keys():
 		data[parent] = {}
-	
+
 	data[parent][target] = data[target]
 	del data[target]
 
@@ -174,11 +175,11 @@ def reformat_card_checkout(data, encrypted=True):
 		data["paymentMethod"]["type"] = "scheme"
 
 		# change spaces back to plus signs
-		data["paymentMethod"]["encryptedCardNumber"] = data["paymentMethod"]["encryptedCardNumber"].replace(" ", "+")
-		data["paymentMethod"]["encryptedExpiryMonth"] = data["paymentMethod"]["encryptedExpiryMonth"].replace(" ", "+")
-		data["paymentMethod"]["encryptedExpiryYear"] = data["paymentMethod"]["encryptedExpiryYear"].replace(" ", "+")
-		data["paymentMethod"]["holderName"] = data["paymentMethod"]["holderName"].replace(" ", "+")
-		data["paymentMethod"]["encryptedSecurityCode"] = data["paymentMethod"]["encryptedSecurityCode"].replace(" ", "+")
+		data["paymentMethod"]["encryptedCardNumber"] = data["paymentMethod"]["encryptedCardNumber"].replace(" ", "+")  # noqa: E501
+		data["paymentMethod"]["encryptedExpiryMonth"] = data["paymentMethod"]["encryptedExpiryMonth"].replace(" ", "+")  # noqa: E501
+		data["paymentMethod"]["encryptedExpiryYear"] = data["paymentMethod"]["encryptedExpiryYear"].replace(" ", "+")  # noqa: E501
+		data["paymentMethod"]["holderName"] = data["paymentMethod"]["holderName"].replace(" ", "+")  # noqa: E501
+		data["paymentMethod"]["encryptedSecurityCode"] = data["paymentMethod"]["encryptedSecurityCode"].replace(" ", "+")  # noqa: E501
 	else:
 		indent_field(data, "paymentMethod", "number")
 		indent_field(data, "paymentMethod", "expiryMonth")
@@ -292,7 +293,7 @@ def checkout_verify(data):
 
 # escape un-allowed characters
 def escape(val):
-	if isinstance(val,int):
+	if isinstance(val, int):
 		return val
 	if val is None:
 		return ""
@@ -303,12 +304,18 @@ def generate_HMAC(pairs, key):
 
 	# sort and escape data
 	sorted_pairs = OrderedDict(sorted(pairs.items(), key=lambda t: t[0]))
-	escaped_pairs = OrderedDict(map(lambda t: (t[0], escape(t[1])), sorted_pairs.items()))
-	signing_string = ":".join(escaped_pairs.keys()) + ":" + ":".join(escaped_pairs.values())
+	escaped_pairs = OrderedDict(map(
+		lambda t: (t[0], escape(t[1])), sorted_pairs.items()))
+	signing_string = ":".join(
+		escaped_pairs.keys()) + ":" + ":".join(
+		escaped_pairs.values())
 
 	# generate key
 	binary_hmac_key = binascii.a2b_hex(key)
-	binary_hmac = hmac.new(binary_hmac_key, signing_string.encode("utf8"), hashlib.sha256)
+	binary_hmac = hmac.new(
+		binary_hmac_key,
+		signing_string.encode("utf8"),
+		hashlib.sha256)
 	signature = base64.b64encode(binary_hmac.digest())
 
 	return signature
@@ -333,7 +340,8 @@ def HMAC_signature(data, respond=True):
 
 	# send response
 	if respond:
-		send_response("raw:\t\t{}\nencoded:\t{}".format(signature, urlencode({ "merchantSig": signature })), "text/plain")
+		send_response("raw:\t\t{}\nencoded:\t{}".
+			format(signature, urlencode({"merchantSig": signature})), "text/plain")
 		send_response(urlencode(data), "text/plain", True)
 	else:
 		return signature
@@ -383,9 +391,6 @@ def HPP(data):
 
 	# craft request to Adyen server
 	url = "https://test.adyen.com/hpp/pay.shtml"
-	headers = {
-		"Content-Type": "application/x-www-form-urlencoded"
-	}
 
 	# server side fields
 	data["sessionValidity"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
@@ -406,9 +411,11 @@ def HPP(data):
 
 	# generate HMAC signature
 	data["merchantSig"] = HMAC_signature(data, False).decode("utf8")
-	
+
 	# redirect to HPP page in new window
-	send_response("Redirected in another window\n\nRequest:\n{}".format("{}?{}".format(url, urlencode(data))), "text/plain")
+	send_response("Redirected in another window\n\nRequest:\n{}".
+		format("{}?{}".
+		format(url, urlencode(data))), "text/plain")
 	webbrowser.open_new("{}?{}".format(url, urlencode(data)))
 
 ##################################
@@ -424,7 +431,7 @@ def directory_lookup(data):
 	else:
 		url = "https://test.adyen.com/hpp/directory.shtml"
 	del data["version"]
-	
+
 	# set request outline
 	headers = {
 		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD)),
@@ -454,12 +461,6 @@ def skip_details(data):
 
 	# skipDetails endpoint
 	url = "https://test.adyen.com/hpp/skipDetails.shtml"
-	
-	# set request outline
-	headers = {
-		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD)),
-		"Content-Type": "application/json"
-	}
 
 	# session validity
 	data["sessionValidity"] = datetime.datetime.now().isoformat().split(".")[0] + "-11:00"
@@ -479,7 +480,10 @@ def skip_details(data):
 	data["resURL"] = "http://localhost:8000/cgi-bin/submit.py?endpoint=result_page"
 
 	# open invoice fields for Klarna, etc
-	if "klarna" in data["brandCode"] or "afterpay" in data["brandCode"] or "ratepay" in data["brandCode"]:
+	if ("klarna" in data["brandCode"]
+			or "afterpay" in data["brandCode"]
+			or "ratepay" in data["brandCode"]):
+
 		data["openinvoicedata.line1.currencyCode"] = data["currencyCode"]
 		data["openinvoicedata.line1.description"] = "openinvoice description"
 		data["openinvoicedata.line1.itemAmount"] = data["paymentAmount"]
@@ -495,7 +499,7 @@ def skip_details(data):
 		data["shopper.gender"] = "MALE"
 		data["shopper.telephoneNumber"] = "5555555555"
 		data["shopper.socialSecurityNumber"] = "1111"
-		
+
 		data["shopper.dateOfBirthDayOfMonth"] = "11"
 		data["shopper.dateOfBirthMonth"] = "2"
 		data["shopper.dateOfBirthYear"] = "1983"
@@ -505,7 +509,7 @@ def skip_details(data):
 		data["billingAddress.houseNumberOrName"] = "123"
 		data["billingAddress.street"] = "Main St"
 		data["billingAddress.postalCode"] = "12345"
-		
+
 		data["shopperType"] = "1"
 		data["billingAddressType"] = "1"
 
@@ -517,7 +521,9 @@ def skip_details(data):
 	# send_response(result, "text/html")
 
 	# redirect to HPP
-	send_response("Redirected in another window\n\nRequest:\n{}".format("{}?{}".format(url, urlencode(data))), "text/plain")
+	send_response("Redirected in another window\n\nRequest:\n{}".
+		format("{}?{}".
+		format(url, urlencode(data))), "text/plain")
 	webbrowser.open("{}?{}".format(url, urlencode(data)))
 
 ##############################
@@ -589,7 +595,7 @@ def threeds1(data):
 	}
 
 	# static fields
-	data["returnUrl"] = "{}/cgi-bin/submit.py?endpoint=threeds1_notification_url".format(LOCAL_ADDRESS)
+	data["returnUrl"] = "{}/cgi-bin/submit.py?endpoint=threeds1_notification_url".format(LOCAL_ADDRESS)  # noqa: E501
 	data["additionalData"] = {
 		"executeThreeD": "true"
 	}
@@ -653,7 +659,7 @@ def threeds2_part1(data):
 
 	# move userAgent into browserInfo object
 	indent_field(data, "browserInfo", "userAgent")
-	data["browserInfo"]["acceptHeader"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+	data["browserInfo"]["acceptHeader"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"  # noqa: E501
 	data["browserInfo"]["language"] = "EN-GB"
 	data["browserInfo"]["colorDepth"] = 32
 	data["browserInfo"]["screenHeight"] = 1200
@@ -664,7 +670,7 @@ def threeds2_part1(data):
 	# add threeDS2RequestData
 	data["threeDS2RequestData"] = {}
 	data["threeDS2RequestData"]["deviceChannel"] = "browser"
-	data["threeDS2RequestData"]["notificationURL"] = LOCAL_ADDRESS + "/cgi-bin/submit.py?endpoint=threeds2_result_page"
+	data["threeDS2RequestData"]["notificationURL"] = LOCAL_ADDRESS + "/cgi-bin/submit.py?endpoint=threeds2_result_page"  # noqa: E501
 
 	# send request to Adyen
 	result = send_request(url, data, headers)
@@ -691,7 +697,7 @@ def threeds2_part2(data):
 
 	# send request to adyen
 	result = send_request(url, data, headers)
-	
+
 	# send request and response to client
 	response = {}
 	response["request"] = str(data)
@@ -712,7 +718,7 @@ def threeds2_auth_via_token(data):
 
 	# send request to adyen
 	result = send_request(url, data, headers)
-	
+
 	# send request and response to client
 	response = {}
 	response["request"] = str(data)
@@ -739,7 +745,7 @@ def threeds2_adv_initial_auth(data):
 
 	# move userAgent into browserInfo object
 	indent_field(data, "browserInfo", "userAgent")
-	data["browserInfo"]["acceptHeader"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+	data["browserInfo"]["acceptHeader"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"  # noqa: E501
 	data["browserInfo"]["language"] = "EN-GB"
 	data["browserInfo"]["colorDepth"] = 32
 	data["browserInfo"]["screenHeight"] = 1200
@@ -752,11 +758,7 @@ def threeds2_adv_initial_auth(data):
 	indent_field(data, "threeDS2RequestData", "threeDSCompInd")
 	indent_field(data, "threeDS2RequestData", "authenticationOnly")
 	data["threeDS2RequestData"]["deviceChannel"] = "browser"
-	data["threeDS2RequestData"]["notificationURL"] = LOCAL_ADDRESS + "/cgi-bin/submit.py?endpoint=threeds2_result_page"
-	
-	# if data["threeDS2RequestData"]["authenticationOnly"] == "true":
-		# data["threeDS2RequestData"]["acquirerBIN"] = "526567"
-		# data["threeDS2RequestData"]["acquirerMerchantID"] = "526567000000005"
+	data["threeDS2RequestData"]["notificationURL"] = LOCAL_ADDRESS + "/cgi-bin/submit.py?endpoint=threeds2_result_page"  # noqa: E501
 
 	# send request to Adyen
 	result = send_request(url, data, headers)
@@ -845,7 +847,7 @@ def result_page(data):
 ##		ROUTER METHOD		##
 ##############################
 
-# parse payment data from URL params 
+# parse payment data from URL params
 request_data = parse_qs(os.environ["QUERY_STRING"])
 data = {}
 for param in request_data.keys():
@@ -905,7 +907,7 @@ data.update(post_data)
 data["merchantAccount"] = MERCHANT_ACCOUNT
 
 # make sure endpoint is valid
-if not endpoint in router.keys():
+if endpoint not in router.keys():
 	logger.critical("method not found: {}".format(endpoint))
 	send_debug("SERVER ERROR")
 	send_debug("Method not found: \n{}".format(endpoint), duplicate=True)
@@ -914,5 +916,3 @@ if not endpoint in router.keys():
 # send to proper method
 else:
 	router[endpoint](data)
-
-	
