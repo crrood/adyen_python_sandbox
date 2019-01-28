@@ -3,7 +3,6 @@
 <head>
 	<title>3DS 2.0</title>
 	<link rel="stylesheet" type="text/css" href="styles/style.css"/>
-	<script id="SDK" type="text/javascript" src="scripts/threedsSDK.0.9.5.min.js"></script>
 	<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 </head>
 
@@ -39,11 +38,12 @@
 <script type="module">
 
 import * as common from "./scripts/common.js";
+import * as SDK from "./scripts/custom3dsSDK.js";
 
 const NOTIFICATION_URL = common.SERVER_URL + "?endpoint=threeds2_result_page";
 const CACHED_THREEDS_URL = "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml";
 
-let globals = {};
+const globals = {};
 
 // Add submit button to DOM
 let button = document.createElement("button");
@@ -58,7 +58,7 @@ function fingerprintDevice() {
 	globals.threeDSServerTransID = common.uuid();
 
 	// give the cached (hardcoded) data to the SDK
-	let sdkPromise = threedsSDK.get3DSMethodStatus(
+	const fingerprintPromise = SDK.getFingerprint(
 		globals.threeDSServerTransID, 
 		CACHED_THREEDS_URL, 
 		NOTIFICATION_URL, 
@@ -77,7 +77,7 @@ function fingerprintDevice() {
 	));
 
 	// handle SDK promise callbacks
-	sdkPromise.then((successfulPromiseResponse) => {
+	fingerprintPromise.then((successfulPromiseResponse) => {
 		output("Fingerprint response from SDK", "threedsSDK.get3DSMethodStatus<br><br>threeDSCompInd=" + successfulPromiseResponse.threeDSCompInd);
 		globals.fingerprintResponse = successfulPromiseResponse;
 
