@@ -30,7 +30,7 @@
 	<div id="authoriseBtnHolder"></div>
 	<h3>Network activity</h3>
 	<div id="output" style="width: 50%"></div>
-	<div id="sdkContainer" style="border: 1px black solid; display: inline-block"></div>
+	<div id="sdkContainer" class="hidden" style="border: 1px black solid; display: inline-block"></div>
 </body>
 
 </html>
@@ -46,10 +46,12 @@ const CACHED_THREEDS_URL = "https://pal-test.adyen.com/threeds2simulator/acs/sta
 const globals = {};
 
 // Add submit button to DOM
-let button = document.createElement("button");
-button.onclick = submitForm;
-button.innerHTML = "Authorise";
-document.getElementById("authoriseBtnHolder").appendChild(button);
+globals.authoriseButton = document.createElement("button");
+globals.authoriseButton.onclick = submitForm;
+globals.authoriseButton.innerHTML = "Authorise";
+globals.authoriseButton.disabled = true;
+globals.authoriseButton.classList.add("disabled");
+document.getElementById("authoriseBtnHolder").appendChild(globals.authoriseButton);
 
 // perform fingerprint via SDK on page load
 fingerprintDevice();
@@ -80,6 +82,10 @@ function fingerprintDevice() {
 	fingerprintPromise.then((successfulPromiseResponse) => {
 		output("Fingerprint response from SDK", "SDK.getFingerprint<br><br>threeDSCompInd=" + successfulPromiseResponse.threeDSCompInd);
 		globals.fingerprintResponse = successfulPromiseResponse;
+		
+		// enable authorise button
+		globals.authoriseButton.disabled = false;
+		globals.authoriseButton.classList.remove("disabled");
 
 	}, (failedPromiseResponse) => {
 		output("Fingerprint response from SDK", "Verification request to SDK failed - check log for more details");
@@ -170,28 +176,12 @@ function doChallenge() {
 		handleSuccessfulSDKChallengePromise, 
 		handleFailedSDKChallengePromise);
 
-	// listen for redirect in challenge iframe
-	// once it's redirected, decode cres
-	// and append transStatus as GET param to its location
-	// that prompts SDK.doChallenge to resolve
-	globals.checkIFrameInterval = setInterval(() => {
-		if (checkIfChallengeIsCompleted()) {
-			clearInterval(globals.checkIFrameInterval);
-			
-			// redirect and hide challenge iframe
-			console.log("Challenge completed.. redirecting");
-			console.log("cres: " + getCRESFromIframe());
-			let transStatus = JSON.parse(window.atob(getCRESFromIframe())).transStatus;
-			document.querySelector("[name=threeDSIframe]").contentWindow.location.href = document.querySelector("[name=threeDSIframe]").contentWindow.location.href + "&transStatus=" + transStatus;
-			console.log("iframe location: " + document.querySelector("[name=threeDSIframe]").contentWindow.location.href);
-		}
-	}, 1000);
+	// show challenge iframe
+	document.getElementById("sdkContainer").classList.remove("hidden");
 }
 
 // doChallenge successful resolution
 function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
-	console.log("successful challenge");
-	console.log(successfulPromiseResponse);
 	output("Challenge succeeded", "threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus);
 
 	if (globals.authenticationOnly) {
@@ -200,12 +190,16 @@ function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 	else {
 		adyenTokenAuth(successfulPromiseResponse.transStatus);
 	}
+
+	document.getElementById("sdkContainer").classList.add("hidden");
 }
 
 // doChallenge failed resolution
 function handleFailedSDKChallengePromise(failedPromiseResponse) {
 	output("Challenge failed", "Challenge failed<br>" + JSON.stringify(failedPromiseResponse, null, 4));
 	console.log(failedPromiseResponse);
+
+	document.getElementById("sdkContainer").classList.add("hidden");
 }
 
 // retrieve cavv and eci values

@@ -27,6 +27,7 @@ export const getFingerprint = (serverTransactionID, methodURL, threedsMethodNoti
     	let iframe = createIFrame(container, "threeDSMethodIframe", "0", "0", data => {
             if (data.target.contentWindow.location.host) {
                 resolve( { threeDSCompInd: "Y" } );
+                iframe.remove();
             }
         });
         const form = createForm('threedsMethodForm', methodURL, 'threeDSMethodIframe', 'threeDSMethodData', base64URLencodedData);

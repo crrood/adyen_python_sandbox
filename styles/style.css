@@ -11,7 +11,7 @@
 	margin-bottom: 0px;
 }
 
-.inactive {
+.inactive, .hidden {
 	visibility: hidden;
 }
 
@@ -73,6 +73,11 @@ button, .submitBtn {
 	font-size: 16px;
 	font-weight: bold;
 	letter-spacing: 1px;
+}
+
+button.disabled {
+	background-color: #989898;
+	border: 4px solid #989898;
 }
 
 .cardType {

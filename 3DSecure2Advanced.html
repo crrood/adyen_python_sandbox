@@ -31,7 +31,7 @@
 	<div id="authoriseBtnHolder"></div>
 	<h3>Network activity</h3>
 	<div id="output" style="width: 50%"></div>
-	<div id="sdkContainer" style="border: 1px black solid; display: inline-block"></div>
+	<div id="sdkContainer" class="hidden" style="border: 1px black solid; display: inline-block"></div>
 </body>
 
 </html>
@@ -46,10 +46,12 @@ const CACHED_THREEDS_URL = "https://pal-test.adyen.com/threeds2simulator/acs/sta
 var globals = {};
 
 // Add submit button to DOM
-let button = document.createElement("button");
-button.onclick = submitForm;
-button.innerHTML = "Authorise";
-document.getElementById("authoriseBtnHolder").appendChild(button);
+globals.authoriseButton = document.createElement("button");
+globals.authoriseButton.onclick = submitForm;
+globals.authoriseButton.innerHTML = "Authorise";
+globals.authoriseButton.disabled = true;
+globals.authoriseButton.classList.add("disabled");
+document.getElementById("authoriseBtnHolder").appendChild(globals.authoriseButton);
 
 // perform fingerprint via SDK on page load
 fingerprintDevice();
@@ -80,6 +82,10 @@ function fingerprintDevice() {
 	sdkPromise.then((successfulPromiseResponse) => {
 		output("Fingerprint response from SDK", "threedsSDK.get3DSMethodStatus<br><br>threeDSCompInd=" + successfulPromiseResponse.threeDSCompInd);
 		globals.fingerprintResponse = successfulPromiseResponse;
+
+		// enable authorise button
+		globals.authoriseButton.disabled = false;
+		globals.authoriseButton.classList.remove("disabled");
 
 	}, (failedPromiseResponse) => {
 		output("Fingerprint response from SDK", "Verification request to SDK failed - check log for more details");
@@ -169,6 +175,8 @@ function doChallenge() {
 		handleSuccessfulSDKChallengePromise, 
 		handleFailedSDKChallengePromise);
 
+	document.getElementById("sdkContainer").classList.remove("hidden");
+
 	// listen for redirect in challenge iframe
 	// once it's redirected, decode cres
 	// and append transStatus as GET param to its location
@@ -202,6 +210,7 @@ function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 	else {
 		adyenTokenAuth(successfulPromiseResponse.transStatus);
 	}
+	document.getElementById("sdkContainer").classList.add("hidden");
 }
 
 // doChallenge failed resolution
@@ -210,6 +219,7 @@ function handleFailedSDKChallengePromise(failedPromiseResponse) {
 
 	// hide SDK challenge
 	document.querySelector("#threeDSIframeContainer").style.display = "none";
+	document.getElementById("sdkContainer").classList.add("hidden");
 }
 
 // retrieve cavv and eci values
