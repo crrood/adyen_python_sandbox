@@ -21,9 +21,9 @@
 		<input class="formEls" type="hidden" name="userAgent" value="browser"></input>
 	</form>
 	<div>
-		<input id="adyenTokenAuth" type="radio" name="transactionTypeRadio" value="adyenTokenAuth" checked="checked">
+		<input id="adyenTokenAuth" type="radio" name="transactionTypeRadio" value="adyenTokenAuth">
 		<label for="adyenTokenAuth" style="user-select: none">Adyen Token Auth</label>
-		<input id="acquirerAgnosticAuth" type="radio" name="transactionTypeRadio" value="acquirerAgnosticAuth">
+		<input id="acquirerAgnosticAuth" type="radio" checked="checked" name="transactionTypeRadio" value="acquirerAgnosticAuth">
 		<label for="acquirerAgnosticAuth" style="user-select: none">Acquirer Agnostic Auth</label>
 	</div>
 
@@ -65,7 +65,7 @@ function fingerprintDevice() {
 		document.querySelector("#sdkContainer")
 	);
 
-	output("Fingerprint request to SDK", "threedsSDK.get3DSMethodStatus<br><br>" + JSON.stringify(
+	output("Fingerprint request to SDK", "SDK.getFingerprint<br><br>" + JSON.stringify(
 		{
 			"threeDSServerTransID": globals.threeDSServerTransID,
 			"threeDSMethodURL": CACHED_THREEDS_URL, 
@@ -78,7 +78,7 @@ function fingerprintDevice() {
 
 	// handle SDK promise callbacks
 	fingerprintPromise.then((successfulPromiseResponse) => {
-		output("Fingerprint response from SDK", "threedsSDK.get3DSMethodStatus<br><br>threeDSCompInd=" + successfulPromiseResponse.threeDSCompInd);
+		output("Fingerprint response from SDK", "SDK.getFingerprint<br><br>threeDSCompInd=" + successfulPromiseResponse.threeDSCompInd);
 		globals.fingerprintResponse = successfulPromiseResponse;
 
 	}, (failedPromiseResponse) => {
@@ -108,7 +108,7 @@ function submitForm(e) {
 	return false;
 }
 
-// called by successful return of promise from threedsSDK.doChallenge
+// called by successful return of promise from SDK.doChallenge
 // form encodes data and sends to server
 function initialAuthoriseCall(url, jsonData) {
 	url = url + "&threeDSCompInd=" + globals.fingerprintResponse.threeDSCompInd + "&threeDSServerTransID=" + globals.threeDSServerTransID;
@@ -147,6 +147,7 @@ function initialAuthoriseCallback(data, status) {
 		globals.challengePspReference = response.pspReference;
 
 		// output formatted token in case we want to finish the transaction manually
+		console.log("threeDSToken:");
 		console.log(globals.threeDS2Token);
 
 		// execute the challenge via the SDK
@@ -162,17 +163,17 @@ function doChallenge() {
 		container: document.querySelector("#sdkContainer") // Container to place the generated iframe into OR an actual iframe
 	};
 
-	output("Challenge request to SDK", "threedsSDK.doChallenge<br><br>acsURL: " + globals.acsURL + "<br>iframeConfig: " + JSON.stringify(iframeConfig, null, 4) + "<br>cReqData: " + JSON.stringify(globals.cReqData, null, 4));
+	output("Challenge request to SDK", "SDK.doChallenge<br><br>acsURL: " + globals.acsURL + "<br>iframeConfig: " + JSON.stringify(iframeConfig, null, 4) + "<br>cReqData: " + JSON.stringify(globals.cReqData, null, 4));
 
 	// create the iframe for the promise
-	threedsSDK.doChallenge(globals.acsURL, globals.cReqData, iframeConfig).then(
+	SDK.doChallenge(globals.acsURL, globals.cReqData, iframeConfig, NOTIFICATION_URL).then(
 		handleSuccessfulSDKChallengePromise, 
 		handleFailedSDKChallengePromise);
 
 	// listen for redirect in challenge iframe
 	// once it's redirected, decode cres
 	// and append transStatus as GET param to its location
-	// that prompts threedsSDK.doChallenge to resolve
+	// that prompts SDK.doChallenge to resolve
 	globals.checkIFrameInterval = setInterval(() => {
 		if (checkIfChallengeIsCompleted()) {
 			clearInterval(globals.checkIFrameInterval);
@@ -193,9 +194,6 @@ function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 	console.log(successfulPromiseResponse);
 	output("Challenge succeeded", "threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus);
 
-	// hide SDK challenge
-	document.querySelector("#threeDSIframeContainer").style.display = "none";
-
 	if (globals.authenticationOnly) {
 		retrieve3ds2Result();
 	}
@@ -207,15 +205,13 @@ function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 // doChallenge failed resolution
 function handleFailedSDKChallengePromise(failedPromiseResponse) {
 	output("Challenge failed", "Challenge failed<br>" + JSON.stringify(failedPromiseResponse, null, 4));
-
-	// hide SDK challenge
-	document.querySelector("#threeDSIframeContainer").style.display = "none";
+	console.log(failedPromiseResponse);
 }
 
 // retrieve cavv and eci values
 // to potentially send to another acquirer
 function retrieve3ds2Result() {
-	url = common.SERVER_URL + "?endpoint=threeds2_adv_retrieve3ds2Result" + "&pspReference=" + globals.challengePspReference;
+	let url = common.SERVER_URL + "?endpoint=threeds2_adv_retrieve3ds2Result" + "&pspReference=" + globals.challengePspReference;
 	$.get(url, acquirerAgnosticAuth);
 }
 
@@ -229,12 +225,12 @@ function acquirerAgnosticAuth(data) {
 	output("Request from server to Adyen", JSON.stringify(request, null, 4));
 	output("Response from Adyen to server", JSON.stringify(response, null, 4));
 
-	url = common.SERVER_URL + "?endpoint=threeds2_adv_acquirerAgnosticAuth" + "&eci=";
+	let url = common.SERVER_URL + "?endpoint=threeds2_adv_acquirerAgnosticAuth" + "&eci=";
 }
 
 // send authorise3ds2 call with stored token
 function adyenTokenAuth(transStatus) {
-	url = common.SERVER_URL + "?endpoint=threeds2_auth_via_token" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token) + "&transStatus=" + transStatus;
+	let url = common.SERVER_URL + "?endpoint=threeds2_auth_via_token" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token) + "&transStatus=" + transStatus;
 	$.get(url, adyenTokenAuthCallback);
 }
 

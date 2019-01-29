@@ -10,9 +10,11 @@ const globals = {};
  // MAIN METHODS //
 //////////////////
 
+// both the fingerprint and challenge follow the same flow:
 // creates an iframe with a self-submitting form, which redirects to the issuer's page
 // that page redirects to the result on completion
-export async function getFingerprint(serverTransactionID, methodURL, threedsMethodNotificationURL, container) {
+
+export const getFingerprint = (serverTransactionID, methodURL, threedsMethodNotificationURL, container) => {
 
     return new Promise((resolve, reject) => {
 
@@ -22,22 +24,65 @@ export async function getFingerprint(serverTransactionID, methodURL, threedsMeth
     	const base64URLencodedData = btoa(jsonStr);
 
     	// Create an iframe with a form that redirects to issuer's fingerprinting page
-    	globals.iframe = createIFrame(container, "threeDSMethodIframe", "0", "0", data => {
-            console.log("callback");
+    	let iframe = createIFrame(container, "threeDSMethodIframe", "0", "0", data => {
             if (data.target.contentWindow.location.host) {
-                resolve({threeDSCompInd: "Y"});
-                console.log("resolved");
-                console.log(data.target.contentWindow.location.host);
+                resolve( { threeDSCompInd: "Y" } );
             }
         });
         const form = createForm('threedsMethodForm', methodURL, 'threeDSMethodIframe', 'threeDSMethodData', base64URLencodedData);
-        globals.iframe.appendChild(form);
+        iframe.appendChild(form);
         form.submit();
 
         // timeout after 15 seconds
-        setTimeout(() => reject({threeDSCompInd: "U"}), 15000);
+        setTimeout(() => reject( { threeDSCompInd: "U" } ), 15000);
     });
-}
+};
+
+export const doChallenge = (acsURL, cReqData, iframeConfig, notificationURL) => {
+
+    return new Promise((resolve, reject) => {
+
+        // convert cReqData to base64
+        const jsonStr = JSON.stringify(cReqData);
+        const base64EncodedcReqData = btoa(jsonStr);
+
+        // Create an iframe with a form that redirects to issuer's fingerprinting page
+        // TODO map iframeConfig.size to sizes
+        let iframe = createIFrame(iframeConfig.container, "challengeIframe", "250", "150", data => {
+            
+            // the challenge iframe redirects to the notificationURL from the authorise call when it's completed
+            // so we'll check every second to see if the redirect has happened yet
+            if (!globals.checkChallengeInterval) {
+                globals.checkChallengeInterval = setInterval(() => {
+
+                    try {
+                        if (iframe.contentWindow.location.href == notificationURL) {
+                            clearInterval(globals.checkChallengeInterval);
+                            
+                            // pull cres data from the document body
+                            let cres = iframe.contentDocument.querySelector("pre").innerHTML.trim();
+                            let transStatus = JSON.parse(window.atob(cres)).transStatus;
+
+                            // remove the iframe and resolve the promise
+                            iframe.remove();
+                            resolve( { transStatus: transStatus } );
+                        }
+                    }
+                    catch(error) {
+                        // will return a CORS error if the challenge hasn't been completed yet
+                        // this is expected - don't throw an error
+                    }
+                }, 1000);
+            }
+        });
+        const form = createForm('cReqForm', acsURL, 'challengeIframe', 'creq', base64EncodedcReqData);
+        iframe.appendChild(form);
+        form.submit();
+
+        // timeout after 60 seconds
+        setTimeout(() => reject( { transStatus: "N" } ), 60000);
+    });
+};
 
   ////////////////////
  // HELPER METHODS //
