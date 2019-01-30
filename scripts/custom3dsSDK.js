@@ -47,9 +47,18 @@ export const doChallenge = (acsURL, cReqData, iframeConfig, notificationURL) => 
         const jsonStr = JSON.stringify(cReqData);
         const base64EncodedcReqData = btoa(jsonStr);
 
+        const iframeSizes = {
+            '01': ['250px', '400px'],
+            '02': ['390px', '400px'],
+            '03': ['500px', '600px'],
+            '04': ['600px', '400px'],
+            '05': ['100%', '100%']
+        };
+        const iframeWidth = iframeSizes[iframeConfig.size][1];
+        const iframeHeight = iframeSizes[iframeConfig.size][0];
+
         // Create an iframe with a form that redirects to issuer's fingerprinting page
-        // TODO map iframeConfig.size to sizes
-        let iframe = createIFrame(iframeConfig.container, "challengeIframe", "250", "150", data => {
+        let iframe = createIFrame(iframeConfig.container, "challengeIframe", iframeWidth, iframeHeight, data => {
             
             // the challenge iframe redirects to the notificationURL from the authorise call when it's completed
             // so we'll check every second to see if the redirect has happened yet
