@@ -3,6 +3,10 @@
 	overflow-wrap: break-word;
 }
 
+label {
+	user-select: none;
+}
+
 .inputHolder {
 	text-align: right;
 }

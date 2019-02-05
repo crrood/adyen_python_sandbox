@@ -15,12 +15,16 @@
 		expiryYear: <input class="formEls" type="text" name="expiryYear" value="2020"></input><br>
 		expiryMonth: <input class="formEls" type="text" name="expiryMonth" value="10"></input><br>
 		cvc: <input class="formEls" type="text" name="cvc" value="737"></input><br>
-		value: <input class="formEls" type="text" name="value" value="1499"></input><br>
+		value: <input id="valueInput" class="formEls" type="text" name="value" value="1499"></input><br>
 		currency: <input class="formEls" type="text" name="currency" value="EUR"></input><br>
 		reference: <input class="formEls" type="text" name="reference" value="Localhost 3DS 2.0"></input><br>
 		<input class="formEls" type="hidden" name="endpoint" value="threeds2_adv_initial_auth"></input>
 		<input class="formEls" type="hidden" name="userAgent" value="browser"></input>
 	</form>
+	<div>
+		<input type="checkbox" id="frictionlessCheckbox"/>
+		<label for="frictionlessCheckbox">Frictionless</label>
+	</div>
 	<div>
 		<input id="adyenTokenAuth" type="radio" name="transactionTypeRadio" value="adyenTokenAuth">
 		<label for="adyenTokenAuth" style="user-select: none">Adyen Token Auth</label>
@@ -99,6 +103,11 @@ function submitForm(e) {
 	var url = SERVER_URL + "?";
 	var jsonData = {}; // JSON object for logging
 	
+	// handle frictionless checkbox
+	if (document.getElementById("frictionlessCheckbox").checked) {
+		document.getElementById("valueInput").value = 12002;
+	}
+
 	// form encode data and add to jsonData
 	var formEls = $(".formEls");
 	for (let i = 0; i < formEls.length; i++) {
