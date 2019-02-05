@@ -34,12 +34,14 @@
 	</div>
 
 	<h3>Network activity</h3>
-	<div id="output" style="width: 50%"></div>
+	<div id="output" style="width: 50%;"></div>
 	<div id="sdkContainer" class="hidden" style="display: inline-block"></div>
 	
-	<figure style="width: 50%;">
-		<ul id="flowchart" class="tree"></ul>
-	</figure>
+	<div class="flowchart-background">
+		<figure class="flowchart">
+			<ul id="flowchart" class="tree"></ul>
+		</figure>
+	</div>
 </body>
 
 </html>
@@ -404,6 +406,7 @@ function output(id, text) {
 	let outputEl = document.createElement("code");
 	outputContainer.appendChild(outputEl);
 	outputEl.innerHTML = text;
+	// outputEl.style = "white-space: pre-wrap;";
 	containerEl.append(outputContainer);
 }
 
