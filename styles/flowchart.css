@@ -1,7 +1,15 @@
 /* It's supposed to look like a tree diagram */
 /* unashamedly stolen from https://codepen.io/ross-angus/pen/jwxMjL */
-.active-node {
-    background-color: lightgrey;
+.active-state {
+    background-color: #98F098;
+}
+
+.previous-state {
+    background-color: #98F0F0;
+}
+
+.unreachable-state {
+    background-color: #A69490;
 }
 
 .tree, .tree ul, .tree li {

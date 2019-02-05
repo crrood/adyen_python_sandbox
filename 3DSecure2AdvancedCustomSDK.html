@@ -37,7 +37,7 @@
 	<div id="output" style="width: 50%"></div>
 	<div id="sdkContainer" class="hidden" style="display: inline-block"></div>
 	
-	<figure>
+	<figure style="width: 50%;">
 		<ul id="flowchart" class="tree"></ul>
 	</figure>
 </body>
@@ -54,39 +54,44 @@ const CACHED_THREEDS_URL = "https://pal-test.adyen.com/threeds2simulator/acs/sta
 
 const globals = {};
 
-// Add submit button to DOM
-globals.authoriseButton = document.createElement("button");
-globals.authoriseButton.onclick = submitForm;
-globals.authoriseButton.innerHTML = "Authorise";
-globals.authoriseButton.disabled = true;
-globals.authoriseButton.classList.add("disabled");
-document.getElementById("authoriseBtnHolder").appendChild(globals.authoriseButton);
+// get everything ready to go
+initialize();
+function initialize() {
 
-// add dynamic flowchart
-let tree = [
-	"Get3dsAvailability", [
-		"Fingerprint Device", [
-			"Frictionless",
-			"Challenge Shopper", [
-				"Challenge Successful", [
-					"Authorise With Token",
-					"Retrieve MPI Data", [
-						"Authorise Via Adyen",
-						"Authorise Elsewhere"
+	// Add submit button to DOM
+	globals.authoriseButton = document.createElement("button");
+	globals.authoriseButton.onclick = submitForm;
+	globals.authoriseButton.innerHTML = "Authorise";
+	globals.authoriseButton.disabled = true;
+	globals.authoriseButton.classList.add("disabled");
+	document.getElementById("authoriseBtnHolder").appendChild(globals.authoriseButton);
+	
+	// add dynamic flowchart
+	let tree = [
+		"Get3dsAvailability", [
+			"Fingerprint Device", [
+				"Frictionless",
+				"Challenge Shopper", [
+					"Challenge Successful", [
+						"Authorise With Token",
+						"Retrieve MPI Data", [
+							"Authorise Via Adyen",
+							"Authorise Elsewhere"
+						],
 					],
-				],
-				"Challenge Failed", [
-					"Retry Challenge",
-					"Authorise Unauthenticated"
+					"Challenge Failed", [
+						"Retry Challenge",
+						"Authorise Unauthenticated"
+					]
 				]
 			]
 		]
-	]
-];
-document.getElementById("flowchart").innerHTML = generateTreeHTML(tree);
+	];
+	document.getElementById("flowchart").innerHTML = generateTreeHTML(tree);
 
-// pretend we have cached data on the card
-output("Cached 3ds2 data", '"threeDS2Version": "2.1.0"<br>"threeDSMethodURL": "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml"');
+	// pretend we have cached data on the card
+	output("Cached 3ds2 data", '"threeDS2Version": "2.1.0"<br>"threeDSMethodURL": "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml"');
+}
 
 // perform fingerprint via SDK on page load
 fingerprintDevice();
@@ -128,7 +133,8 @@ function fingerprintDevice() {
 		console.log(failedPromiseResponse);
 	});
 
-	highlightNode("FingerprintDevice");
+	highlightCurrentNode("FingerprintDevice");
+	highlightPreviousNode("Get3dsAvailability");
 }
 
 // send form data to server
@@ -178,7 +184,7 @@ function initialAuthoriseCallback(data, status) {
 	output("Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise<br><br>" + JSON.stringify(request, null, 4));
 	output("Response from Adyen to server", JSON.stringify(response, null, 4));
 
-	if (response.resultCode == "ChallengeShopper") {
+	if (response.resultCode === "ChallengeShopper") {
 		// put all of the required 3DS 2.0 data into the global namespace
 		// in case the challenge is failed and we want to retry
 		globals.cReqData = {
@@ -201,6 +207,10 @@ function initialAuthoriseCallback(data, status) {
 		// execute the challenge via the SDK
 		doChallenge();
 	}
+	else if (response.resultCode === "AuthenticationFinished" || response.resultCode === "Authorised") {
+		highlightCurrentNode("Frictionless");
+		makeNodeUnreachable(globals.subtree.challengeShopper);
+	}
 }
 
 // perform challenge via SDK
@@ -212,7 +222,8 @@ function doChallenge() {
 	};
 
 	output("Challenge request to SDK", "SDK.doChallenge<br><br>acsURL: " + globals.acsURL + "<br>iframeConfig: " + JSON.stringify(iframeConfig, null, 4) + "<br>cReqData: " + JSON.stringify(globals.cReqData, null, 4));
-	highlightNode("ChallengeShopper");
+	highlightCurrentNode("ChallengeShopper");
+	makeNodeUnreachable(globals.subtree.frictionless);
 
 	// create the iframe for the promise
 	SDK.doChallenge(globals.acsURL, globals.cReqData, iframeConfig, NOTIFICATION_URL).then(
@@ -227,23 +238,33 @@ function doChallenge() {
 function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 	output("Challenge succeeded", "threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus);
 
+	// remove challenge iframe
+	document.getElementById("sdkContainer").classList.add("hidden");
+
+	// update flowchart
+	highlightCurrentNode("ChallengeSuccessful");
+	makeNodeUnreachable(globals.subtree.challengeFailed);
+
+	// handle next step in process
 	if (globals.authenticationOnly) {
 		retrieve3ds2Result();
 	}
 	else {
 		adyenTokenAuth(successfulPromiseResponse.transStatus);
 	}
-
-	document.getElementById("sdkContainer").classList.add("hidden");
 }
 
 // doChallenge failed resolution
 function handleFailedSDKChallengePromise(failedPromiseResponse) {
 	output("Challenge failed", "Challenge failed<br>" + JSON.stringify(failedPromiseResponse, null, 4));
-	highlightNode("ChallengeFailed");
 	console.log(failedPromiseResponse);
 
+	// remove challenge iframe
 	document.getElementById("sdkContainer").classList.add("hidden");
+
+	// update flowchart
+	highlightCurrentNode("ChallengeFailed");
+	makeNodeUnreachable(globals.subtree.challengeSuccessful);
 }
 
 // retrieve cavv and eci values
@@ -262,7 +283,8 @@ function acquirerAgnosticAuth(data) {
 
 	output("Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/retrieve3ds2Result<br><br>" + JSON.stringify(request, null, 4));
 	output("Response from Adyen to server", JSON.stringify(response, null, 4));
-	highlightNode("RetrieveMPIData");
+	highlightCurrentNode("RetrieveMPIData");
+	makeNodeUnreachable("AuthoriseWithToken");
 
 	let url = common.SERVER_URL + "?endpoint=threeds2_adv_acquirerAgnosticAuth" + "&eci=";
 }
@@ -282,7 +304,8 @@ function adyenTokenAuthCallback(data) {
 
 	output("Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2<br><br>" + JSON.stringify(request, null, 4));
 	output("Response from Adyen to server", JSON.stringify(response, null, 4));
-	highlightNode("AuthoriseWithToken");
+	highlightCurrentNode("AuthoriseWithToken");
+	makeNodeUnreachable(globals.subtree.retrieveMPIData);
 }
 
 //////////////////////////////////
@@ -306,14 +329,40 @@ function generateTreeHTML(inputObject) {
 }
 
 // highlight active stage in process
-function highlightNode(nodeID) {
-	let activeNodes = document.getElementsByClassName("active-node");
-	console.log(activeNodes.length);
+function highlightCurrentNode(nodeID) {
+	let activeNodes = document.getElementsByClassName("active-state");
 	for (let i = 0; i < activeNodes.length; i++) {
-		console.log(i);
-		activeNodes[i].classList.remove("active-node");
+		activeNodes[i].classList.add("previous-state");
+		activeNodes[i].classList.remove("active-state");
 	}
-	document.getElementById(nodeID).classList.add("active-node");
+	document.getElementById(nodeID).classList.add("active-state");
+}
+
+// highlight previous states in the process
+function highlightPreviousNode(nodeID) {
+	document.getElementById(nodeID).classList.add("previous-state");
+}
+
+// it would be more CS-y to handle all this via a dedicated class with children
+// but since the tree won't change, for the sake of simplicity I'm doing it with arrays
+globals.subtree = {
+	frictionless: ["Frictionless"],
+	challengeShopper: ["ChallengeShopper", "ChallengeSuccessful", "AuthoriseWithToken", "RetrieveMPIData", "AuthoriseViaAdyen", "AuthoriseElsewhere", "ChallengeFailed", "RetryChallenge", "AuthoriseUnauthenticated"],
+	challengeSuccessful: ["ChallengeSuccessful","AuthoriseWithToken","RetrieveMPIData","AuthoriseViaAdyen","AuthoriseElsewhere"],
+	challengeFailed: ["ChallengeFailed","RetryChallenge","AuthoriseUnauthenticated"],
+	retrieveMPIData: ["RetrieveMPIData","AuthoriseViaAdyen","AuthoriseElsewhere"]
+};
+
+// grey out states which can't be reached
+function makeNodeUnreachable(target) {
+	if (typeof(target) === "string") {
+		document.getElementById(target).classList.add("unreachable-state");
+	}
+	else if (typeof(target) === "object") {
+		for (let node in target) {
+			makeNodeUnreachable(target[node]);
+		}
+	}
 }
 
 // gets state of auth flow radio buttons

@@ -75,7 +75,12 @@ export const doChallenge = (acsURL, cReqData, iframeConfig, notificationURL) => 
 
                             // remove the iframe and resolve the promise
                             iframe.remove();
-                            resolve( { transStatus: transStatus } );
+                            if (transStatus === "Y") {
+                                resolve( { transStatus: transStatus } );
+                            }
+                            else {
+                                reject( { transStatus: transStatus } );
+                            }
                         }
                     }
                     catch(error) {
