@@ -1,7 +1,6 @@
 <HTML>
 	<head>
 		<link rel="stylesheet" type="text/css" href="styles/style.css"/>
-		<script src="scripts/common.js"></script>
 	</head>
 	<body>
 		<form class="clientForm" id="infoForm">
@@ -20,11 +19,13 @@
 	</body>
 </HTML>
 
-<script>
+<script type="module">
+
+import * as common from "./scripts/common.js";
 
 // Sends form params to server
 document.querySelector("#checkoutBtn").addEventListener("click", () => {
-	AJAXPost(buildFormURL({"userAgent": navigator.userAgent}), checkoutCallback);
+	common.AJAXPost(common.buildFormURL({"userAgent": navigator.userAgent}), checkoutCallback);
 });
 
 // Redirects user to result URL via POST call
@@ -32,19 +33,19 @@ function checkoutCallback() {
 	if (this.readyState == 4) {
 		
 		// parse response
-		data = JSON.parse(this.responseText);
-		issuerURL = data.redirect.url;
-		redirectData = data.redirect.data;
+		let data = JSON.parse(this.responseText);
+		let issuerURL = data.redirect.url;
+		let redirectData = data.redirect.data;
 
 		// because the redirect has to be done as a POST...
 		// create an HTML form and redirect the user
-		var form = document.createElement("form");
+		let form = document.createElement("form");
 		form.setAttribute("method", "POST");
 		form.setAttribute("action", issuerURL);
 
 		// iteract through redirect params
-		for (var param in redirectData) {
-			var input = document.createElement("input");
+		for (let param in redirectData) {
+			let input = document.createElement("input");
 			input.setAttribute("type", "hidden");
 			input.setAttribute("name", param);
 			input.setAttribute("value", redirectData[param]);

@@ -17,10 +17,10 @@
 /* opaque background to cover extraneous text */
 div.flowchart-background {
     background-color: white;
-    width: 50%;
+    width: 55%;
     position: fixed;
     top: 0px;
-    left: 50%;
+    left: 45%;
 }
 
 figure.flowchart {

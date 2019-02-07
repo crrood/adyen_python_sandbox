@@ -5,7 +5,7 @@ export const SERVER_URL = "http://localhost:8000/cgi-bin/submit.py";
 // wrapper to send requests to server
 export function AJAXPost(path, callback, headers = FORM_ENCODED_HEADER, params = {}, method = "POST") {
 	let request = new XMLHttpRequest();
-	request.open("POST", path, true);
+	request.open(method, path, true);
 	request.onreadystatechange = callback;
 
 	for (let key in headers) {
