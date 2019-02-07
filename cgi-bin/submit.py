@@ -81,6 +81,11 @@ API_KEY = credentials["apiKey"]
 HMAC_KEY = credentials["hmacKey"]
 SKIN_CODE = credentials["skinCode"]
 
+JSON_HEADER_OBJ = {
+	"Content-Type": "application/json",
+	"X-API-Key": API_KEY
+}
+
 ##############################
 ##		HELPER METHODS		##
 ##############################
@@ -218,10 +223,7 @@ def checkout_setup(data):
 
 	# URL and headers
 	url = "https://checkout-test.adyen.com/v32/paymentSession"
-	headers = {
-		"Content-Type": "application/json",
-		"x-api-key": API_KEY
-	}
+	headers = JSON_HEADER_OBJ
 
 	# static fields
 	data["sdkVersion"] = "1.3.0"
@@ -275,15 +277,22 @@ def checkout_verify(data):
 
 	# URL and headers
 	url = "https://checkout-test.adyen.com/v32/payments/result"
-	headers = {
-		"Content-Type": "application/json",
-		"x-api-key": API_KEY
-	}
+	headers = JSON_HEADER_OBJ
 
 	# fix overzealous URL encoding
 	data["payload"] = data["payload"].replace(" ", "+")
 
 	# get and return response
+	result = send_request(url, data, headers)
+	send_response(result, "application/json")
+
+# paymentMethods endpoint
+def checkout_payment_methods(data):
+
+	# URL and headers
+	url = "https://checkout-test.adyen.com/v41/paymentMethods"
+	headers = JSON_HEADER_OBJ
+
 	result = send_request(url, data, headers)
 	send_response(result, "application/json")
 
@@ -355,10 +364,7 @@ def CSE(data):
 
 	# set request outline
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/authorise"
-	headers = {
-		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD)),
-		"Content-Type": "application/json"
-	}
+	headers = JSON_HEADER_OBJ
 	data["reference"] = "Localhost CSE"
 
 	# move value and currency into indented object
@@ -433,10 +439,7 @@ def directory_lookup(data):
 	del data["version"]
 
 	# set request outline
-	headers = {
-		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD)),
-		"Content-Type": "application/json"
-	}
+	headers = JSON_HEADER_OBJ
 
 	# account specific fields
 	data["skinCode"] = SKIN_CODE
@@ -535,10 +538,7 @@ def secured_fields_setup(data):
 
 	# request info
 	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v30/setup"
-	headers = {
-		"Content-Type": "application/json",
-		"X-API-Key": API_KEY
-	}
+	headers = JSON_HEADER_OBJ
 
 	# static fields
 	data["origin"] = LOCAL_ADDRESS
@@ -559,10 +559,7 @@ def secured_fields_submit(data):
 
 	# request info
 	url = "https://checkout-test.adyen.com/services/PaymentSetupAndVerification/v32/payments"
-	headers = {
-		"Content-Type": "application/json",
-		"X-API-Key": API_KEY
-	}
+	headers = JSON_HEADER_OBJ
 
 	# static fields
 	data["origin"] = LOCAL_ADDRESS
@@ -578,7 +575,7 @@ def secured_fields_submit(data):
 
 	# get and return response
 	result = send_request(url, data, headers)
-	send_response(result, "application/json")
+	send_response(result, "application/json", True)
 
 ##########################
 ##		3D Secure 1		##
@@ -589,10 +586,7 @@ def threeds1(data):
 
 	# request info
 	url = "https://checkout-test.adyen.com/v40/payments"
-	headers = {
-		"Content-Type": "application/json",
-		"x-api-key": API_KEY
-	}
+	headers = JSON_HEADER_OBJ
 
 	# static fields
 	data["returnUrl"] = "{}/cgi-bin/submit.py?endpoint=threeds1_notification_url".format(LOCAL_ADDRESS)  # noqa: E501
@@ -620,10 +614,7 @@ def threeds1_notification_url(data):
 
 	# request info
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/authorise3d"
-	headers = {
-		"Content-Type": "application/json",
-		"x-api-key": API_KEY
-	}
+	headers = JSON_HEADER_OBJ
 
 	# reformat request to match required fields
 	request_data = {}
@@ -646,10 +637,7 @@ def threeds2_part1(data):
 
 	# request info
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise"
-	headers = {
-		"Content-Type": "application/json",
-		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD))
-	}
+	headers = JSON_HEADER_OBJ
 
 	# move amount data into parent object
 	reformat_amount(data)
@@ -687,10 +675,7 @@ def threeds2_part2(data):
 
 	# request info
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2"
-	headers = {
-		"Content-Type": "application/json",
-		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD))
-	}
+	headers = JSON_HEADER_OBJ
 
 	data["merchantAccount"] = MERCHANT_ACCOUNT
 	indent_field(data, "threeDS2RequestData", "threeDSCompInd")
@@ -708,10 +693,7 @@ def threeds2_auth_via_token(data):
 
 	# request info
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2"
-	headers = {
-		"Content-Type": "application/json",
-		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD))
-	}
+	headers = JSON_HEADER_OBJ
 
 	data["merchantAccount"] = MERCHANT_ACCOUNT
 	indent_field(data, "threeDS2Result", "transStatus")
@@ -732,10 +714,7 @@ def threeds2_adv_initial_auth(data):
 
 	# request info
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise"
-	headers = {
-		"Content-Type": "application/json",
-		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD))
-	}
+	headers = JSON_HEADER_OBJ
 
 	# move amount data into parent object
 	reformat_amount(data)
@@ -785,10 +764,7 @@ def threeds2_adv_authorise3ds2(data):
 
 	# request info
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2"
-	headers = {
-		"Content-Type": "application/json",
-		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD))
-	}
+	headers = JSON_HEADER_OBJ
 
 	# hardcoding successful challenge for now
 	data["threeDS2Result"] = {}
@@ -807,10 +783,7 @@ def threeds2_adv_retrieve3ds2Result(data):
 
 	# request info
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/v40/retrieve3ds2Result"
-	headers = {
-		"Content-Type": "application/json",
-		"Authorization": "Basic {}".format(create_basic_auth(WS_USERNAME, WS_PASSWORD))
-	}
+	headers = JSON_HEADER_OBJ
 
 	data["merchantAccount"] = MERCHANT_ACCOUNT
 
@@ -858,6 +831,7 @@ router = {
 	"HPP": HPP,
 	"checkout_setup": checkout_setup,
 	"checkout_verify": checkout_verify,
+	"checkout_payment_methods": checkout_payment_methods,
 	"hmac_signature": HMAC_signature,
 	"CSE": CSE,
 	"directory_lookup": directory_lookup,
@@ -874,7 +848,7 @@ router = {
 	"threeds2_adv_acquirerAgnosticAuth": threeds2_adv_acquirerAgnosticAuth,
 	"threeds2_result_page": threeds2_result_page,
 	"result_page": result_page,
-	"secured_fields_submit": secured_fields_submit
+	"secured_fields_submit": secured_fields_submit,
 }
 
 try:

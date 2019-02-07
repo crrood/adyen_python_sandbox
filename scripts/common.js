@@ -6,7 +6,11 @@ export const SERVER_URL = "http://localhost:8000/cgi-bin/submit.py";
 export function AJAXPost(path, callback, headers = FORM_ENCODED_HEADER, params = {}, method = "POST") {
 	let request = new XMLHttpRequest();
 	request.open(method, path, true);
-	request.onreadystatechange = callback;
+	request.onreadystatechange = function() {
+		if (this.readyState == 4) {
+			callback(this.responseText);
+		}
+	};
 
 	for (let key in headers) {
 		request.setRequestHeader(key, headers[key]);

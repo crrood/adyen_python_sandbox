@@ -49,9 +49,9 @@ function setupVerify(pHookData) {
 	});
 }
 
-function verifyCallback() {
+function verifyCallback(data) {
 	// Display response
-	document.getElementById("verifyResult").innerHTML = this.responseText;
+	document.getElementById("verifyResult").innerHTML = data;
 }
 
 </script>

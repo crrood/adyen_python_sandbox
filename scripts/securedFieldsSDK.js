@@ -26,52 +26,50 @@ function displayToWindow(text) {
 }
 
 // Handle response from setup call
-const setupCallback = function() {
+const setupCallback = function(data) {
 
-	if (this.readyState == 4) {
-		console.log("response:" );
-		console.log(this);
+	console.log("response:" );
+	console.log(data);
 
-		try {
+	try {
 
-			// Parse data
-			globals.data = JSON.parse(this.responseText);
-			globals.securedFieldsConfiguration.configObject.originKey = globals.data.originKey;
-			globals.securedFieldsConfiguration.configObject.publicKeyToken = globals.data.publicKeyToken;
+		// Parse data
+		globals.data = JSON.parse(data);
+		globals.securedFieldsConfiguration.configObject.originKey = globals.data.originKey;
+		globals.securedFieldsConfiguration.configObject.publicKeyToken = globals.data.publicKeyToken;
 
-			console.log(globals.data);
+		console.log(globals.data);
 
-			// Initialize secured fields
-			globals.securedFields = csf(globals.securedFieldsConfiguration);
+		// Initialize secured fields
+		globals.securedFields = csf(globals.securedFieldsConfiguration);
 
-			console.log(globals.securedFields);
+		console.log(globals.securedFields);
 
-			// Set initial 'generic' card logo
-			globals.brandImage.setAttribute("src", globals.data.logoBaseUrl + "card@2x.png");
+		// Set initial 'generic' card logo
+		globals.brandImage.setAttribute("src", globals.data.logoBaseUrl + "card@2x.png");
 
-			globals.securedFields.onBrand( function(brandObject){
+		globals.securedFields.onBrand( function(brandObject){
 
-				// Triggered when receiving a brand callback from the credit card number validation.
-				if (brandObject.brand) {
-					globals.brandImage.setAttribute("src", globals.data.logoBaseUrl + brandObject.brand + "@2x.png");
-					globals.paymentMethodType = brandObject.brand;
-				}
-			});
+			// Triggered when receiving a brand callback from the credit card number validation.
+			if (brandObject.brand) {
+				globals.brandImage.setAttribute("src", globals.data.logoBaseUrl + brandObject.brand + "@2x.png");
+				globals.paymentMethodType = brandObject.brand;
+			}
+		});
 
-			globals.securedFields.onAllValid(function(allValidObject){
-				// Triggers when all credit card input fields are valid - and triggers again if this state changes.
-				if(allValidObject.allValid === true){
-					console.log('All credit card input is valid :-)');
-				}
-			});
+		globals.securedFields.onAllValid(function(allValidObject){
+			// Triggers when all credit card input fields are valid - and triggers again if this state changes.
+			if(allValidObject.allValid === true){
+				console.log('All credit card input is valid :-)');
+			}
+		});
 
-			// Un-gray out the entry fields
-			document.getElementById("secured-fields-container").classList.remove("inactive");
-		}
-		catch (e) {
-			console.log(e);
-			document.getElementById("output").innerHTML = e;
-		}
+		// Un-gray out the entry fields
+		document.getElementById("secured-fields-container").classList.remove("inactive");
+	}
+	catch (e) {
+		console.log(e);
+		document.getElementById("output").innerHTML = e;
 	}
 };
 
@@ -109,9 +107,9 @@ function paymentSuccess(result) {
 		var url = "./cgi-bin/submit.py";
 		var postData = "endpoint=checkout_verify&payload=" + result.payload;
 
-		AJAXPost(url + "?" + postData, function() {
+		AJAXPost(url + "?" + postData, function(data) {
 			// Display response
-			document.getElementById("verifyResult").innerHTML = this.responseText;
+			document.getElementById("verifyResult").innerHTML = data;
 		});
 	});
 }

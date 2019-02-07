@@ -68,39 +68,37 @@ const sdkConfigObj = {
 document.getElementById("checkoutBtn").addEventListener("click", openCheckout);
 
 // Handle response from setup call
-const setupCallback = function() {
+const setupCallback = function(data) {
 
-	if (this.readyState == 4) {
-		console.log(this);
+	console.log(data);
 
-		var data = JSON.parse(this.responseText);
-		console.log(data);
+	data = JSON.parse(data);
+	console.log(data);
 
-		// Initialize checkout
-		var checkout = chckt.checkout(data, '.checkout', sdkConfigObj);
+	// Initialize checkout
+	var checkout = chckt.checkout(data, '.checkout', sdkConfigObj);
 
-		// Handle response from initiate call
-		chckt.hooks.beforeComplete = function(pNode, pHookData){
+	// Handle response from initiate call
+	chckt.hooks.beforeComplete = function(pNode, pHookData){
 
-			// logging
-			console.log("pHookData");
-			console.log(pHookData);
-			
-			// Send data back to parent page
-			parent.setPaymentResult(pHookData.resultCode);
+		// logging
+		console.log("pHookData");
+		console.log(pHookData);
+		
+		// Send data back to parent page
+		parent.setPaymentResult(pHookData.resultCode);
 
-			if (pHookData.resultCode.toLowerCase() === "authorised") {
-				parent.setupVerify(pHookData);
-			}
+		if (pHookData.resultCode.toLowerCase() === "authorised") {
+			parent.setupVerify(pHookData);
 		}
+	}
 
-		// Other hooks
-		chckt.hooks.getDataFromSubmissionProcess = function(checkoutNode, formData) {
-			console.log("checkoutNode");
-			console.log(checkoutNode);
-			console.log("formData");
-			console.log(formData.toString());
-		}
+	// Other hooks
+	chckt.hooks.getDataFromSubmissionProcess = function(checkoutNode, formData) {
+		console.log("checkoutNode");
+		console.log(checkoutNode);
+		console.log("formData");
+		console.log(formData.toString());
 	}
 };
 

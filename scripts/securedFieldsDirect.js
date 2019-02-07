@@ -84,13 +84,11 @@ export function initForms() {
 		console.log("Data sent to local server:");
 		console.log(paramString);
 
-		AJAXPost(paramString, function() {
-			if (this.readyState == 4) {
-				console.log("Response from local server:");
-				console.log(this.responseText);
+		AJAXPost(paramString, function(data) {
+			console.log("Response from local server:");
+			console.log(data);
 
-				document.querySelector("#output").innerHTML = this.responseText;
-			}
+			document.querySelector("#output").innerHTML = data.replace(/\n/g, "<br>");
 		});
 	});
 }

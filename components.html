@@ -1,0 +1,50 @@
+<html>
+
+<head>
+	<script type="text/javascript" src="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.1.0/adyen.js"></script>
+	<link rel="stylesheet" href="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.1.0/adyen.css" />
+	<link rel="stylesheet" type="text/css" href="styles/style.css"></link>
+	<title>Components</title>
+</head>
+
+<body>
+
+	<h3>Payment info</h3>
+	<div class="block">
+		<form id="paymentForm" class="clientForm" >
+			Value: <input type="text" class="payment-data" name="value" value="1500"/><br>
+			Currency: <input type="text" class="payment-data" name="currency" value="USD"/><br>
+			CountryCode: <input type="text" class="payment-data" name="countryCode" value="US"/><br>
+			ShopperLocale: <input type="text" class="payment-data" name="shopperLocale" value="en_GB"/><br>
+			Channel: <input type="text" class="payment-data" name="channel" value="Web"/><br>
+			Reference: <input type="text" class="payment-data" name="reference" value="Localhost Secured Fields"/><br>
+			ShopperReference: <input type="text" class="payment-data" name="shopperReference" value="Shopper1"/><br>
+			<input type="hidden" name="endpoint" value="checkout_payment_methods"/>
+			<button id="checkoutBtn" class="block">Initialize</button>
+		</form>
+	</div>
+
+	<div id="componentContainer"/>
+
+	<div id="output"></div>
+</body>
+
+<script type="module">
+
+import * as common from "./scripts/common.js";
+
+document.getElementById("checkoutBtn").addEventListener("click", getAvailablePaymentMethods);
+
+// get data from form and make call to paymentMethods
+function getAvailablePaymentMethods(e) {
+	e.preventDefault();
+
+	common.AJAXPost(common.buildFormURL(), handlePaymentMethodsCallback);
+}
+
+// display available components
+function handlePaymentMethodsCallback(data) {
+	console.log(data);
+}
+
+</script>

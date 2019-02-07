@@ -29,33 +29,30 @@ document.querySelector("#checkoutBtn").addEventListener("click", () => {
 });
 
 // Redirects user to result URL via POST call
-function checkoutCallback() {
-	if (this.readyState == 4) {
-		
-		// parse response
-		let data = JSON.parse(this.responseText);
-		let issuerURL = data.redirect.url;
-		let redirectData = data.redirect.data;
+function checkoutCallback(data) {
+	// parse response
+	data = JSON.parse(data);
+	let issuerURL = data.redirect.url;
+	let redirectData = data.redirect.data;
 
-		// because the redirect has to be done as a POST...
-		// create an HTML form and redirect the user
-		let form = document.createElement("form");
-		form.setAttribute("method", "POST");
-		form.setAttribute("action", issuerURL);
+	// because the redirect has to be done as a POST...
+	// create an HTML form and redirect the user
+	let form = document.createElement("form");
+	form.setAttribute("method", "POST");
+	form.setAttribute("action", issuerURL);
 
-		// iteract through redirect params
-		for (let param in redirectData) {
-			let input = document.createElement("input");
-			input.setAttribute("type", "hidden");
-			input.setAttribute("name", param);
-			input.setAttribute("value", redirectData[param]);
+	// iteract through redirect params
+	for (let param in redirectData) {
+		let input = document.createElement("input");
+		input.setAttribute("type", "hidden");
+		input.setAttribute("name", param);
+		input.setAttribute("value", redirectData[param]);
 
-			form.appendChild(input);
-		}
-
-		document.querySelector("#constructedFormHolder").appendChild(form);
-		form.submit();
+		form.appendChild(input);
 	}
+
+	document.querySelector("#constructedFormHolder").appendChild(form);
+	form.submit();
 }
 
 </script>
