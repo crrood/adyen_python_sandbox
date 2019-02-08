@@ -87,7 +87,7 @@ JSON_HEADER_OBJ = {
 }
 
 ##############################
-##		HELPER METHODS		##
+##		NETWORK METHODS		##
 ##############################
 
 # send request to server and return bytecode response
@@ -148,6 +148,31 @@ def send_debug(data, content_type="text/plain", duplicate=False):
 	else:
 		print("\r\n\r\n")
 
+# convert FieldStorage to dict
+# NOTE this can only be called once per request
+def get_dict_from_fieldstorage():
+	form = cgi.FieldStorage()
+	result = {}
+
+	try:
+		for key in form.keys():
+			result[key] = form.getvalue(key)
+
+		del result["endpoint"]
+	except:
+		logging.warn("Could not retrieve FieldStorage data")
+
+	return result
+
+# create basic auth header
+def create_basic_auth(user, WS_PASSWORD):
+	combined_string = "{}:{}".format(user, WS_PASSWORD)
+	return base64.b64encode(combined_string.encode("utf8")).decode("utf8")
+
+##############################
+##		FORMAT HELPERS		##
+##############################
+
 # indent fields in data object
 def indent_field(data, parent, target):
 	if parent not in data.keys():
@@ -193,29 +218,8 @@ def reformat_card_checkout(data, encrypted=True):
 		indent_field(data, "paymentMethod", "cvc")
 		data["paymentMethod"]["type"] = "scheme"
 
-# create basic auth header
-def create_basic_auth(user, WS_PASSWORD):
-	combined_string = "{}:{}".format(user, WS_PASSWORD)
-	return base64.b64encode(combined_string.encode("utf8")).decode("utf8")
-
-# convert FieldStorage to dict
-# NOTE this can only be called once per request
-def get_dict_from_fieldstorage():
-	form = cgi.FieldStorage()
-	result = {}
-
-	try:
-		for key in form.keys():
-			result[key] = form.getvalue(key)
-
-		del result["endpoint"]
-	except:
-		logging.warn("Could not retrieve FieldStorage data")
-
-	return result
-
 ##############################
-##		CHECKOUT API		##
+##		CHECKOUT SDK		##
 ##############################
 
 # javascript checkout SDK
@@ -286,12 +290,29 @@ def checkout_verify(data):
 	result = send_request(url, data, headers)
 	send_response(result, "application/json")
 
+##############################
+##		CHECKOUT API		##
+##############################
+
 # paymentMethods endpoint
 def checkout_payment_methods(data):
 
 	# URL and headers
 	url = "https://checkout-test.adyen.com/v41/paymentMethods"
 	headers = JSON_HEADER_OBJ
+
+	result = send_request(url, data, headers)
+	send_response(result, "application/json")
+
+# /payments endpoint (equivalent to /authorise for PAL)
+def checkout_payments_api(data):
+
+	# URL and headers
+	url = "https://checkout-test.adyen.com/v41/payments"
+	headers = JSON_HEADER_OBJ
+
+	reformat_amount(data)
+	reformat_card_checkout(data)
 
 	result = send_request(url, data, headers)
 	send_response(result, "application/json")
@@ -832,6 +853,7 @@ router = {
 	"checkout_setup": checkout_setup,
 	"checkout_verify": checkout_verify,
 	"checkout_payment_methods": checkout_payment_methods,
+	"checkout_payments_api": checkout_payments_api,
 	"hmac_signature": HMAC_signature,
 	"CSE": CSE,
 	"directory_lookup": directory_lookup,

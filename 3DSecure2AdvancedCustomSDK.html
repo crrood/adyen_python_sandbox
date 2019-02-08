@@ -65,7 +65,6 @@ function initialize() {
 	globals.authoriseButton.onclick = submitForm;
 	globals.authoriseButton.innerHTML = "Authorise";
 	globals.authoriseButton.disabled = true;
-	globals.authoriseButton.classList.add("disabled");
 	document.getElementById("authoriseBtnHolder").appendChild(globals.authoriseButton);
 	
 	// add dynamic flowchart
@@ -127,7 +126,6 @@ function fingerprintDevice() {
 		
 		// enable authorise button
 		globals.authoriseButton.disabled = false;
-		globals.authoriseButton.classList.remove("disabled");
 
 	}, (failedPromiseResponse) => {
 		output("Fingerprint response from SDK", "Verification request to SDK failed - check log for more details");
@@ -406,7 +404,6 @@ function output(id, text) {
 	let outputEl = document.createElement("code");
 	outputContainer.appendChild(outputEl);
 	outputEl.innerHTML = text;
-	// outputEl.style = "white-space: pre-wrap;";
 	containerEl.append(outputContainer);
 }
 

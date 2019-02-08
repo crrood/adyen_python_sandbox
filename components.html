@@ -16,15 +16,16 @@
 			Currency: <input type="text" class="payment-data" name="currency" value="USD"/><br>
 			CountryCode: <input type="text" class="payment-data" name="countryCode" value="US"/><br>
 			ShopperLocale: <input type="text" class="payment-data" name="shopperLocale" value="en_GB"/><br>
-			Channel: <input type="text" class="payment-data" name="channel" value="Web"/><br>
 			Reference: <input type="text" class="payment-data" name="reference" value="Localhost Secured Fields"/><br>
-			ShopperReference: <input type="text" class="payment-data" name="shopperReference" value="Shopper1"/><br>
-			<input type="hidden" name="endpoint" value="checkout_payment_methods"/>
 			<button id="checkoutBtn" class="block">Initialize</button>
 		</form>
 	</div>
 
-	<div id="componentContainer"/>
+	<div id="cardsContainer" class="clientForm hidden">
+		<div id="cardComponentHolder"></div>
+		<button id="submitCardsBtn" disabled=true>Pay with card</button>
+	</div>
+
 
 	<div id="output"></div>
 </body>
@@ -33,18 +34,87 @@
 
 import * as common from "./scripts/common.js";
 
-document.getElementById("checkoutBtn").addEventListener("click", getAvailablePaymentMethods);
+const ORIGIN_KEY = "pub.v2.8115054323780109.aHR0cDovL2xvY2FsaG9zdDo4MDAw.B92basPQjzeM7_TtJ2IKZoln780QtvwAiPFDEbKs7Ng"
+
+// actions to do on page load
+window.onload = function() {
+
+	// event listener for initialize button
+	document.getElementById("checkoutBtn").addEventListener("click", getAvailablePaymentMethods);
+};
 
 // get data from form and make call to paymentMethods
 function getAvailablePaymentMethods(e) {
 	e.preventDefault();
 
-	common.AJAXPost(common.buildFormURL(), handlePaymentMethodsCallback);
+	common.AJAXPost(common.buildFormURL({ endpoint: "checkout_payment_methods" }), handlePaymentMethodsCallback);
 }
 
 // display available components
-function handlePaymentMethodsCallback(data) {
-	console.log(data);
+function handlePaymentMethodsCallback(response) {
+
+	// parse response
+	response = JSON.parse(response);
+
+	// config options shared between components
+	const sharedConfiguration = {
+	    locale: document.querySelector("[name=shopperLocale]").value,
+	    originKey: ORIGIN_KEY,
+	    loadingContext: "https://checkoutshopper-test.adyen.com/checkoutshopper/"
+	};
+
+	// intialize checkout object
+	const checkout = new AdyenCheckout(sharedConfiguration);
+
+	// iterate through returned payment methods
+	// and render components where available
+	for (let pm of response.paymentMethods) {
+		// cards
+		if (pm.type === "scheme") {
+			const card = checkout.create("card", {
+			    onChange: handleCardsChange
+			    // onValid also works here
+			}).mount("#cardComponentHolder");
+			document.querySelector("#cardsContainer").classList.remove("hidden");
+		}
+	}
+}
+
+// enable button when all data is valid
+function handleCardsChange(state, component) {
+	if (state.isValid) {
+		document.querySelector("#submitCardsBtn").disabled = false;
+		
+		// pass encrypted card data to Adyen
+		document.querySelector("#submitCardsBtn").addEventListener("click", () => {
+			
+			// add holder name
+			state.data.holderName = "Test Shopper";
+
+			// send request to server to forward to Adyen
+			let url = common.buildFormURL(state.data) + "endpoint=checkout_payments_api";
+			common.AJAXPost(url, handlePaymentsCallback);
+		});
+	}
+	else {
+		document.querySelector("#submitCardsBtn").disabled = true;
+	}
+}
+
+// display result of call to Adyen
+function handlePaymentsCallback(response) {
+	output(JSON.stringify(JSON.parse(response), null, 4));
+}
+
+function output(text) {
+	let containerEl = document.querySelector("#output");
+
+	// create element to be added
+	let outputContainer = document.createElement("pre");
+	let outputEl = document.createElement("code");
+	outputContainer.appendChild(outputEl);
+	outputEl.innerHTML = text;
+	containerEl.append(outputContainer);
 }
 
 </script>

@@ -20,7 +20,7 @@ export function AJAXPost(path, callback, headers = FORM_ENCODED_HEADER, params =
 }
 
 // pulls parameters from HTML form and sends to server
-// accepts an optional object of parameters to add
+// accepts an optional JSON object of parameters to add
 export function buildFormURL(customParams = null) {
 	let inputParams = document.querySelectorAll("input[type='text'], input[type='hidden']");
 
@@ -32,7 +32,7 @@ export function buildFormURL(customParams = null) {
 
 	// Add custom parameters from function call
 	for (let key in customParams) {
-		formString = formString + key + "=" + customParams.key + "&";
+		formString = formString + key + "=" + customParams[key] + "&";
 	}
 
 	return encodeURI(SERVER_URL + "?" + formString);
