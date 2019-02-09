@@ -34,7 +34,7 @@
 
 import * as common from "./scripts/common.js";
 
-const ORIGIN_KEY = "pub.v2.8115054323780109.aHR0cDovL2xvY2FsaG9zdDo4MDAw.B92basPQjzeM7_TtJ2IKZoln780QtvwAiPFDEbKs7Ng"
+const ORIGIN_KEY = "pub.v2.8115054323780109.aHR0cDovL2xvY2FsaG9zdDo4MDAw.B92basPQjzeM7_TtJ2IKZoln780QtvwAiPFDEbKs7Ng";
 
 // actions to do on page load
 window.onload = function() {
@@ -82,8 +82,10 @@ function handlePaymentMethodsCallback(response) {
 
 // enable button when all data is valid
 function handleCardsChange(state, component) {
+	document.querySelector("#submitCardsBtn").disabled = !state.isValid;
+
+	// add event listener to submit transaction
 	if (state.isValid) {
-		document.querySelector("#submitCardsBtn").disabled = false;
 		
 		// pass encrypted card data to Adyen
 		document.querySelector("#submitCardsBtn").addEventListener("click", () => {
@@ -95,9 +97,6 @@ function handleCardsChange(state, component) {
 			let url = common.buildFormURL(state.data) + "endpoint=checkout_payments_api";
 			common.AJAXPost(url, handlePaymentsCallback);
 		});
-	}
-	else {
-		document.querySelector("#submitCardsBtn").disabled = true;
 	}
 }
 

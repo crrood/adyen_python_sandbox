@@ -19,6 +19,18 @@ export function AJAXPost(path, callback, headers = FORM_ENCODED_HEADER, params =
 	request.send(params);
 }
 
+export function AJAXGet(path, callback) {
+	let request = new XMLHttpRequest();
+	request.open("GET", path, true);
+	request.onreadystatechange = function() {
+		if (this.readyState == 4) {
+			callback(this.responseText);
+		}
+	};
+
+	request.send();
+}
+
 // pulls parameters from HTML form and sends to server
 // accepts an optional JSON object of parameters to add
 export function buildFormURL(customParams = null) {

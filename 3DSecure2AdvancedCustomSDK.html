@@ -4,7 +4,6 @@
 	<title>3DS 2.0</title>
 	<link rel="stylesheet" type="text/css" href="styles/style.css"/>
 	<link rel="stylesheet" type="text/css" href="styles/flowchart.css"/>
-	<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -65,7 +64,7 @@ function initialize() {
 	globals.authoriseButton.onclick = submitForm;
 	globals.authoriseButton.innerHTML = "Authorise";
 	globals.authoriseButton.disabled = true;
-	document.getElementById("authoriseBtnHolder").appendChild(globals.authoriseButton);
+	document.querySelector("#authoriseBtnHolder").appendChild(globals.authoriseButton);
 	
 	// add dynamic flowchart
 	let tree = [
@@ -88,10 +87,10 @@ function initialize() {
 			]
 		]
 	];
-	document.getElementById("flowchart").innerHTML = generateTreeHTML(tree);
+	document.querySelector("#flowchart").innerHTML = generateTreeHTML(tree);
 
 	// pretend we have cached data on the card
-	output("Cached 3ds2 data", '"threeDS2Version": "2.1.0"<br>"threeDSMethodURL": "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml"');
+	output('"threeDS2Version": "2.1.0"<br>"threeDSMethodURL": "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml"', "Cached 3ds2 data");
 }
 
 // perform fingerprint via SDK on page load
@@ -108,27 +107,25 @@ function fingerprintDevice() {
 		document.querySelector("#sdkContainer")
 	);
 
-	output("Fingerprint request to SDK", "SDK.getFingerprint<br><br>" + JSON.stringify(
-		{
-			"threeDSServerTransID": globals.threeDSServerTransID,
-			"threeDSMethodURL": CACHED_THREEDS_URL, 
-			"YOUR_NOTIFICATION_ENDPOINT": NOTIFICATION_URL, 
-			'CONTAINER': document.querySelector("#sdkContainer")
-		},
-		null,
-		4
-	));
+	const fingerprintParams = {
+		"threeDSServerTransID": globals.threeDSServerTransID,
+		"threeDSMethodURL": CACHED_THREEDS_URL, 
+		"YOUR_NOTIFICATION_ENDPOINT": NOTIFICATION_URL, 
+		'CONTAINER': document.querySelector("#sdkContainer")
+	};
+
+	output(fingerprintParams, "Fingerprint request to SDK", "SDK.getFingerprint");
 
 	// handle SDK promise callbacks
 	fingerprintPromise.then((successfulPromiseResponse) => {
-		output("Fingerprint response from SDK", "SDK.getFingerprint<br><br>threeDSCompInd=" + successfulPromiseResponse.threeDSCompInd);
+		output("SDK.getFingerprint<br><br>threeDSCompInd=" + successfulPromiseResponse.threeDSCompInd, "Fingerprint response from SDK");
 		globals.fingerprintResponse = successfulPromiseResponse;
 		
 		// enable authorise button
 		globals.authoriseButton.disabled = false;
 
 	}, (failedPromiseResponse) => {
-		output("Fingerprint response from SDK", "Verification request to SDK failed - check log for more details");
+		output("Verification request to SDK failed - check log for more details", "Fingerprint response from SDK");
 		console.log("Verification request to SDK failed:");
 		console.log(failedPromiseResponse);
 	});
@@ -143,12 +140,12 @@ function submitForm(e) {
 	let jsonData = {}; // JSON object for logging
 	
 	// handle frictionless checkbox
-	if (document.getElementById("frictionlessCheckbox").checked) {
-		document.getElementById("valueInput").value = 12002;
+	if (document.querySelector("#frictionlessCheckbox").checked) {
+		document.querySelector("#valueInput").value = 12002;
 	}
 
 	// form encode data and add to jsonData
-	let formEls = $(".formEls");
+	let formEls = document.querySelectorAll(".formEls");
 	for (let i = 0; i < formEls.length; i++) {
 		url = url + encodeURIComponent(formEls[i].name) + "=" + encodeURIComponent(formEls[i].value) + "&";
 		jsonData[formEls[i].name] = formEls[i].value;
@@ -169,9 +166,7 @@ function initialAuthoriseCall(url, jsonData) {
 	jsonData.threeDSCompInd = globals.fingerprintResponse.threeDSCompInd;
 	jsonData.threeDSServerTransID = globals.threeDSServerTransID;
 
-	// output("Request from client to server", JSON.stringify(jsonData, null, 4));
-
-	$.get(url, initialAuthoriseCallback);
+	common.AJAXGet(url, initialAuthoriseCallback);
 }
 
 // receive response from initialAuthoriseCall
@@ -181,8 +176,8 @@ function initialAuthoriseCallback(data, status) {
 	const request = data.request;
 	const response = data.response;
 
-	output("Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise<br><br>" + JSON.stringify(request, null, 4));
-	output("Response from Adyen to server", JSON.stringify(response, null, 4));
+	output(request, "Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise");
+	output(response, "Response from Adyen to server");
 
 	if (response.resultCode === "ChallengeShopper") {
 		// put all of the required 3DS 2.0 data into the global namespace
@@ -221,7 +216,7 @@ function doChallenge() {
 		container: document.querySelector("#sdkContainer") // Container to place the generated iframe into OR an actual iframe
 	};
 
-	output("Challenge request to SDK", "SDK.doChallenge<br><br>acsURL: " + globals.acsURL + "<br>iframeConfig: " + JSON.stringify(iframeConfig, null, 4) + "<br>cReqData: " + JSON.stringify(globals.cReqData, null, 4));
+	output("acsURL: " + globals.acsURL + "<br>iframeConfig: " + JSON.stringify(iframeConfig, null, 4) + "<br>cReqData: " + JSON.stringify(globals.cReqData, null, 4), "Challenge request to SDK", "SDK.doChallenge");
 	highlightCurrentNode("ChallengeShopper");
 	makeNodeUnreachable(globals.subtree.frictionless);
 
@@ -231,15 +226,15 @@ function doChallenge() {
 		handleFailedSDKChallengePromise);
 
 	// show challenge iframe
-	document.getElementById("sdkContainer").classList.remove("hidden");
+	document.querySelector("#sdkContainer").classList.remove("hidden");
 }
 
 // doChallenge successful resolution
 function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
-	output("Challenge succeeded", "threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus);
+	output("threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus, "Challenge succeeded");
 
 	// remove challenge iframe
-	document.getElementById("sdkContainer").classList.add("hidden");
+	document.querySelector("#sdkContainer").classList.add("hidden");
 
 	// update flowchart
 	highlightCurrentNode("ChallengeSuccessful");
@@ -256,11 +251,11 @@ function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 
 // doChallenge failed resolution
 function handleFailedSDKChallengePromise(failedPromiseResponse) {
-	output("Challenge failed", "Challenge failed<br>" + JSON.stringify(failedPromiseResponse, null, 4));
+	output(failedPromiseResponse, "Challenge failed");
 	console.log(failedPromiseResponse);
 
 	// remove challenge iframe
-	document.getElementById("sdkContainer").classList.add("hidden");
+	document.querySelector("#sdkContainer").classList.add("hidden");
 
 	// update flowchart
 	highlightCurrentNode("ChallengeFailed");
@@ -271,7 +266,7 @@ function handleFailedSDKChallengePromise(failedPromiseResponse) {
 // to potentially send to another acquirer
 function retrieve3ds2Result() {
 	let url = common.SERVER_URL + "?endpoint=threeds2_adv_retrieve3ds2Result" + "&pspReference=" + globals.challengePspReference;
-	$.get(url, acquirerAgnosticAuth);
+	common.AJAXGet(url, acquirerAgnosticAuth);
 }
 
 // send auth request using cavv and eci values
@@ -281,8 +276,8 @@ function acquirerAgnosticAuth(data) {
 	const request = data.request;
 	const response = data.response;
 
-	output("Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/retrieve3ds2Result<br><br>" + JSON.stringify(request, null, 4));
-	output("Response from Adyen to server", JSON.stringify(response, null, 4));
+	output(request, "Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/retrieve3ds2Result");
+	output(response, "Response from Adyen to server");
 	highlightCurrentNode("RetrieveMPIData");
 	makeNodeUnreachable("AuthoriseWithToken");
 
@@ -292,7 +287,7 @@ function acquirerAgnosticAuth(data) {
 // send authorise3ds2 call with stored token
 function adyenTokenAuth(transStatus) {
 	let url = common.SERVER_URL + "?endpoint=threeds2_auth_via_token" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token) + "&transStatus=" + transStatus;
-	$.get(url, adyenTokenAuthCallback);
+	common.AJAXGet(url, adyenTokenAuthCallback);
 }
 
 // get response from authorise3ds2 call
@@ -302,8 +297,8 @@ function adyenTokenAuthCallback(data) {
 	const request = data.request;
 	const response = data.response;
 
-	output("Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2<br><br>" + JSON.stringify(request, null, 4));
-	output("Response from Adyen to server", JSON.stringify(response, null, 4));
+	output(request, "Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2");
+	output(response, "Response from Adyen to server");
 	highlightCurrentNode("AuthoriseWithToken");
 	makeNodeUnreachable(globals.subtree.retrieveMPIData);
 }
@@ -392,16 +387,36 @@ function sanitizeJSON(data) {
 }
 
 // utility to output to web page
-function output(id, text) {
-	let containerEl = $("#output");
+function output(text, title = null, subtitle = null, indentation = 4) {
+	const containerEl = document.querySelector("#output");
 
-	let countEl = document.createElement("div");
-	countEl.innerHTML = "--------------- " + id + " ---------------";
-	containerEl.append(countEl);
+	// add a title if param is present
+	if (title) {
+		const titleEl = document.createElement("div");
+		titleEl.innerHTML = "--------------- " + title + " ---------------";
+		containerEl.append(titleEl);
+	}
+
+	// add a subtitle, usually endpoint or SDK method
+	if (subtitle) {
+		const subtitleContainer = document.createElement("pre");
+		const subtitleEl = document.createElement("code");
+		subtitleContainer.appendChild(subtitleEl);
+		subtitleEl.innerHTML = subtitle;
+		containerEl.append(subtitleEl);
+	}
+
+	// convert JSON to formatted text if necessary
+	if (typeof(text) === "object") {
+		text = JSON.stringify(text, null, indentation);
+	}
+
+	// remove extra backslashes from overzealous URL encoding
+	text = text.replace(/\\/g, "");
 
 	// create element to be added
-	let outputContainer = document.createElement("pre");
-	let outputEl = document.createElement("code");
+	const outputContainer = document.createElement("pre");
+	const outputEl = document.createElement("code");
 	outputContainer.appendChild(outputEl);
 	outputEl.innerHTML = text;
 	containerEl.append(outputContainer);
