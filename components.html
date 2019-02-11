@@ -16,7 +16,7 @@
 			Currency: <input type="text" class="payment-data" name="currency" value="USD"/><br>
 			CountryCode: <input type="text" class="payment-data" name="countryCode" value="US"/><br>
 			ShopperLocale: <input type="text" class="payment-data" name="shopperLocale" value="en_GB"/><br>
-			Reference: <input type="text" class="payment-data" name="reference" value="Localhost Secured Fields"/><br>
+			Reference: <input type="text" class="payment-data" name="reference" value="Localhost Components"/><br>
 			<button id="checkoutBtn" class="block">Initialize</button>
 		</form>
 	</div>
@@ -102,18 +102,7 @@ function handleCardsChange(state, component) {
 
 // display result of call to Adyen
 function handlePaymentsCallback(response) {
-	output(JSON.stringify(JSON.parse(response), null, 4));
-}
-
-function output(text) {
-	let containerEl = document.querySelector("#output");
-
-	// create element to be added
-	let outputContainer = document.createElement("pre");
-	let outputEl = document.createElement("code");
-	outputContainer.appendChild(outputEl);
-	outputEl.innerHTML = text;
-	containerEl.append(outputContainer);
+	common.output(response);
 }
 
 </script>

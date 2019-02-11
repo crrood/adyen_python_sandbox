@@ -90,7 +90,7 @@ function initialize() {
 	document.querySelector("#flowchart").innerHTML = generateTreeHTML(tree);
 
 	// pretend we have cached data on the card
-	output('"threeDS2Version": "2.1.0"<br>"threeDSMethodURL": "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml"', "Cached 3ds2 data");
+	common.output('"threeDS2Version": "2.1.0"<br>"threeDSMethodURL": "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml"', "Cached 3ds2 data");
 }
 
 // perform fingerprint via SDK on page load
@@ -114,18 +114,18 @@ function fingerprintDevice() {
 		'CONTAINER': document.querySelector("#sdkContainer")
 	};
 
-	output(fingerprintParams, "Fingerprint request to SDK", "SDK.getFingerprint");
+	common.output(fingerprintParams, "Fingerprint request to SDK", "SDK.getFingerprint");
 
 	// handle SDK promise callbacks
 	fingerprintPromise.then((successfulPromiseResponse) => {
-		output("SDK.getFingerprint<br><br>threeDSCompInd=" + successfulPromiseResponse.threeDSCompInd, "Fingerprint response from SDK");
+		common.output("SDK.getFingerprint<br><br>threeDSCompInd=" + successfulPromiseResponse.threeDSCompInd, "Fingerprint response from SDK");
 		globals.fingerprintResponse = successfulPromiseResponse;
 		
 		// enable authorise button
 		globals.authoriseButton.disabled = false;
 
 	}, (failedPromiseResponse) => {
-		output("Verification request to SDK failed - check log for more details", "Fingerprint response from SDK");
+		common.output("Verification request to SDK failed - check log for more details", "Fingerprint response from SDK");
 		console.log("Verification request to SDK failed:");
 		console.log(failedPromiseResponse);
 	});
@@ -171,13 +171,13 @@ function initialAuthoriseCall(url, jsonData) {
 
 // receive response from initialAuthoriseCall
 function initialAuthoriseCallback(data, status) {
-	data = sanitizeJSON(data);
+	data = common.sanitizeJSON(data);
 
 	const request = data.request;
 	const response = data.response;
 
-	output(request, "Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise");
-	output(response, "Response from Adyen to server");
+	common.output(request, "Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise");
+	common.output(response, "Response from Adyen to server");
 
 	if (response.resultCode === "ChallengeShopper") {
 		// put all of the required 3DS 2.0 data into the global namespace
@@ -195,7 +195,7 @@ function initialAuthoriseCallback(data, status) {
 		globals.threeDS2Token = response.additionalData["threeds2.threeDS2Token"].replace(/\\/g, "");
 		globals.challengePspReference = response.pspReference;
 
-		// output formatted token in case we want to finish the transaction manually
+		// common.output formatted token in case we want to finish the transaction manually
 		console.log("threeDSToken:");
 		console.log(globals.threeDS2Token);
 
@@ -216,7 +216,7 @@ function doChallenge() {
 		container: document.querySelector("#sdkContainer") // Container to place the generated iframe into OR an actual iframe
 	};
 
-	output("acsURL: " + globals.acsURL + "<br>iframeConfig: " + JSON.stringify(iframeConfig, null, 4) + "<br>cReqData: " + JSON.stringify(globals.cReqData, null, 4), "Challenge request to SDK", "SDK.doChallenge");
+	common.output("acsURL: " + globals.acsURL + "<br>iframeConfig: " + JSON.stringify(iframeConfig, null, 4) + "<br>cReqData: " + JSON.stringify(globals.cReqData, null, 4), "Challenge request to SDK", "SDK.doChallenge");
 	highlightCurrentNode("ChallengeShopper");
 	makeNodeUnreachable(globals.subtree.frictionless);
 
@@ -231,7 +231,7 @@ function doChallenge() {
 
 // doChallenge successful resolution
 function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
-	output("threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus, "Challenge succeeded");
+	common.output("threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus, "Challenge succeeded");
 
 	// remove challenge iframe
 	document.querySelector("#sdkContainer").classList.add("hidden");
@@ -251,7 +251,7 @@ function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 
 // doChallenge failed resolution
 function handleFailedSDKChallengePromise(failedPromiseResponse) {
-	output(failedPromiseResponse, "Challenge failed");
+	common.output(failedPromiseResponse, "Challenge failed");
 	console.log(failedPromiseResponse);
 
 	// remove challenge iframe
@@ -271,13 +271,13 @@ function retrieve3ds2Result() {
 
 // send auth request using cavv and eci values
 function acquirerAgnosticAuth(data) {
-	data = sanitizeJSON(data);
+	data = common.sanitizeJSON(data);
 
 	const request = data.request;
 	const response = data.response;
 
-	output(request, "Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/retrieve3ds2Result");
-	output(response, "Response from Adyen to server");
+	common.output(request, "Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/retrieve3ds2Result");
+	common.output(response, "Response from Adyen to server");
 	highlightCurrentNode("RetrieveMPIData");
 	makeNodeUnreachable("AuthoriseWithToken");
 
@@ -292,13 +292,13 @@ function adyenTokenAuth(transStatus) {
 
 // get response from authorise3ds2 call
 function adyenTokenAuthCallback(data) {
-	data = sanitizeJSON(data);
+	data = common.sanitizeJSON(data);
 
 	const request = data.request;
 	const response = data.response;
 
-	output(request, "Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2");
-	output(response, "Response from Adyen to server");
+	common.output(request, "Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2");
+	common.output(response, "Response from Adyen to server");
 	highlightCurrentNode("AuthoriseWithToken");
 	makeNodeUnreachable(globals.subtree.retrieveMPIData);
 }
@@ -379,47 +379,6 @@ function checkIfChallengeIsCompleted() {
 // returned when the challenge completes and redirects to result page
 function getCRESFromIframe() {
 	return document.querySelector("[name=threeDSIframe]").contentDocument.querySelector("pre").innerHTML.trim();
-}
-
-// this shouldn't be necessary.. I must be building the response wrong somehow
-function sanitizeJSON(data) {
-	return JSON.parse(data.replace(/'/g, '"').replace(/"\{/g, "{").replace(/\}"/g, '}'));
-}
-
-// utility to output to web page
-function output(text, title = null, subtitle = null, indentation = 4) {
-	const containerEl = document.querySelector("#output");
-
-	// add a title if param is present
-	if (title) {
-		const titleEl = document.createElement("div");
-		titleEl.innerHTML = "--------------- " + title + " ---------------";
-		containerEl.append(titleEl);
-	}
-
-	// add a subtitle, usually endpoint or SDK method
-	if (subtitle) {
-		const subtitleContainer = document.createElement("pre");
-		const subtitleEl = document.createElement("code");
-		subtitleContainer.appendChild(subtitleEl);
-		subtitleEl.innerHTML = subtitle;
-		containerEl.append(subtitleEl);
-	}
-
-	// convert JSON to formatted text if necessary
-	if (typeof(text) === "object") {
-		text = JSON.stringify(text, null, indentation);
-	}
-
-	// remove extra backslashes from overzealous URL encoding
-	text = text.replace(/\\/g, "");
-
-	// create element to be added
-	const outputContainer = document.createElement("pre");
-	const outputEl = document.createElement("code");
-	outputContainer.appendChild(outputEl);
-	outputEl.innerHTML = text;
-	containerEl.append(outputContainer);
 }
 
 </script>
