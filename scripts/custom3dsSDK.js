@@ -41,6 +41,8 @@ export const getFingerprint = (serverTransactionID, methodURL, threedsMethodNoti
 
 export const doChallenge = (acsURL, cReqData, iframeConfig, notificationURL) => {
 
+    const TIMEOUT = 5 * 60 * 1000; // 5 minutes
+
     return new Promise((resolve, reject) => {
 
         // convert cReqData to base64
@@ -94,8 +96,8 @@ export const doChallenge = (acsURL, cReqData, iframeConfig, notificationURL) => 
         iframe.appendChild(form);
         form.submit();
 
-        // timeout after 60 seconds
-        setTimeout(() => reject( { transStatus: "N" } ), 60000);
+        // timeout after some point
+        setTimeout(() => reject( { transStatus: "N" } ), TIMEOUT);
     });
 };
 

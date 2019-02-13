@@ -52,23 +52,8 @@ export function buildFormURL(customParams = null) {
 
 // utility to output to web page
 export function output(text, title = null, subtitle = null, indentation = 4) {
-	const containerEl = document.querySelector("#output");
-
-	// add a title if param is present
-	if (title) {
-		const titleEl = document.createElement("div");
-		titleEl.innerHTML = "--------------- " + title + " ---------------";
-		containerEl.append(titleEl);
-	}
-
-	// add a subtitle, usually endpoint or SDK method
-	if (subtitle) {
-		const subtitleContainer = document.createElement("pre");
-		const subtitleEl = document.createElement("code");
-		subtitleContainer.appendChild(subtitleEl);
-		subtitleEl.innerHTML = subtitle;
-		containerEl.append(subtitleEl);
-	}
+	const containerEl = document.createElement("div");
+	containerEl.classList.add("output-item");
 
 	// format output
 	if (typeof(text) === "object") {
@@ -91,15 +76,38 @@ export function output(text, title = null, subtitle = null, indentation = 4) {
 		}
 	}
 
+	// add a title if param is present
+	if (title) {
+		const titleEl = document.createElement("div");
+		titleEl.innerHTML = "--------------- " + title + " ---------------";
+		titleEl.classList.add("output-title");
+		containerEl.append(titleEl);
+	}
+
+	// add a subtitle, usually endpoint or SDK method
+	if (subtitle) {
+		const subtitleContainer = document.createElement("pre");
+		const subtitleEl = document.createElement("code");
+		subtitleContainer.appendChild(subtitleEl);
+		subtitleContainer.classList.add("output-subtitle");
+		subtitleEl.innerHTML = subtitle;
+		containerEl.append(subtitleContainer);
+	}
+
 	// remove extra backslashes from overzealous URL encoding
 	text = text.replace(/\\/g, "");
 
-	// create element to be added
-	const outputContainer = document.createElement("pre");
-	const outputEl = document.createElement("code");
-	outputContainer.appendChild(outputEl);
-	outputEl.innerHTML = text;
-	containerEl.append(outputContainer);
+
+	// create main body of item
+	const outputTextContainer = document.createElement("pre");
+	const outputText = document.createElement("code");
+	outputTextContainer.appendChild(outputText);
+	outputTextContainer.classList.add("output-main-body");
+	outputText.innerHTML = text;
+	containerEl.appendChild(outputTextContainer);
+
+	// add to page
+	document.querySelector("#output").append(containerEl);
 }
 
 // this shouldn't be necessary.. I must be building the response wrong somehow

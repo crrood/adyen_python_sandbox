@@ -1,30 +1,86 @@
 /* It's supposed to look like a tree diagram */
 /* unashamedly stolen from https://codepen.io/ross-angus/pen/jwxMjL */
 
-/* node highlighting */
-.active-state {
-    background-color: #98F098;
-}
-
-.previous-state {
-    background-color: #98F0F0;
-}
-
-.unreachable-state {
-    background-color: #A69490;
-}
-
 /* opaque background to cover extraneous text */
 div.flowchart-background {
-    background-color: white;
-    width: 55%;
+    background-color: #222;
+    width: 50%;
     position: fixed;
     top: 0px;
-    left: 45%;
+    left: 50%;
 }
 
 figure.flowchart {
     top: 20px;
+    margin: 5px;
+}
+
+/* legend */
+.flowchart-legend {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center
+}
+
+.flowchart-legend * {
+    display: inline-block;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.flowchart-legend label {
+
+}
+
+.flowchart-legend span {
+    transform: translate(0, 2px);
+    top: 100px;
+    left: 100px;
+    width: 30px;
+    height: 15px;
+}
+
+.flowchart-legend .active-state-label {
+
+}
+
+.flowchart-legend .active-state-legend {
+    background-color: #A3B474;
+}
+
+.flowchart-legend .previous-state-label {
+
+}
+
+.flowchart-legend .previous-state-legend {
+    background-color: #9BAED2;
+}
+
+.flowchart-legend .unreachable-state-label {
+
+}
+
+.flowchart-legend .unreachable-state-legend {
+    background-color: #E1B1A5;
+}
+
+/* node highlighting */
+code.active-state {
+    background-color: #A3B474;
+    color: #222;
+    font-weight: bold;
+}
+
+code.previous-state {
+    background-color: #9BAED2;
+    color: #222;
+    font-weight: bold;
+}
+
+code.unreachable-state {
+    background-color: #E1B1A5;
+    color: #555;
 }
 
 /* tree structure */
@@ -53,7 +109,7 @@ figure.flowchart {
     }
         /* _________ */
         .tree li:before {
-            outline: solid 1px #666;
+            outline: solid 1px #555;
             content: "";
             left: 0;
             position: absolute;
@@ -64,7 +120,7 @@ figure.flowchart {
         .tree li:last-child:before {right: 50%;}
 
         .tree code, .tree span {
-            border: solid .1em #666;
+            border: solid .1em #555;
             border-radius: .2em;
             display: inline-block;
             margin: 0 .2em .5em;
@@ -82,7 +138,7 @@ figure.flowchart {
             .tree ul:before,
             .tree code:before,
             .tree span:before {
-                outline: solid 1px #666;
+                outline: solid 1px #555;
                 content: "";
                 height: .5em;
                 left: 50%;
