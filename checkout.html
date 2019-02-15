@@ -11,7 +11,7 @@
 
 	<h4>Payment result:</h4>
 	<div id="paymentResult">"Patience is a virtue" - Confucius probably</div>
-	<div id="verifyContainer" class="inactive">
+	<div id="verifyContainer" class="hidden">
 		<h4>Verify result:</h4>
 		<input type="button" class="submitBtn" id="verifyBtn" value="Verify Payment"/>
 		<div id="verifyResult"></div>
@@ -31,7 +31,7 @@ function setPaymentResult(text) {
 function setupVerify(pHookData) {
 
 	// Un-hide verify HTML and hide Checkout container
-	document.getElementById("verifyContainer").classList.remove("inactive");
+	document.getElementById("verifyContainer").classList.remove("hidden");
 	document.getElementById("checkout-iframe").style = "animation-name: shrink-checkout;";
 	document.getElementById("checkout-iframe").addEventListener("animationend", (e) => e.target.style = "height: 100px;");
 
@@ -52,6 +52,24 @@ function setupVerify(pHookData) {
 function verifyCallback(data) {
 	// Display response
 	document.getElementById("verifyResult").innerHTML = data;
+}
+
+// wrapper to send requests to server
+const FORM_ENCODED_HEADER = { "Content-Type": "application/x-www-form-urlencoded" };
+function AJAXPost(path, callback, headers = FORM_ENCODED_HEADER, params = {}, method = "POST") {
+	let request = new XMLHttpRequest();
+	request.open(method, path, true);
+	request.onreadystatechange = function() {
+		if (this.readyState == 4) {
+			callback(this.responseText);
+		}
+	};
+
+	for (let key in headers) {
+		request.setRequestHeader(key, headers[key]);
+	}
+
+	request.send(params);
 }
 
 </script>

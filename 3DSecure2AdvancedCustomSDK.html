@@ -41,15 +41,15 @@
 		</figure>
 		<div class="flowchart-legend">
 			<div>
-				<label class="active-state-label">Active state</label>
+				<label>Active state</label>
 				<span class="flowchart-color-swatch active-state-legend"></span>
 			</div>
 			<div>
-				<label class="previous-state-label">Previous state</label>
+				<label>Previous state</label>
 				<span class="flowchart-color-swatch previous-state-legend"></span>
 			</div>
 			<div>
-				<label class="unreachable-state-label">Unreachable state</label>
+				<label>Unreachable state</label>
 				<span class="flowchart-color-swatch unreachable-state-legend"></span>
 			</div>
 		</div>
@@ -103,7 +103,7 @@ function initialize() {
 	document.querySelector("#flowchart").innerHTML = generateTreeHTML(tree);
 
 	// pretend we have cached data on the card
-	common.output('"threeDS2Version": "2.1.0"<br>"threeDSMethodURL": "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml"', "Cached 3ds2 data");
+	common.output('"threeDS2Version": "2.1.0"<br>"threeDSMethodURL": "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml"', "Query cached 3ds2 data");
 }
 
 // perform fingerprint via SDK on page load

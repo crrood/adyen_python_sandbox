@@ -3,9 +3,9 @@ export const FORM_ENCODED_HEADER = { "Content-Type": "application/x-www-form-url
 export const SERVER_URL = "http://localhost:8000/cgi-bin/submit.py";
 
 // wrapper to send requests to server
-export function AJAXPost(path, callback, headers = FORM_ENCODED_HEADER, params = {}, method = "POST") {
+export function AJAXPost(path, callback, headers = FORM_ENCODED_HEADER, params = {}) {
 	let request = new XMLHttpRequest();
-	request.open(method, path, true);
+	request.open("POST", path, true);
 	request.onreadystatechange = function() {
 		if (this.readyState == 4) {
 			callback(this.responseText);
@@ -52,36 +52,55 @@ export function buildFormURL(customParams = null) {
 
 // utility to output to web page
 export function output(text, title = null, subtitle = null, indentation = 4) {
+
+	// holder for title, subtitle, and content
+	const contentEl = document.createElement("div");
+
+	// holder for container + summary
 	const containerEl = document.createElement("div");
 	containerEl.classList.add("output-item");
+	containerEl.appendChild(contentEl);
+
+	// text to show when element is collapsed
+	let summary;
 
 	// format output
 	if (typeof(text) === "object") {
 		try {
 			// indent JSON object
 			text = JSON.stringify(text, null, indentation);
+			summary = "{ JSON }";
 		}
 		catch(e) {
-			// convert object to string
+			// convert non-JSON object to string
 			text = text.toString();
+			summary = "{ Object }";
 		}
 	}
 	else if (typeof(text) === "string") {
 		try {
 			// try to convert text to JSON
 			text = JSON.stringify(JSON.parse(text), null, indentation);
+			summary = "{ JSON }";
 		}
 		catch(e) {
 			// do nothing; sometimes text is just text - Lao Tzu
+			// use first 50 characters as summary
+			summary = text.match(/.{50,50}/) + (text.length > 55) ? "..." : "";
 		}
 	}
+
+	// remove extra backslashes from overzealous URL encoding
+	text = text.replace(/\\/g, "");
 
 	// add a title if param is present
 	if (title) {
 		const titleEl = document.createElement("div");
 		titleEl.innerHTML = "--------------- " + title + " ---------------";
 		titleEl.classList.add("output-title");
-		containerEl.append(titleEl);
+		contentEl.append(titleEl);
+
+		summary = title;
 	}
 
 	// add a subtitle, usually endpoint or SDK method
@@ -91,12 +110,15 @@ export function output(text, title = null, subtitle = null, indentation = 4) {
 		subtitleContainer.appendChild(subtitleEl);
 		subtitleContainer.classList.add("output-subtitle");
 		subtitleEl.innerHTML = subtitle;
-		containerEl.append(subtitleContainer);
+		contentEl.append(subtitleContainer);
+
+		if (!title) {
+			summary = subtitle;
+		}
 	}
 
-	// remove extra backslashes from overzealous URL encoding
-	text = text.replace(/\\/g, "");
-
+	// append arrow at end of summary
+	summary += " &#9656;";
 
 	// create main body of item
 	const outputTextContainer = document.createElement("pre");
@@ -104,7 +126,20 @@ export function output(text, title = null, subtitle = null, indentation = 4) {
 	outputTextContainer.appendChild(outputText);
 	outputTextContainer.classList.add("output-main-body");
 	outputText.innerHTML = text;
-	containerEl.appendChild(outputTextContainer);
+	contentEl.appendChild(outputTextContainer);
+
+	// create summary element
+	const summaryEl = document.createElement("div");
+	summaryEl.classList.add("output-summary");
+	summaryEl.innerHTML = summary;
+	containerEl.appendChild(summaryEl);
+
+	// add event listener to expand / collapse
+	summaryEl.classList.add("display-none");
+	containerEl.addEventListener("click", () => {
+		contentEl.classList.toggle("display-none");
+		summaryEl.classList.toggle("display-none");
+	});
 
 	// add to page
 	document.querySelector("#output").append(containerEl);

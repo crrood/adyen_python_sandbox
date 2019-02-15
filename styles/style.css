@@ -28,35 +28,56 @@ body.dark {
 #output {
 	width: 100%;
 	overflow-wrap: break-word;
-
-	background-color: #222222;
 }
 
 .output-item {
 	font-weight: 400;
 	font-family: monospace;
 
-	background-color: #343434;
-	color: #B1BCD2;
 	margin-bottom: 15px;
 	padding: 10px;
+
+	border-top: 1px solid black;
+	border-bottom: 1px solid black;
+}
+
+.output-summary {
+	font-size: 18px;
 }
 
 .output-title {
-	color: #C5AF75;
-}
-
-.output-subtitle {
-	color: #A8B487;
+	font-size: 14px;
 }
 
 .output-main-body {
-	font-size: 1em;
 	overflow: auto;
 }
 
 .output-main-body::-webkit-scrollbar {
 	width: 0;
+}
+
+body.dark #output {
+	background-color: #222222;
+}
+
+body.dark .output-item {
+	background-color: #343434;
+
+	border-top: none;
+	border-bottom: none;
+}
+
+body.dark .output-title {
+	color: #C5AF75;
+}
+
+body.dark .output-subtitle {
+	color: #A8B487;
+}
+
+body.dark .output-main-body {
+	color: #B1BCD2;
 }
 
 /* form styling */
@@ -114,6 +135,10 @@ button:disabled {
 
 .inactive, .hidden {
 	visibility: hidden;
+}
+
+.display-none {
+	display: none;
 }
 
 .secured-fields-form {

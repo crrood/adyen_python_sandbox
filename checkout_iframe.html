@@ -86,6 +86,8 @@ const setupCallback = function(data) {
 		console.log(pHookData);
 		
 		// Send data back to parent page
+		console.log(parent);
+		console.log(parent.setPaymentResult);
 		parent.setPaymentResult(pHookData.resultCode);
 
 		if (pHookData.resultCode.toLowerCase() === "authorised") {

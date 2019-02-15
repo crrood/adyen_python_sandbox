@@ -29,10 +29,6 @@ figure.flowchart {
     margin-left: auto;
 }
 
-.flowchart-legend label {
-
-}
-
 .flowchart-legend span {
     transform: translate(0, 2px);
     top: 100px;
@@ -41,24 +37,12 @@ figure.flowchart {
     height: 15px;
 }
 
-.flowchart-legend .active-state-label {
-
-}
-
 .flowchart-legend .active-state-legend {
     background-color: #A3B474;
 }
 
-.flowchart-legend .previous-state-label {
-
-}
-
 .flowchart-legend .previous-state-legend {
     background-color: #9BAED2;
-}
-
-.flowchart-legend .unreachable-state-label {
-
 }
 
 .flowchart-legend .unreachable-state-legend {
