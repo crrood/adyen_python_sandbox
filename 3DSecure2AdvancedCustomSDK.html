@@ -6,34 +6,35 @@
 	<link rel="stylesheet" type="text/css" href="styles/flowchart.css"/>
 </head>
 
-<body class="dark">
-	<form class="clientForm dark">
-		<label>holderName: </label><input class="formEls" type="text" name="holderName" value="Theresa Cure"></input><br>
-		<label>number: </label><input class="formEls" type="text" name="number" value="4111111111111111"></input><br>
-		<label>expiryYear: </label><input class="formEls" type="text" name="expiryYear" value="2020"></input><br>
-		<label>expiryMonth: </label><input class="formEls" type="text" name="expiryMonth" value="10"></input><br>
-		<label>cvc: </label><input class="formEls" type="text" name="cvc" value="737"></input><br>
-		<label>value: </label><input id="valueInput" class="formEls" type="text" name="value" value="1499"></input><br>
-		<label>currency: </label><input class="formEls" type="text" name="currency" value="EUR"></input><br>
-		<label>reference: </label><input class="formEls" type="text" name="reference" value="Localhost 3DS 2.0"></input><br>
-		<input class="formEls" type="hidden" name="endpoint" value="threeds2_adv_initial_auth"></input>
-		<input class="formEls" type="hidden" name="userAgent" value="browser"></input>
-		<div id="authoriseBtnHolder"></div>
-	</form>
-	<div>
-		<input type="checkbox" id="frictionlessCheckbox"/>
-		<label for="frictionlessCheckbox">Frictionless</label>
-	</div>
-	<div>
-		<input id="adyenTokenAuth" type="radio" name="transactionTypeRadio" value="adyenTokenAuth">
-		<label for="adyenTokenAuth">Adyen Token Auth</label>
-		<input id="acquirerAgnosticAuth" type="radio" checked="checked" name="transactionTypeRadio" value="acquirerAgnosticAuth">
-		<label for="acquirerAgnosticAuth">Acquirer Agnostic Auth</label>
+<body>
+	<div class="checkout-holder">
+		<form class="clientForm">
+			<label>holderName: </label><input class="formEls" type="text" name="holderName" value="Theresa Cure"></input><br>
+			<label>number: </label><input class="formEls" type="text" name="number" value="4111111111111111"></input><br>
+			<label>expiryYear: </label><input class="formEls" type="text" name="expiryYear" value="2020"></input><br>
+			<label>expiryMonth: </label><input class="formEls" type="text" name="expiryMonth" value="10"></input><br>
+			<label>cvc: </label><input class="formEls" type="text" name="cvc" value="737"></input><br>
+			<label>value: </label><input id="valueInput" class="formEls" type="text" name="value" value="1499"></input><br>
+			<label>currency: </label><input class="formEls" type="text" name="currency" value="EUR"></input><br>
+			<label>reference: </label><input class="formEls" type="text" name="reference" value="Localhost 3DS 2.0"></input><br>
+			<input class="formEls" type="hidden" name="endpoint" value="threeds2_adv_initial_auth"></input>
+			<input class="formEls" type="hidden" name="userAgent" value="browser"></input>
+			<div id="authoriseBtnHolder"></div>
+		</form>
+		<div>
+			<input type="checkbox" id="frictionlessCheckbox"/>
+			<label for="frictionlessCheckbox">Frictionless</label>
+		</div>
+		<div>
+			<input id="adyenTokenAuth" type="radio" name="transactionTypeRadio" value="adyenTokenAuth">
+			<label for="adyenTokenAuth">Adyen Token Auth</label>
+			<input id="acquirerAgnosticAuth" type="radio" checked="checked" name="transactionTypeRadio" value="acquirerAgnosticAuth">
+			<label for="acquirerAgnosticAuth">Acquirer Agnostic Auth</label>
+		</div>
 	</div>
 
 	<h3>Network activity</h3>
 	<div id="output" style="width: 50%;"></div>
-	<div id="sdkContainer" class="hidden challenge-iframe" style="display: inline-block"></div>
 	
 	<div class="flowchart-background">
 		<figure class="flowchart">
@@ -53,7 +54,9 @@
 				<span class="flowchart-color-swatch unreachable-state-legend"></span>
 			</div>
 		</div>
+		<div id="sdkContainer" class="hidden challenge-iframe" style="display: inline-block"></div>
 	</div>
+
 </body>
 
 </html>
@@ -104,6 +107,30 @@ function initialize() {
 
 	// pretend we have cached data on the card
 	common.output('"threeDS2Version": "2.1.0"<br>"threeDSMethodURL": "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml"', "Query cached 3ds2 data");
+
+	// make sure the flowchart fits on screen
+	globals.originalFlowchartHeight = document.querySelector(".flowchart").getBoundingClientRect().height;
+	scaleFlowchart();
+	window.onresize = scaleFlowchart;
+}
+
+// scale the flowchart to fit on screen at lower resolutions
+function scaleFlowchart() {
+	const FLOWCHART_MIN_WIDTH = 750;
+	const availableFlowchartWidth = window.innerWidth / 2;
+	if (availableFlowchartWidth < FLOWCHART_MIN_WIDTH) {
+		const el = document.querySelector(".flowchart");
+		const scale = availableFlowchartWidth / FLOWCHART_MIN_WIDTH;
+		console.log(scale);
+		const percentScaleX = "-" + (100 - (scale * 110)).toString() + "%";
+		const percentScaleY = "-" + (100 - (scale * 120)).toString() + "%";
+
+		el.style.webkitTransform = `scale(${scale}) translate(${percentScaleX}, ${percentScaleY})`;
+		el.style.height = (globals.originalFlowchartHeight * scale) + "px";
+	}
+	else {
+		document.querySelector(".flowchart").style.webkitTransform = "";
+	}
 }
 
 // perform fingerprint via SDK on page load
@@ -148,7 +175,8 @@ function fingerprintDevice() {
 }
 
 // send form data to server
-function submitForm(e) {	
+function submitForm(e) {
+
 	let url = common.SERVER_URL + "?";
 	let jsonData = {}; // JSON object for logging
 	

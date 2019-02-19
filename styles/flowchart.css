@@ -3,11 +3,14 @@
 
 /* opaque background to cover extraneous text */
 div.flowchart-background {
-    background-color: #222;
     width: 50%;
     position: fixed;
     top: 0px;
     left: 50%;
+}
+
+body.dark div.flowchart-background {
+    background-color: #222;
 }
 
 figure.flowchart {
