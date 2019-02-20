@@ -93,16 +93,6 @@ export function output(text, title = null, subtitle = null, indentation = 4) {
 	// remove extra backslashes from overzealous URL encoding
 	text = text.replace(/\\/g, "");
 
-	// add a title if param is present
-	if (title) {
-		const titleEl = document.createElement("div");
-		titleEl.innerHTML = "--------------- " + title + " ---------------";
-		titleEl.classList.add("output-title");
-		contentEl.append(titleEl);
-
-		summary = title;
-	}
-
 	// add a subtitle, usually endpoint or SDK method
 	if (subtitle) {
 		const subtitleContainer = document.createElement("pre");
@@ -115,6 +105,11 @@ export function output(text, title = null, subtitle = null, indentation = 4) {
 		if (!title) {
 			summary = subtitle;
 		}
+	}
+
+	// set summary to title if it's supplied
+	if (title) {
+		summary = title;
 	}
 
 	// append arrow at end of summary
@@ -132,13 +127,13 @@ export function output(text, title = null, subtitle = null, indentation = 4) {
 	const summaryEl = document.createElement("div");
 	summaryEl.classList.add("output-summary");
 	summaryEl.innerHTML = summary;
-	containerEl.appendChild(summaryEl);
+	containerEl.insertBefore(summaryEl, containerEl.firstChild);
 
 	// add event listener to expand / collapse
-	summaryEl.classList.add("display-none");
-	containerEl.addEventListener("click", () => {
+	// summaryEl.classList.add("display-none");
+	summaryEl.addEventListener("click", () => {
 		contentEl.classList.toggle("display-none");
-		summaryEl.classList.toggle("display-none");
+		// summaryEl.classList.toggle("display-none");
 	});
 
 	// add to page

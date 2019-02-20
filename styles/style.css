@@ -45,20 +45,34 @@ body.dark {
 	font-family: monospace;
 
 	margin-bottom: 15px;
-	padding: 10px;
+	/*padding: 10px;*/
 
 	background-color: #EEE;
 }
 
 .output-summary {
 	font-size: 18px;
+	background-color: #DDD;
+
+	padding: 10px;
+
+	user-select: none;
+	cursor: pointer;
 }
 
 .output-title {
 	font-size: 14px;
 }
 
+.output-subtitle {
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
 .output-main-body {
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-bottom: 10px;
 	overflow: auto;
 }
 
