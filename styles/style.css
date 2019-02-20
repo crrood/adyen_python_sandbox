@@ -1,4 +1,6 @@
-/* general styling */
+  /*******************/
+ /* GENERAL STYLING */
+/*******************/
 body {
 	font-family: "Open sans", sans-serif;
 	-webkit-font-smoothing: auto;
@@ -28,13 +30,20 @@ body.dark {
 	display: none;
 }
 
-.challenge-iframe {
-	display: block;
-	margin-left: 200px;
-	margin-top: 200px;
+div.challenge-iframe {
+	width: 100%;
 }
 
-/* output section */
+iframe[name=challengeIframe] {
+	display: block;
+	margin-top: 20px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+  /******************/
+ /* OUTPUT SECTION */
+/******************/
 #output {
 	width: 100%;
 	overflow-wrap: break-word;
@@ -45,13 +54,12 @@ body.dark {
 	font-family: monospace;
 
 	margin-bottom: 15px;
-	/*padding: 10px;*/
 
 	background-color: #EEE;
 }
 
 .output-summary {
-	font-size: 18px;
+	font-size: 16px;
 	background-color: #DDD;
 
 	padding: 10px;
@@ -73,6 +81,7 @@ body.dark {
 	padding-left: 10px;
 	padding-right: 10px;
 	padding-bottom: 10px;
+
 	overflow: auto;
 }
 
@@ -80,15 +89,20 @@ body.dark {
 	width: 0;
 }
 
+/* dark theme */
 body.dark #output {
 	background-color: #222222;
 }
 
 body.dark .output-item {
-	background-color: #343434;
+	background-color: #333;
 
 	border-top: none;
 	border-bottom: none;
+}
+
+body.dark .output-summary {
+	background-color: #444;
 }
 
 body.dark .output-title {
@@ -103,7 +117,9 @@ body.dark .output-main-body {
 	color: #B1BCD2;
 }
 
-/* form styling */
+  /****************/
+ /* FORM STYLING */
+/****************/
 .clientForm {
 	border: 2px solid;
 	border-radius: 3px;
@@ -165,7 +181,9 @@ button:disabled {
 	margin: 10px;
 }
 
-/* checkout page */
+  /*****************/
+ /* CHECKOUT PAGE */
+/*****************/
 .checkout-iframe {
 	border: 1px black dashed;
 	width: 80%;
@@ -203,7 +221,9 @@ button:disabled {
 	margin-bottom: 5px;
 }
 
-/* From Secured Fields */
+  /***********************/
+ /* FROM SECURED FIELDS */
+/***********************/
 .payment-div {
 	margin: 0 auto;
 	width: 60%;
@@ -266,7 +286,9 @@ button:disabled {
 	width: 40px;
 }
 
-/* From Checkout SDK */
+  /*********************/
+ /* FROM CHECKOUT SDK */
+/*********************/
 .content {
 	float: left;
 	position: relative;

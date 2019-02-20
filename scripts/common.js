@@ -130,10 +130,8 @@ export function output(text, title = null, subtitle = null, indentation = 4) {
 	containerEl.insertBefore(summaryEl, containerEl.firstChild);
 
 	// add event listener to expand / collapse
-	// summaryEl.classList.add("display-none");
 	summaryEl.addEventListener("click", () => {
 		contentEl.classList.toggle("display-none");
-		// summaryEl.classList.toggle("display-none");
 	});
 
 	// add to page
