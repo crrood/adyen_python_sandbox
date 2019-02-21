@@ -27,16 +27,15 @@ body.dark {
 }
 
 .display-none {
-	display: none;
+	display: none !important;
 }
 
-div.challenge-iframe {
+.center-content {
 	width: 100%;
 }
 
-iframe[name=challengeIframe] {
+.center-content > * {
 	display: block;
-	margin-top: 20px;
 	margin-left: auto;
 	margin-right: auto;
 }
@@ -179,6 +178,40 @@ button:disabled {
 .formHolder {
 	display: inline-block;
 	margin: 10px;
+}
+
+  /*****************/
+ /* COLUMN LAYOUT */
+/*****************/
+.right-column {
+    width: 50%;
+    position: fixed;
+    top: 0px;
+    left: 50%;
+}
+
+.left-column {
+	width: 50% !important;
+	position: fixed;
+	top: 0px;
+	left: 0px;
+}
+
+/* dark theme */
+body.dark .right-column {
+    background-color: #222;
+}
+
+  /*****************/
+ /* 3DS2 ADVANCED */
+/*****************/
+.checkout-holder {
+	margin-top: 20px;
+	width: 300px;
+}
+
+.challenge-iframe {
+	margin-top: 20px;
 }
 
   /*****************/

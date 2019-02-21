@@ -1,18 +1,6 @@
 /* It's supposed to look like a tree diagram */
 /* unashamedly stolen from https://codepen.io/ross-angus/pen/jwxMjL */
 
-/* opaque background to cover extraneous text */
-div.flowchart-background {
-    width: 50%;
-    position: fixed;
-    top: 0px;
-    left: 50%;
-}
-
-body.dark div.flowchart-background {
-    background-color: #222;
-}
-
 figure.flowchart {
     top: 20px;
     margin: 5px;
