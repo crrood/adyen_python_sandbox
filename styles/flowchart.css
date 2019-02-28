@@ -6,18 +6,20 @@ figure.flowchart {
     margin: 5px;
 }
 
+.flowchart-container {
+    padding-bottom: 20px;
+}
+
 /* legend */
 .flowchart-legend {
     position: relative;
     display: flex;
     align-items: center;
-    justify-content: center
+    justify-content: center;
 }
 
 .flowchart-legend * {
     display: inline-block;
-    margin-right: auto;
-    margin-left: auto;
 }
 
 .flowchart-legend span {

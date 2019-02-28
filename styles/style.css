@@ -30,10 +30,6 @@ body.dark {
 	display: none !important;
 }
 
-.center-content {
-	width: 100%;
-}
-
 .center-content > * {
 	display: block;
 	margin-left: auto;
@@ -185,16 +181,24 @@ button:disabled {
 /*****************/
 .right-column {
     width: 50%;
-    position: fixed;
-    top: 0px;
+    top: 0%;
     left: 50%;
+
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 .left-column {
 	width: 50% !important;
+	top: 0%;
+	left: 0%;
+
+	padding-left: 10px;
+    padding-right: 10px;
+}
+
+.fixed {
 	position: fixed;
-	top: 0px;
-	left: 0px;
 }
 
 /* dark theme */
@@ -206,12 +210,11 @@ body.dark .right-column {
  /* 3DS2 ADVANCED */
 /*****************/
 .checkout-holder {
-	margin-top: 20px;
 	width: 300px;
 }
 
 .challenge-iframe {
-	margin-top: 20px;
+
 }
 
   /*****************/

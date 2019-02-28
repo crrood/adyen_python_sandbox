@@ -73,6 +73,7 @@ export function initForms() {
 
 	securedFields.onConfigSuccess(function(someObject){
 		console.log("onClientSuccess");
+		document.querySelector("#hostedCardNumberField").classList.add("data-msg-pattern");
 		console.log(someObject);
 	});
 

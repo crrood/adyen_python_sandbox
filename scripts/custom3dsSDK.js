@@ -68,12 +68,12 @@ export const doChallenge = (acsURL, cReqData, iframeConfig, notificationURL) => 
                 globals.checkChallengeInterval = setInterval(() => {
 
                     try {
-                        if (iframe.contentWindow.location.href == notificationURL) {
+                        if (iframe.contentWindow.location.href.includes(notificationURL)) {
                             clearInterval(globals.checkChallengeInterval);
                             
                             // pull cres data from the document body
-                            let cres = iframe.contentDocument.querySelector("pre").innerHTML.trim();
-                            let transStatus = JSON.parse(window.atob(cres)).transStatus;
+                            let cres = JSON.parse(iframe.contentDocument.querySelector("pre").innerHTML.trim());
+                            let transStatus = cres.transStatus;
 
                             // remove the iframe and resolve the promise
                             iframe.remove();

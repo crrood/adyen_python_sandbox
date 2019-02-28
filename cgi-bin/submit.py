@@ -21,6 +21,7 @@ import webbrowser
 
 LOCAL_ADDRESS = "http://localhost:8000"
 RETURN_URL = "{}/cgi-bin/submit.py?endpoint=result_page".format(LOCAL_ADDRESS)
+THREEDS_RETURN_URL = "{}/cgi-bin/submit.py?endpoint=threeds2_result_page".format(LOCAL_ADDRESS)
 
 ######################
 ##		LOGGING		##
@@ -147,6 +148,24 @@ def send_debug(data, content_type="text/plain", duplicate=False):
 		print("<br><br>")
 	else:
 		print("\r\n\r\n")
+
+# respond with redirect
+def redirect(location):
+	print("Content-Type: text/html")
+	print("Location: {}".format(location))
+	print("\r\n")
+
+	html = '''
+		<html>
+			<head>
+				<meta http-equiv="refresh" content="0;{location}" />
+			</head>
+			<body>
+				Redirecting...
+			</body>
+		</html>
+	'''.format(location=location)
+	print(html)
 
 # convert FieldStorage to dict
 # NOTE this can only be called once per request
@@ -774,12 +793,16 @@ def threeds2_result_page(data):
 	# echo cres value
 	logger.info(data)
 
-	# return cres if available
-	# TODO there should be a separate endpoint to return cres
 	if "cres" in data.keys():
-		send_debug(data["cres"])
+		# decode data and append as GET params to redirect
+		cres = json.loads(base64.b64decode(data["cres"]).decode())
+		get_params = ""
+		for key in cres.keys():
+			get_params = "{get_params}&{key}={value}".format(get_params=get_params, key=key, value=cres[key])
+		redirect_url = THREEDS_RETURN_URL + get_params
+		redirect(redirect_url)
 	else:
-		send_debug(data)
+		send_debug(json.dumps(data))
 
 def threeds2_adv_authorise3ds2(data):
 
