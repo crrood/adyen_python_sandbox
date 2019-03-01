@@ -29,7 +29,7 @@ function HiddenInput(props) {
 // hiddenFields: [[fieldName1, fieldValue1],...,[fieldNameN, fieldValueN]]
 function ReactForm(props) {
 	return (
-		<form id="reactForm" className="clientForm" action={props.action}>
+		<form id="reactForm" className="client-form" action={props.action}>
 			{props.fields.map((fieldObj) => 
 				<TextInput key={fieldObj[0]} fieldName={fieldObj[0]} fieldValue={fieldObj[1]}/>
 			)}

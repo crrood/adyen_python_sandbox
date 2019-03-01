@@ -36,21 +36,20 @@
 		<div class="center-content">
 			<div class="checkout-holder">
 				<span>
-					<form class="clientForm">
-						<label>holderName: </label><input class="formEls" type="text" name="holderName" value="Theresa Cure"></input><br>
-						<label>number: </label><input class="formEls" type="text" name="number" value="4111111111111111"></input><br>
-						<label>expiryYear: </label><input class="formEls" type="text" name="expiryYear" value="2020"></input><br>
-						<label>expiryMonth: </label><input class="formEls" type="text" name="expiryMonth" value="10"></input><br>
-						<label>cvc: </label><input class="formEls" type="text" name="cvc" value="737"></input><br>
-						<label>value: </label><input id="valueInput" class="formEls" type="text" name="value" value="1499"></input><br>
-						<label>currency: </label><input class="formEls" type="text" name="currency" value="EUR"></input><br>
-						<label>reference: </label><input class="formEls" type="text" name="reference" value="Localhost 3DS 2.0"></input><br>
+					<form>
+						<input class="formEls" type="hidden" name="holderName" value="Theresa Cure"></input>
+						<input class="formEls" type="hidden" name="number" value="4111111111111111"></input>
+						<input class="formEls" type="hidden" name="expiryYear" value="2020"></input>
+						<input class="formEls" type="hidden" name="expiryMonth" value="10"></input>
+						<input class="formEls" type="hidden" name="cvc" value="737"></input>
+						<input class="formEls" type="hidden" name="value" value="1499" id="valueInput"></input>
+						<input class="formEls" type="hidden" name="currency" value="EUR"></input>
+						<input class="formEls" type="hidden" name="reference" value="Localhost 3DS 2.0"></input>
 						<input class="formEls" type="hidden" name="endpoint" value="threeds2_adv_initial_auth"></input>
 						<input class="formEls" type="hidden" name="userAgent" value="browser"></input>
-						<div id="authoriseBtnHolder"></div>
 					</form>
 				</span>
-				<span>
+				<div class="client-form">
 					<div>
 						<input type="checkbox" id="frictionlessCheckbox"/>
 						<label for="frictionlessCheckbox">Frictionless</label>
@@ -61,7 +60,8 @@
 						<input id="acquirerAgnosticAuth" type="radio" checked="checked" name="transactionTypeRadio" value="acquirerAgnosticAuth">
 						<label for="acquirerAgnosticAuth">Acquirer Agnostic Auth</label>
 					</div>
-				</span>
+					<div id="authoriseBtnHolder"></div>
+				</div>
 			</div>
 
 			<div id="sdkContainer" class="hidden challenge-iframe center-content"></div>

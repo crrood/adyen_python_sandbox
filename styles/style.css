@@ -115,7 +115,7 @@ body.dark .output-main-body {
   /****************/
  /* FORM STYLING */
 /****************/
-.clientForm {
+.client-form {
 	border: 2px solid;
 	border-radius: 3px;
 	padding: 10px;
@@ -124,11 +124,11 @@ body.dark .output-main-body {
 	margin-right: auto;
 }
 
-.clientForm input[type=text] {
+.client-form input[type=text] {
 	float: right;
 }
 
-.clientForm label {
+.client-form label {
 	float: center;
 	margin-right: 5px;
 }

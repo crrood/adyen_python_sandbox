@@ -4,6 +4,7 @@
 figure.flowchart {
     top: 20px;
     margin: 5px;
+    padding-right: 10px;
 }
 
 .flowchart-container {

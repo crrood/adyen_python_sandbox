@@ -23,7 +23,7 @@ export default class Flowchart {
 		this.attachToDOM(targetElement);
 		
 		this.initialHeight = targetElement.getBoundingClientRect().height;
-		window.onresize = this.scale();
+		window.onresize = this.scale.bind(this);
 	}
 
 	// automated tree generator
@@ -69,6 +69,7 @@ export default class Flowchart {
 	// add generated HTML to page
 	attachToDOM(targetElement) {
 		targetElement.appendChild(this.rootNode.generateHTML());
+		this.initialHeight = targetElement.getBoundingClientRect().height;
 	}
 
 	// dynamically scale flowchart width and height
@@ -78,7 +79,6 @@ export default class Flowchart {
 		const FLOWCHART_MIN_WIDTH = 750;
 		const availableFlowchartWidth = window.innerWidth / 2;
 
-		// currently only resizes to get smaller
 		if (availableFlowchartWidth < FLOWCHART_MIN_WIDTH) {
 
 			// determine new scale values
@@ -91,12 +91,14 @@ export default class Flowchart {
 			el.style.webkitTransform = `scale(${scale}) translate(${percentScaleX}, ${percentScaleY})`;
 			
 			// scale style.height to adjust layout
-			if (this.initialHeight != null) {
+			console.log(this);
+			console.log(this.initialHeight);
+			if (this.initialHeight) {
 				el.style.height = (this.initialHeight * scale) + "px";
 			}
 		}
 		else {
-			// if it's larger, just leave it at 100%
+			// if it's larger, CSS will expand it automatically
 			document.querySelector(".flowchart").style.webkitTransform = "";
 		}
 	}
