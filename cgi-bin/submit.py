@@ -699,6 +699,7 @@ def threeds2_part1(data):
 	data["threeDS2RequestData"] = {}
 	data["threeDS2RequestData"]["deviceChannel"] = "browser"
 	data["threeDS2RequestData"]["notificationURL"] = LOCAL_ADDRESS + "/cgi-bin/submit.py?endpoint=threeds2_result_page"  # noqa: E501
+	indent_field(data, "threeDS2RequestData", "authenticationOnly")
 
 	# send request to Adyen
 	result = send_request(url, data, headers)

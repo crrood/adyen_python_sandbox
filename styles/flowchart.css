@@ -13,6 +13,7 @@ figure.flowchart {
 
 /* legend */
 .flowchart-legend {
+    margin-top: -30px;
     position: relative;
     display: flex;
     align-items: center;
