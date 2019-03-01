@@ -795,6 +795,7 @@ def threeds2_result_page(data):
 
 	if "cres" in data.keys():
 		# decode data and append as GET params to redirect
+		logger.info("Redirecting")
 		cres = json.loads(base64.b64decode(data["cres"]).decode())
 		get_params = ""
 		for key in cres.keys():

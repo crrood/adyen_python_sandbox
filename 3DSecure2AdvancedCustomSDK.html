@@ -75,6 +75,7 @@
 <script type="module">
 
 import * as common from "./scripts/common.js";
+import Flowchart from "./scripts/flowchart.js";
 import * as SDK from "./scripts/custom3dsSDK.js";
 
 const NOTIFICATION_URL = common.SERVER_URL + "?endpoint=threeds2_result_page";
@@ -96,18 +97,24 @@ function initialize() {
 	
 	// add dynamic flowchart
 	let tree = [
-		"Get3dsAvailability", [
-			"Fingerprint Device", [
+		"Get3dsAvailability",
+		[
+			"Fingerprint Device", 
+			[
 				"Frictionless",
-				"Challenge Shopper", [
-					"Challenge Successful", [
+				"Challenge Shopper", 
+				[
+					"Challenge Successful", 
+					[
 						"Authorise With Token",
-						"Retrieve MPI Data", [
+						"Retrieve MPI Data", 
+						[
 							"Authorise Via Adyen",
 							"Authorise Elsewhere"
 						],
 					],
-					"Challenge Failed", [
+					"Challenge Failed", 
+					[
 						"Retry Validation",
 						"Authorise Unauthenticated"
 					]
@@ -115,15 +122,12 @@ function initialize() {
 			]
 		]
 	];
-	document.querySelector("#flowchart").innerHTML = generateTreeHTML(tree);
+
+	// document.querySelector("#flowchart").innerHTML = generateTreeHTML(tree);
+	globals.flowchart = new Flowchart(tree, document.querySelector("#flowchart"));
 
 	// pretend we have cached data on the card
 	common.output('"threeDS2Version": "2.1.0"<br>"threeDSMethodURL": "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml"', "Query cached 3ds2 data");
-
-	// make sure the flowchart fits on screen
-	globals.originalFlowchartHeight = document.querySelector(".flowchart").getBoundingClientRect().height;
-	scaleFlowchart();
-	window.onresize = scaleFlowchart;
 }
 
 // perform fingerprint via SDK on page load
@@ -163,8 +167,7 @@ function fingerprintDevice() {
 		console.log(failedPromiseResponse);
 	});
 
-	highlightCurrentNode("FingerprintDevice");
-	highlightPreviousNode("Get3dsAvailability");
+	globals.flowchart.setActive("FingerprintDevice");
 }
 
 // send form data to server
@@ -240,8 +243,7 @@ function initialAuthoriseCallback(data, status) {
 		doChallenge();
 	}
 	else if (response.resultCode === "AuthenticationFinished" || response.resultCode === "Authorised") {
-		highlightCurrentNode("Frictionless");
-		makeNodeUnreachable(globals.subtree.challengeShopper);
+		globals.flowchart.setActive("Frictionless");
 	}
 }
 
@@ -254,8 +256,7 @@ function doChallenge() {
 	};
 
 	common.output("acsURL: " + globals.acsURL + "<br>iframeConfig: " + JSON.stringify(iframeConfig, null, 4) + "<br>cReqData: " + JSON.stringify(globals.cReqData, null, 4), "Challenge request to SDK", "SDK.doChallenge");
-	highlightCurrentNode("ChallengeShopper");
-	makeNodeUnreachable(globals.subtree.frictionless);
+	globals.flowchart.setActive("ChallengeShopper");
 
 	// create the iframe for the promise
 	SDK.doChallenge(globals.acsURL, globals.cReqData, iframeConfig, NOTIFICATION_URL).then(
@@ -274,8 +275,7 @@ function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 	document.querySelector("#sdkContainer").classList.add("hidden");
 
 	// update flowchart
-	highlightCurrentNode("ChallengeSuccessful");
-	makeNodeUnreachable(globals.subtree.challengeFailed);
+	globals.flowchart.setActive("ChallengeSuccessful");
 
 	// handle next step in process
 	if (globals.authenticationOnly) {
@@ -295,8 +295,7 @@ function handleFailedSDKChallengePromise(failedPromiseResponse) {
 	document.querySelector("#sdkContainer").classList.add("hidden");
 
 	// update flowchart
-	highlightCurrentNode("ChallengeFailed");
-	makeNodeUnreachable(globals.subtree.challengeSuccessful);
+	globals.flowchart.setActive("ChallengeFailed");
 }
 
 // retrieve cavv and eci values
@@ -315,8 +314,7 @@ function acquirerAgnosticAuth(data) {
 
 	common.output(request, "Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/retrieve3ds2Result");
 	common.output(response, "Response from Adyen to server");
-	highlightCurrentNode("RetrieveMPIData");
-	makeNodeUnreachable("AuthoriseWithToken");
+	globals.flowchart.setActive("RetrieveMPIData");
 
 	let url = common.SERVER_URL + "?endpoint=threeds2_adv_acquirerAgnosticAuth" + "&eci=";
 }
@@ -336,8 +334,7 @@ function adyenTokenAuthCallback(data) {
 
 	common.output(request, "Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2");
 	common.output(response, "Response from Adyen to server");
-	highlightCurrentNode("AuthoriseWithToken");
-	makeNodeUnreachable(globals.subtree.retrieveMPIData);
+	globals.flowchart.setActive("AuthoriseWithToken");
 }
 
 //////////////////////////////////
@@ -358,43 +355,6 @@ function generateTreeHTML(inputObject) {
 		}
 	}
 	return result;
-}
-
-// highlight active stage in process
-function highlightCurrentNode(nodeID) {
-	let activeNodes = document.getElementsByClassName("active-state");
-	for (let i = 0; i < activeNodes.length; i++) {
-		activeNodes[i].classList.add("previous-state");
-		activeNodes[i].classList.remove("active-state");
-	}
-	document.getElementById(nodeID).classList.add("active-state");
-}
-
-// highlight previous states in the process
-function highlightPreviousNode(nodeID) {
-	document.getElementById(nodeID).classList.add("previous-state");
-}
-
-// it would be more CS-y to handle all this via a dedicated class with children
-// but since the tree won't change, for the sake of simplicity I'm doing it with arrays
-globals.subtree = {
-	frictionless: ["Frictionless"],
-	challengeShopper: ["ChallengeShopper", "ChallengeSuccessful", "AuthoriseWithToken", "RetrieveMPIData", "AuthoriseViaAdyen", "AuthoriseElsewhere", "ChallengeFailed", "RetryValidation", "AuthoriseUnauthenticated"],
-	challengeSuccessful: ["ChallengeSuccessful","AuthoriseWithToken","RetrieveMPIData","AuthoriseViaAdyen","AuthoriseElsewhere"],
-	challengeFailed: ["ChallengeFailed","RetryValidation","AuthoriseUnauthenticated"],
-	retrieveMPIData: ["RetrieveMPIData","AuthoriseViaAdyen","AuthoriseElsewhere"]
-};
-
-// grey out states which can't be reached
-function makeNodeUnreachable(target) {
-	if (typeof(target) === "string") {
-		document.getElementById(target).classList.add("unreachable-state");
-	}
-	else if (typeof(target) === "object") {
-		for (let node in target) {
-			makeNodeUnreachable(target[node]);
-		}
-	}
 }
 
 // scale the flowchart to fit on screen at lower resolutions
