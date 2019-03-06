@@ -91,8 +91,6 @@ export default class Flowchart {
 			el.style.webkitTransform = `scale(${scale}) translate(${percentScaleX}, ${percentScaleY})`;
 			
 			// scale style.height to adjust layout
-			console.log(this);
-			console.log(this.initialHeight);
 			if (this.initialHeight) {
 				el.style.height = (this.initialHeight * scale) + "px";
 			}
