@@ -110,9 +110,16 @@ def send_request(url, data, headers, data_type="json"):
 	# create request object
 	request = Request(url, formatted_data, headers)
 
-	# handle errors in response from server
+	# handle response from server
 	try:
-		return urlopen(request).read()
+		response = urlopen(request)
+		result = response.read()
+
+		# see if the response is JSON
+		if "application/json" in response.getheader("content-type"):
+			return json.loads(result.decode("utf8"))
+		else:
+			return result
 	except HTTPError as e:
 		return "{}".format(e).encode("utf8")
 	except:
@@ -122,13 +129,14 @@ def send_request(url, data, headers, data_type="json"):
 def send_response(result, content_type="text/html", skipHeaders=False):
 	if not skipHeaders:
 		print("Content-type:{}\r\n".format(content_type), end="")
-		print("Content-length:{}\r\n".format(len(result)), end="")
 		print("\r\n", end="")
 
 	if type(result) is bytes:
 		formatted_result = "{}\r\n".format(result.decode("utf8"))
 	elif type(result) is str:
 		formatted_result = "{}\r\n".format(result)
+	elif type(result) is dict:
+		formatted_result = "{}\r\n".format(json.dumps(result))
 	else:
 		logging.error("Invalid data type in send_response")
 		logging.error(type(result))
@@ -706,9 +714,9 @@ def threeds2_part1(data):
 
 	# create response object with request and response both
 	response = {}
-	response["request"] = str(data)
-	response["response"] = result.decode("utf8")
-	send_response(str(response), "text/plain")
+	response["request"] = data
+	response["response"] = result
+	send_response(response, "application/json")
 
 # API call with 3d Secure 2.0
 # part 2
@@ -726,9 +734,9 @@ def threeds2_part2(data):
 
 	# send request and response to client
 	response = {}
-	response["request"] = str(data)
-	response["response"] = result.decode("utf8")
-	send_response(str(response), "text/plain")
+	response["request"] = data
+	response["response"] = result
+	send_response(response, "application/json")
 
 def threeds2_auth_via_token(data):
 
@@ -744,9 +752,9 @@ def threeds2_auth_via_token(data):
 
 	# send request and response to client
 	response = {}
-	response["request"] = str(data)
-	response["response"] = result.decode("utf8")
-	send_response(str(response), "text/plain")
+	response["request"] = data
+	response["response"] = result
+	send_response(response, "application/json")
 
 ##########################################
 ##		3D SECURE 2.0 ADVANCED FLOW 	##
@@ -785,9 +793,11 @@ def threeds2_adv_initial_auth(data):
 
 	# create response object with request and response both
 	response = {}
-	response["request"] = str(data)
-	response["response"] = result.decode("utf8")
-	send_response(str(response), "text/plain")
+	response["request"] = data
+	response["response"] = result
+
+	# logging.debug(response)
+	send_response(response, "application/json")
 
 def threeds2_result_page(data):
 
@@ -838,9 +848,9 @@ def threeds2_adv_retrieve3ds2Result(data):
 
 	# create response object with request and response both
 	response = {}
-	response["request"] = str(data)
-	response["response"] = result.decode("utf8")
-	send_response(str(response), "text/plain")
+	response["request"] = data
+	response["response"] = result
+	send_response(response, "application/json")
 
 def threeds2_adv_acquirerAgnosticAuth(data):
 	send_debug(data)

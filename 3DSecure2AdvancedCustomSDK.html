@@ -206,7 +206,7 @@ function initialAuthoriseCall(url, jsonData) {
 // receive response from initialAuthoriseCall
 function initialAuthoriseCallback(data) {
 	// parse and output request / response
-	data = common.sanitizeJSON(data);
+	data = JSON.parse(data);
 
 	const request = data.request;
 	const response = data.response;
@@ -302,7 +302,7 @@ function retrieve3ds2Result() {
 
 // send auth request using cavv and eci values
 function acquirerAgnosticAuth(data) {
-	data = common.sanitizeJSON(data);
+	data = JSON.parse(data);
 
 	const request = data.request;
 	const response = data.response;
@@ -322,7 +322,7 @@ function adyenTokenAuth(transStatus) {
 
 // get response from authorise3ds2 call
 function adyenTokenAuthCallback(data) {
-	data = common.sanitizeJSON(data);
+	data = JSON.parse(data);
 
 	const request = data.request;
 	const response = data.response;
