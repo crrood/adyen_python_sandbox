@@ -1,0 +1,48 @@
+<html>
+
+	<head>
+		<title>Testing...</title>
+	</head>
+
+	<body>
+		<button id="sendPostRequestBtn">Send POST request</button>
+		<div id="output"/>
+	</body>
+
+</html>
+
+<script type="module">
+
+import * as common from "./scripts/common.js";
+
+common.output("ready to test");
+
+document.querySelector("#sendPostRequestBtn").onclick = e => {
+	const data = {
+		"card": {
+			"number": "4111111111111111",
+			"expiryMonth": "10",
+			"expiryYear": "2020",
+			"cvc": "737",
+			"holderName": "John Smith"
+		},
+		"amount": {
+			"value": 1500,
+			"currency": "EUR"
+		},
+		"reference": "new server test",
+		"merchantAccount": "ColinRood",
+		"endpoint": "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise"
+	};
+	const headers = { 
+		"content-type": "application/json"
+	};
+	const url = "http://localhost:8000/cgi-bin/server.py";
+	common.AJAXPost(url, callback, headers, JSON.stringify(data));
+};
+
+function callback(responseText) {
+	common.output(responseText);
+}
+
+</script>

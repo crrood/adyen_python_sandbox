@@ -1,5 +1,5 @@
 <head>
-	<script type="text/javascript" src="https://checkoutshopper-test.adyen.com/checkoutshopper/assets/js/sdk/checkoutSDK.1.3.0.min.js"></script>
+	<script type="text/javascript" src="https://checkoutshopper-test.adyen.com/checkoutshopper/assets/js/sdk/checkoutSDK.1.9.2.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="styles/style.css"></link>
 </head>
 
@@ -57,10 +57,10 @@ const sdkConfigObj = {
 	context: "test",
 	paymentMethods: {
 		card: {
-			sfStyles: styleObject,
-			showOptionalHolderNameField: "false"
+			sfStyles: styleObject
 		}
 	},
+	showOptionalHolderNameField: "false",
 	translations: translationObject,
 	useDefaultCSS: "false"
 };
@@ -82,18 +82,22 @@ const setupCallback = function(data) {
 	chckt.hooks.beforeComplete = function(pNode, pHookData){
 
 		// logging
-		console.log("pHookData");
+		console.log("pHookData:");
 		console.log(pHookData);
 		
 		// Send data back to parent page
-		console.log(parent);
-		console.log(parent.setPaymentResult);
 		parent.setPaymentResult(pHookData.resultCode);
 
 		if (pHookData.resultCode.toLowerCase() === "authorised") {
 			parent.setupVerify(pHookData);
 		}
-	}
+	};
+
+	// Validation
+	chckt.onAllValid = function(data) {
+		console.log("onAllValid");
+		console.log(data);
+	};
 
 	// Other hooks
 	chckt.hooks.getDataFromSubmissionProcess = function(checkoutNode, formData) {
@@ -101,7 +105,7 @@ const setupCallback = function(data) {
 		console.log(checkoutNode);
 		console.log("formData");
 		console.log(formData.toString());
-	}
+	};
 };
 
 function openCheckout() {

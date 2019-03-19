@@ -1,5 +1,6 @@
 // constants
 export const FORM_ENCODED_HEADER = { "Content-Type": "application/x-www-form-urlencoded" };
+export const JSON_ENCODED_HEADER = { "Content-Type": "application/json" };
 export const SERVER_URL = "http://localhost:8000/cgi-bin/submit.py";
 
 // wrapper to send requests to server
@@ -110,10 +111,11 @@ export function output(text, title = null, subtitle = null, indentation = 4) {
 	// set summary to title if it's supplied
 	if (title) {
 		summary = title;
+		
+		// append arrow at end of summary
+		summary += " &#9656;";
 	}
 
-	// append arrow at end of summary
-	summary += " &#9656;";
 
 	// create main body of item
 	const outputTextContainer = document.createElement("pre");

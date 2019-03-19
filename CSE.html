@@ -71,18 +71,18 @@
 // log the encrypted form object (for debugging)
 document.getElementById("logBtn").addEventListener("click", function(e) {
 	console.log(encryptedForm);
-	document.getElementById("adyen-encrypted-form").elements["adyen-encrypted-data"].value;
+	console.log(document.getElementById("adyen-encrypted-form").elements["adyen-encrypted-data"].value);
 });
 document.getElementById("logBtnGeneric").addEventListener("click", function(e) {
 	console.log(encryptedFormGeneric);
-	form = document.getElementById("adyen-encrypted-form-generic")
+	form = document.getElementById("adyen-encrypted-form-generic");
 	console.log(form);
 	console.log(form.elements);
 	console.log(form.elements["adyen-encrypted-data"].value);
 });
 document.getElementById("logBtnRecurring").addEventListener("click", function(e) {
 	console.log(encryptedFormRecurring);
-	document.getElementById("adyen-encrypted-form-recurring").elements["adyen-encrypted-data"].value;
+	console.log(document.getElementById("adyen-encrypted-form-recurring").elements["adyen-encrypted-data"].value);
 });
 
 function onvalidate(event) {
@@ -93,26 +93,26 @@ function onvalidate(event) {
 function initCardsCheckout() {
 
 	// Generate current time client-side (unsafe)
-	var isoDate = new Date().toISOString();
+	let isoDate = new Date().toISOString();
 	isoDate = isoDate.substring(0, isoDate.length - 1) + "-8:00";
 	document.getElementById('adyen-encrypted-form-expiry-generationtime').value = isoDate;
 	document.getElementById('adyen-encrypted-form-expiry-generationtime-generic').value = isoDate;
 	document.getElementById('adyen-encrypted-form-expiry-generationtime-recurring').value = isoDate;
 
 	// The form element to encrypt.
-	var form = document.getElementById('adyen-encrypted-form');
-	var formGeneric = document.getElementById('adyen-encrypted-form-generic');
-	var formRecurring = document.getElementById('adyen-encrypted-form-recurring');
+	let form = document.getElementById('adyen-encrypted-form');
+	let formGeneric = document.getElementById('adyen-encrypted-form-generic');
+	let formRecurring = document.getElementById('adyen-encrypted-form-recurring');
 
 	// See https://github.com/Adyen/CSE-JS/blob/master/Options.md for details on the options to use.
-	var options = {
+	let options = {
 		"enableValidations": true,
 		"onvalidate": onvalidate
 	};
-	var optionsGeneric = {
+	let optionsGeneric = {
 		"enableValidations": false,
 	};
-	var optionsRecurring = {
+	let optionsRecurring = {
 		"enableValidations": false,
 	};
 
@@ -127,13 +127,13 @@ function initCardsCheckout() {
 
 	// Create the form object and bind encryption options to the form.
 	encryptedForm = adyen.createEncryptedForm(form, options);
-	var key = document.getElementById("keyValue").value;
+	let key = document.getElementById("keyValue").value;
 	encryptedFormGeneric = adyen.encrypt.createEncryptedForm(formGeneric, key, optionsGeneric);
 	encryptedFormRecurring = adyen.createEncryptedForm(formRecurring, optionsRecurring);
 
 	// Activate the card type indicator
-	encryptedForm.addCardTypeDetection(options.cardTypeElement)
-	encryptedFormGeneric.addCardTypeDetection(optionsGeneric.cardTypeElement)
+	encryptedForm.addCardTypeDetection(options.cardTypeElement);
+	encryptedFormGeneric.addCardTypeDetection(optionsGeneric.cardTypeElement);
 }
 
 function onSubmit(e) {
@@ -141,21 +141,21 @@ function onSubmit(e) {
 	e.preventDefault();
 
 	// build URL encoded query string to send to server
-	var params = "?endpoint=CSE&"
+	let params = "?endpoint=CSE&";
+	let form;
 
 	// get value and currency for transaction
-	var paymentForm = document.getElementById("paymentForm");
-	var element;
-	for (var i = 0; i < paymentForm.elements.length; i++) {
+	let paymentForm = document.getElementById("paymentForm");
+	let element;
+	for (let i = 0; i < paymentForm.elements.length; i++) {
 		element = paymentForm.elements[i];
 		params = params + encodeURIComponent(element.name) + "=" + element.value + "&";
 	}
 
 	// add recurring details if applicable
 	if (e.srcElement.id == "adyen-encrypted-form-recurring") {
-		var form = document.getElementById("adyen-encrypted-form-recurring");
-		var element;
-		for (var i = 0; i < form.elements.length; i++) {
+		form = document.getElementById("adyen-encrypted-form-recurring");
+		for (i = 0; i < form.elements.length; i++) {
 			element = form.elements[i];
 			if (element.name != "" && element.name != "adyen-encrypted-data") {
 				params = params + encodeURIComponent(element.name) + "=" + encodeURIComponent(element.value) + "&";
@@ -164,7 +164,7 @@ function onSubmit(e) {
 	}
 
 	// The form element to encrypt
-	var form = document.getElementById(e.srcElement.id);
+	form = document.getElementById(e.srcElement.id);
 
 	// get encrypted card data from form element
 	params = params + "encryptedData=" + encodeURIComponent(form.elements["adyen-encrypted-data"].value) + "&";

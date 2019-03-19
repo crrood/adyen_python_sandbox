@@ -1,5 +1,5 @@
 #!/usr/local/adyen/python3/bin/python3
-import json, os, datetime, configparser
+import json, os, sys, datetime, configparser
 import time, logging
 
 # HMAC
@@ -103,9 +103,9 @@ def send_request(url, data, headers, data_type="json"):
 		formatted_data = data
 
 	# logging
-	logging.info("")
-	logging.info("sending outgoing request to {}".format(url))
-	logging.info("request data: {}".format(data))
+	logger.info("")
+	logger.info("sending outgoing request to {}".format(url))
+	logger.info("request data: {}".format(data))
 
 	# create request object
 	request = Request(url, formatted_data, headers)
@@ -138,12 +138,12 @@ def send_response(result, content_type="text/html", skipHeaders=False):
 	elif type(result) is dict:
 		formatted_result = "{}\r\n".format(json.dumps(result))
 	else:
-		logging.error("Invalid data type in send_response")
-		logging.error(type(result))
+		logger.error("Invalid data type in send_response")
+		logger.error(type(result))
 		return
 
-	logging.info("")
-	logging.info("responding to client with data: {}".format(formatted_result))
+	logger.info("")
+	logger.info("responding to client with data: {}".format(formatted_result))
 	print(formatted_result, end="")
 
 # respond with raw data
@@ -178,16 +178,13 @@ def redirect(location):
 # convert FieldStorage to dict
 # NOTE this can only be called once per request
 def get_dict_from_fieldstorage():
-	form = cgi.FieldStorage()
+	content_length = int(os.environ["CONTENT_LENGTH"])
+	raw_request = sys.stdin.read(content_length)
+	form = parse_qs(raw_request)
+
 	result = {}
-
-	try:
-		for key in form.keys():
-			result[key] = form.getvalue(key)
-
-		del result["endpoint"]
-	except:
-		logging.warn("Could not retrieve FieldStorage data")
+	for key in form.keys():
+		result[key] = form[key]
 
 	return result
 
@@ -653,7 +650,7 @@ def threeds1(data):
 	data["browserInfo"]["acceptheader"] = "text/html"
 
 	# get response from Adyen
-	payments_result = send_request(url, data, headers).decode("utf8")
+	payments_result = send_request(url, data, headers)
 
 	send_response(payments_result, "application/json")
 
@@ -671,7 +668,7 @@ def threeds1_notification_url(data):
 	request_data["paResponse"] = data["PaRes"]
 
 	# get response from Adyen
-	payments_result = send_request(url, request_data, headers).decode("utf8")
+	payments_result = send_request(url, request_data, headers)
 
 	send_response(payments_result, "application/json")
 
@@ -807,7 +804,7 @@ def threeds2_result_page(data):
 	if "cres" in data.keys():
 		# decode data and append as GET params to redirect
 		logger.info("Redirecting")
-		cres = json.loads(base64.b64decode(data["cres"]).decode())
+		cres = json.loads(base64.b64decode(data["cres"][0]).decode())
 		get_params = ""
 		for key in cres.keys():
 			get_params = "{get_params}&{key}={value}".format(get_params=get_params, key=key, value=cres[key])
@@ -924,15 +921,16 @@ logger.info("")
 logger.info("------- NEW REQUEST -------")
 
 # get data from POST fields
-post_data = get_dict_from_fieldstorage()
+if os.environ["REQUEST_METHOD"] == "POST":
+	post_data = get_dict_from_fieldstorage()
 
-# log request data
-logger.info("receiving incoming request to {}".format(endpoint))
-logger.info("incoming URL params: {}".format(data))
-logger.info("incoming POST data: {}".format(post_data))
+	# log request data
+	logger.info("receiving incoming request to {}".format(endpoint))
+	logger.info("incoming URL params: {}".format(data))
+	logger.info("incoming POST data: {}".format(post_data))
 
-# combine URL and POST params
-data.update(post_data)
+	# combine URL and POST params
+	data.update(post_data)
 
 # add merchantAccount to data
 data["merchantAccount"] = MERCHANT_ACCOUNT
