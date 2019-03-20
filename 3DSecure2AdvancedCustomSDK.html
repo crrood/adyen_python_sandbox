@@ -78,7 +78,7 @@ import * as common from "./scripts/common.js";
 import Flowchart from "./scripts/flowchart.js";
 import * as SDK from "./scripts/custom3dsSDK.js";
 
-const NOTIFICATION_URL = common.SERVER_URL + "?endpoint=threeds2_result_page";
+const NOTIFICATION_URL = common.SUBMIT_URL + "?endpoint=threeds2_result_page";
 const CACHED_THREEDS_URL = "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml";
 
 const globals = {};
@@ -296,7 +296,7 @@ function handleFailedSDKChallengePromise(failedPromiseResponse) {
 // retrieve cavv and eci values
 // to potentially send to another acquirer
 function retrieve3ds2Result() {
-	let url = common.SERVER_URL + "?endpoint=threeds2_adv_retrieve3ds2Result" + "&pspReference=" + globals.challengePspReference;
+	let url = common.SUBMIT_URL + "?endpoint=threeds2_adv_retrieve3ds2Result" + "&pspReference=" + globals.challengePspReference;
 	common.AJAXGet(url, acquirerAgnosticAuth);
 }
 
@@ -311,12 +311,12 @@ function acquirerAgnosticAuth(data) {
 	common.output(response, "Response from Adyen to server");
 	globals.flowchart.setActive("RetrieveMPIData");
 
-	let url = common.SERVER_URL + "?endpoint=threeds2_adv_acquirerAgnosticAuth" + "&eci=";
+	let url = common.SUBMIT_URL + "?endpoint=threeds2_adv_acquirerAgnosticAuth" + "&eci=";
 }
 
 // send authorise3ds2 call with stored token
 function adyenTokenAuth(transStatus) {
-	let url = common.SERVER_URL + "?endpoint=threeds2_auth_via_token" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token) + "&transStatus=" + transStatus;
+	let url = common.SUBMIT_URL + "?endpoint=threeds2_auth_via_token" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token) + "&transStatus=" + transStatus;
 	common.AJAXGet(url, adyenTokenAuthCallback);
 }
 

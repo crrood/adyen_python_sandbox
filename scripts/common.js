@@ -1,10 +1,20 @@
 // constants
 export const FORM_ENCODED_HEADER = { "Content-Type": "application/x-www-form-urlencoded" };
 export const JSON_ENCODED_HEADER = { "Content-Type": "application/json" };
-export const SERVER_URL = "http://localhost:8000/cgi-bin/submit.py";
+
+export const SERVER_URL = "http://localhost:8000/cgi-bin/server.py";
+export const SUBMIT_URL = "http://localhost:8000/cgi-bin/submit.py";
+export const RETURN_URL = SUBMIT_URL + "/?endpoint=threeds1_notification_url";
+
+export const endpoints = {
+	"paymentsDetails": "https://checkout-test.adyen.com/v41/payments/details",
+	"payments": "https://checkout-test.adyen.com/v41/payments"
+};
 
 // wrapper to send requests to server
-export function AJAXPost(path, callback, headers = FORM_ENCODED_HEADER, params = {}) {
+export function AJAXPost(path, callback, params = {}, headers = JSON_ENCODED_HEADER) {
+
+	// build request
 	let request = new XMLHttpRequest();
 	request.open("POST", path, true);
 	request.onreadystatechange = function() {
@@ -13,10 +23,17 @@ export function AJAXPost(path, callback, headers = FORM_ENCODED_HEADER, params =
 		}
 	};
 
+	// add headers to requests
 	for (let key in headers) {
 		request.setRequestHeader(key, headers[key]);
 	}
 
+	// stringify params
+	if (typeof(params) === "object") {
+		params = JSON.stringify(params);
+	}
+
+	// send request
 	request.send(params);
 }
 
@@ -48,7 +65,7 @@ export function buildFormURL(customParams = null) {
 		formString = formString + key + "=" + customParams[key] + "&";
 	}
 
-	return encodeURI(SERVER_URL + "?" + formString);
+	return encodeURI(SUBMIT_URL + "?" + formString);
 }
 
 // utility to output to web page

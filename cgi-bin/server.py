@@ -17,6 +17,8 @@ from urllib.parse import parse_qs
 from ServerUtils import ServerUtils
 utils = ServerUtils("CGI")
 
+# constants
+ACCEPT_HEADER = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8"  # noqa: E501
 
 ##############################
 ##		REQUEST HANDLING	##
@@ -47,10 +49,35 @@ except KeyError:
 	utils.send_debug("no endpoint in request data")
 	exit(1)
 
-# send request
-response = utils.send_request(endpoint, request_data)
 
-# respond to client with respose
+##################################
+##		SERVER-SIDE FIELDS		##
+##################################
+
+if "merchantAccount" in request_data.keys():
+	request_data["merchantAccount"] = utils.config["merchant_account"]
+
+if "browserInfo" in request_data.keys():
+	request_data["browserInfo"]["acceptHeader"] = ACCEPT_HEADER
+
+
+##########################
+##		SEND REQUEST	##
+##########################
+
+# send request
+request_result = utils.send_request(endpoint, request_data)
+
+
+##############################
+##		FORMAT RESPONSE		##
+##############################
+
+# respond to client with object containing request and response
+response = {}
+response["request"] = request_data
+response["response"] = request_result
+
 utils.send_response(response)
 
 utils.logger.info("")

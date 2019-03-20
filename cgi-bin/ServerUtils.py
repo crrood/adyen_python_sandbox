@@ -69,9 +69,9 @@ class ServerUtils():
 			else:
 				return result
 		except HTTPError as e:
-			return "{}".format(e).encode("utf8")
-		except:
-			return "error sending request".encode("utf8")
+			return "{}".format(e)
+		except Exception as e:
+			return "error sending request: {}".format(e)
 
 	# respond to client
 	def send_response(self, response_text, content_type="application/json", skipHeaders=False):

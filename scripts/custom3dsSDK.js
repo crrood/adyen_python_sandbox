@@ -1,6 +1,6 @@
-import { SERVER_URL, uuid } from "./common.js";
+import { SUBMIT_URL, uuid } from "./common.js";
 
-const NOTIFICATION_URL = SERVER_URL + "?endpoint=threeds2_result_page";
+const NOTIFICATION_URL = SUBMIT_URL + "?endpoint=threeds2_result_page";
 const CACHED_THREEDS_URL = "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml";
 
 const globals = {};

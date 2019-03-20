@@ -1,0 +1,3 @@
+[submodule "scripts/adyen-3ds2-js-utils"]
+	path = scripts/adyen-3ds2-js-utils
+	url = git@github.com:Adyen/adyen-3ds2-js-utils.git

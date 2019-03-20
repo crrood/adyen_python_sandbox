@@ -1,0 +1,429 @@
+<html>
+
+<head>
+	<title>3DS 2.0</title>
+	<link rel="stylesheet" type="text/css" href="styles/style.css"/>
+	<link rel="stylesheet" type="text/css" href="styles/flowchart.css"/>
+	<script src="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.2.0/adyen.js"></script>
+</head>
+
+<body>
+	<div class="left-column">
+		<h2>Network activity</h2>
+		<div id="output"></div>
+	</div>
+	
+	<div class="right-column fixed">
+		<div class="flowchart-container">
+			<figure class="flowchart">
+				<ul id="flowchart" class="tree"></ul>
+			</figure>
+			<div class="flowchart-legend center-content">
+				<div>
+					<label>Current state</label>
+					<span class="flowchart-color-swatch active-state-legend"></span>
+				</div>
+				<div>
+					<label>Previous state</label>
+					<span class="flowchart-color-swatch previous-state-legend"></span>
+				</div>
+				<div>
+					<label>Unreachable state</label>
+					<span class="flowchart-color-swatch unreachable-state-legend"></span>
+				</div>
+			</div>
+		</div>
+
+		<div class="center-content">
+			<div class="checkout-holder">
+				<div class="client-form">
+					<div>
+						<input type="checkbox" id="frictionlessCheckbox"/>
+						<label for="frictionlessCheckbox">Frictionless</label>
+					</div>
+					<div>
+						<input id="adyenTokenAuth" type="radio" name="transactionTypeRadio" value="adyenTokenAuth">
+						<label for="adyenTokenAuth">Adyen Token Auth</label><br>
+						<input id="acquirerAgnosticAuth" type="radio" checked="checked" name="transactionTypeRadio" value="acquirerAgnosticAuth">
+						<label for="acquirerAgnosticAuth">Acquirer Agnostic Auth</label>
+					</div>
+					<div id="authoriseBtnHolder"></div>
+				</div>
+			</div>
+
+			<div id="sdkContainer" class="hidden challenge-iframe"></div>
+		</div>
+	</div>
+
+</body>
+
+</html>
+
+<script type="module">
+
+// custom utilities
+import * as common from "./scripts/common.js";
+import Flowchart from "./scripts/flowchart.js";
+import * as SDK from "./scripts/custom3dsSDK.js";
+
+// Adyen helper methods
+import collectBrowserInfo from "./scripts/adyen-3ds2-js-utils/browser/index.js";
+
+// constants
+const NOTIFICATION_URL = common.SUBMIT_URL + "?endpoint=threeds2_result_page";
+const CACHED_THREEDS_URL = "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml";
+
+// container for global variables
+const globals = {};
+
+// get everything ready to go
+initialize();
+function initialize() {
+
+	// Add submit button to DOM
+	const authoriseButton = document.createElement("button");
+	authoriseButton.onclick = submitForm;
+	authoriseButton.innerHTML = "Authorise";
+	authoriseButton.id = "authoriseBtn";
+	document.querySelector("#authoriseBtnHolder").appendChild(authoriseButton);
+	
+	// add dynamic flowchart
+	let tree = [
+		"Initial Authorise",
+		[
+			"First /payments Call",
+			[
+				"Fingerprint Device",
+				[
+					"Frictionless",
+					"Challenge Shopper", 
+					[
+						"Challenge Finished", 
+						[
+							"Authorise With Token",
+							"Retrieve MPI Data", 
+							[
+								"Authorise Via Adyen",
+								"Authorise Elsewhere"
+							],
+						]
+					]
+				]
+			]
+		]
+	];
+
+	globals.flowchart = new Flowchart(tree, document.querySelector("#flowchart"));
+
+	// Adyen 3ds2 component
+	globals.checkout = new AdyenCheckout();
+}
+
+// send form data to server
+function submitForm(e) {
+
+	let jsonData = {}; // JSON object for logging
+
+	// hide checkout form
+	document.querySelector(".checkout-holder").classList.add("display-none");
+	
+	// handle checkbox options
+	let value = 1000;
+	if (document.querySelector("#frictionlessCheckbox").checked) {
+		value = 12002;
+	}
+	globals.authenticationOnly = document.querySelector('input[name="transactionTypeRadio"]:checked').value == "acquirerAgnosticAuth";
+
+	// get browser info
+	const browserInfo = collectBrowserInfo();
+	browserInfo.acceptHeader = "";  // filled in by server when field is present
+
+	// request with hardcoded card information
+	const request = {
+		"amount":{
+			"currency": "EUR",
+			"value": value
+		},
+		"reference": "Localhost 3ds2 basic component",
+		"paymentMethod": {
+			"type":"scheme",
+			"number": "4212345678901245",
+			"expiryMonth": "10",
+			"expiryYear": "2020",
+			"holderName": "John Smith",
+			"cvc": "737"
+		},
+		"additionalData" : {
+			"allow3DS2" : true
+		},
+		"threeDS2RequestData": {
+			"authenticationOnly": globals.authenticationOnly
+		},
+		"browserInfo": browserInfo,
+		"channel" : "web",
+		"origin" : window.location.href,
+		"returnUrl" : common.RETURN_URL,
+		"merchantAccount": ""  // filled in by server
+	};
+
+	// send to server
+	request.endpoint = common.endpoints.payments;
+	common.AJAXPost(common.SERVER_URL, initialAuthoriseCallback, request);
+
+	globals.flowchart.setActive("First/paymentsCall");
+
+	// block default form behavior
+	return false;
+}
+
+// receive response from initialAuthoriseCall
+function initialAuthoriseCallback(data) {
+	// parse and output request / response
+	data = JSON.parse(data);
+
+	const request = data.request;
+	const response = data.response;
+
+	common.output(request, "Initial request to /payments", common.endpoints.payments);
+	common.output(response, "Response to initial /payments call");
+
+	if (response.resultCode === "IdentifyShopper") {
+
+		// save required data for later
+		globals.paymentData = response.paymentData;
+
+		// execute the fingerprint via the SDK
+		fingerprintDevice(response.authentication["threeds2.fingerprintToken"]);
+	}
+	else if (response.resultCode === "AuthenticationFinished" || response.resultCode === "Authorised") {
+		// authentication is complete - we can stop here!
+		globals.flowchart.setActive("Frictionless");
+	}
+}
+
+// perform fingerprint via Adyen component
+function fingerprintDevice(fingerprintToken) {
+
+	common.output("fingerprintToken: " + fingerprintToken, "Fingerprint request to component", "checkout.create('threeDS2DeviceFingerprint')");
+
+	const threeDS2IdentifyShopper = globals.checkout
+        .create("threeDS2DeviceFingerprint", {
+            fingerprintToken: fingerprintToken,
+            onComplete: fingerprintData => {
+            	postFingerprintPaymentsDetails(fingerprintData.data.details["threeds2.fingerprint"]);
+            },
+            onError: () => {
+            	common.output("Verification request to component failed", "Fingerprint response from component");
+            }
+        })
+        .mount("#sdkContainer");
+
+	globals.flowchart.setActive("FingerprintDevice");
+}
+
+// call to payments/details following successful fingerprint
+function postFingerprintPaymentsDetails(fingerprintResult) {
+	const request = {
+		"details": {
+			"threeds2.fingerprint": fingerprintResult
+		},
+		"paymentData": globals.paymentData
+	};
+	request.endpoint = common.endpoints.paymentsDetails;
+
+	common.AJAXPost(common.SERVER_URL, postFingerprintPaymentsDetailsComplete, request);
+}
+
+// callback from call to payments/details following fingerprint
+function postFingerprintPaymentsDetailsComplete(data) {
+
+	// parse and output request / response
+	data = JSON.parse(data);
+
+	const request = data.request;
+	const response = data.response;
+
+	common.output(request, "Post-fingerprint payments/details call", common.endpoints.paymentsDetails);
+	common.output(response, "Response to post-fingerprint payments/details call");
+
+	if (response.resultCode === "ChallengeShopper") {
+		doChallenge(response.authentication['threeds2.challengeToken']);
+	}
+	else if (response.resultCode === "AuthenticationFinished" || response.resultCode === "Authorised") {
+		globals.flowchart.setActive("Frictionless");
+	}
+}
+
+// perform challenge via SDK
+function doChallenge(challengeToken) {
+
+	common.output("challengeToken: " + challengeToken, "Challenge request to component", "checkout.create('threeDS2Challenge')");
+
+	const threeDS2Challenge = globals.checkout
+		.create('threeDS2Challenge', {
+			challengeToken: challengeToken,
+			onComplete: challengeData => {
+				globals.flowchart.setActive("ChallengeFinished");
+				postChallengePaymentsDetails(challengeData.data.details["threeds2.challengeResult"]);
+			},
+			onError: () => {
+				common.output("Verification request to component failed", "Fingerprint response from component");
+			},
+			size: '01' // Defaults to '01'
+		})
+		.mount('#sdkContainer');
+
+	// show challenge iframe
+	document.querySelector("#sdkContainer").classList.remove("hidden");
+
+	globals.flowchart.setActive("ChallengeShopper");
+}
+
+// call to payments/details following successful challenge
+function postChallengePaymentsDetails(challengeResult) {
+	const request = {
+		"details": {
+			"threeds2.challengeResult": challengeResult
+		},
+		"paymentData": globals.paymentData
+	};
+	request.endpoint = common.endpoints.paymentsDetails;
+
+	common.AJAXPost(common.SERVER_URL, postChallengePaymentsDetailsCallback, request);
+}
+
+// callback from call to payments/details following challenge
+function postChallengePaymentsDetailsCallback(data, url) {
+	data = JSON.parse(data);
+
+	const request = data.request;
+	const response = data.response;
+
+	common.output(request, "Post-challenge payments/details call", common.endpoints.paymentsDetails);
+	common.output(response, "Response to post-challenge payments/details call");
+
+	if (response.resultCode === "AuthenticationFinished") {
+		authoriseWithMPIData(response.threeDS2Result);
+		globals.flowchart.setActive("RetrieveMPIData");
+	}
+	else if (response.resultCode === "Refused") {
+		globals.flowchart.setActive("RetrieveMPIData");
+	}
+	else {
+		globals.flowchart.setActive("AuthoriseWithToken");
+	}
+}
+
+// authorise with raw MPI data
+function authoriseWithMPIData(threeDS2Result) {
+	let request = {
+		"amount":{
+			"currency":"EUR",
+			"value":1000
+		 },
+		 "merchantAccount":"", 
+		 "reference":"Localhost 3ds2 with MPI data",
+		 "additionalData" : {
+			// "allow3DS2": "true",
+			"acquirerCode":"TestPmmAcquirer",
+			"authorisationMid":"1000"
+		},
+		"mpiData":{  
+			"cavv": threeDS2Result.authenticationValue,
+			"eci": threeDS2Result.eci,
+			"xid": threeDS2Result.threeDSServerTransID,
+			"directoryResponse": "C", // assuming there was a challenge
+			"authenticationResponse": threeDS2Result.transStatus,
+			"threeDSVersion": "2.1.0" // will we ever return this in the /payments/details call?
+		},
+		"paymentMethod": {
+			"type": "scheme",
+			"number": "4212345678901245",
+			"expiryMonth": "10",
+			"expiryYear": "2020",
+			"holderName": "John Smith",
+			"cvc": "737"
+		}
+	};
+	request.endpoint = common.endpoints.payments;
+
+	common.AJAXPost(common.SERVER_URL, authoriseWithMPIDataCallback, request);
+}
+
+// finish authorisation using raw MPI data
+function authoriseWithMPIDataCallback(data) {
+	data = JSON.parse(data);
+
+	const request = data.request;
+	const response = data.response;
+
+	common.output(request, "Payments call with raw MPI data", common.endpoints.paymentsDetails);
+	common.output(response, "Response to payments call with raw MPI data");
+
+	globals.flowchart.setActive("AuthoriseViaAdyen");
+}
+
+//////////////////////////////////
+//		FLOWCHART METHODS		//
+//////////////////////////////////
+
+// automated tree generator
+function generateTreeHTML(inputObject) {
+	let result = "";
+	for (let child in inputObject) {
+		if (typeof(inputObject[child]) === "object") {
+			// node has children
+			result = result + "<ul>" + generateTreeHTML(inputObject[child]) + "</ul>";
+		}
+		else {
+			// node is a label
+			result = result + "<li><code id=" + inputObject[child].replace(/ /g, "") + ">" + inputObject[child] + "</code>";
+		}
+	}
+	return result;
+}
+
+// scale the flowchart to fit on screen at lower resolutions
+function scaleFlowchart() {
+	const FLOWCHART_MIN_WIDTH = 750;
+	const availableFlowchartWidth = window.innerWidth / 2;
+	if (availableFlowchartWidth < FLOWCHART_MIN_WIDTH) {
+		const el = document.querySelector(".flowchart");
+		const scale = availableFlowchartWidth / FLOWCHART_MIN_WIDTH;
+		const percentScaleX = "-" + (100 - (scale * 110)).toString() + "%";
+		const percentScaleY = "-" + (100 - (scale * 120)).toString() + "%";
+
+		el.style.webkitTransform = `scale(${scale}) translate(${percentScaleX}, ${percentScaleY})`;
+		el.style.height = (globals.originalFlowchartHeight * scale) + "px";
+	}
+	else {
+		document.querySelector(".flowchart").style.webkitTransform = "";
+	}
+}
+
+//////////////////////////////
+//		UTILITY METHODS		//
+//////////////////////////////
+
+// gets state of auth flow radio buttons
+function getSelectedAuthFlow() {
+	return document.querySelector('input[name="transactionTypeRadio"]:checked').value;
+}
+
+// check location of challenge iframe
+function checkIfChallengeIsCompleted() {
+	try {
+		return (document.querySelector("[name=threeDSIframe]").contentWindow.location.href == NOTIFICATION_URL);
+	}
+	catch(error) {
+		// will return CORS error if challenge hasn't been completed yet
+		return false;
+	}
+}
+
+// returned when the challenge completes and redirects to result page
+function getCRESFromIframe() {
+	return document.querySelector("[name=threeDSIframe]").contentDocument.querySelector("pre").innerHTML.trim();
+}
+
+</script>

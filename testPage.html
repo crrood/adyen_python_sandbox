@@ -38,7 +38,7 @@ document.querySelector("#sendPostRequestBtn").onclick = e => {
 		"content-type": "application/json"
 	};
 	const url = "http://localhost:8000/cgi-bin/server.py";
-	common.AJAXPost(url, callback, headers, JSON.stringify(data));
+	common.AJAXPost(url, callback, data, headers);
 };
 
 function callback(responseText) {

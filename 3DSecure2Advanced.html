@@ -49,9 +49,9 @@
 
 <script type="module">
 
-import { SERVER_URL, uuid } from "./scripts/common.js";
+import { SUBMIT_URL, uuid } from "./scripts/common.js";
 
-const NOTIFICATION_URL = SERVER_URL + "?endpoint=threeds2_result_page";
+const NOTIFICATION_URL = SUBMIT_URL + "?endpoint=threeds2_result_page";
 const CACHED_THREEDS_URL = "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml";
 
 var globals = {};
@@ -107,7 +107,7 @@ function fingerprintDevice() {
 
 // send form data to server
 function submitForm(e) {	
-	var url = SERVER_URL + "?";
+	var url = SUBMIT_URL + "?";
 	var jsonData = {}; // JSON object for logging
 	
 	// handle frictionless checkbox
@@ -241,7 +241,7 @@ function handleFailedSDKChallengePromise(failedPromiseResponse) {
 // retrieve cavv and eci values
 // to potentially send to another acquirer
 function retrieve3ds2Result() {
-	let url = SERVER_URL + "?endpoint=threeds2_adv_retrieve3ds2Result" + "&pspReference=" + globals.challengePspReference;
+	let url = SUBMIT_URL + "?endpoint=threeds2_adv_retrieve3ds2Result" + "&pspReference=" + globals.challengePspReference;
 	$.get(url, acquirerAgnosticAuth);
 }
 
@@ -258,7 +258,7 @@ function acquirerAgnosticAuth(data) {
 
 // send authorise3ds2 call with stored token
 function adyenTokenAuth(transStatus) {
-	let url = SERVER_URL + "?endpoint=threeds2_auth_via_token" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token) + "&transStatus=" + transStatus;
+	let url = SUBMIT_URL + "?endpoint=threeds2_auth_via_token" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token) + "&transStatus=" + transStatus;
 	$.get(url, adyenTokenAuthCallback);
 }
 
