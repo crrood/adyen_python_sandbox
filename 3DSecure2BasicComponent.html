@@ -204,12 +204,18 @@ function initialAuthoriseCallback(data) {
 // perform fingerprint via Adyen component
 function fingerprintDevice(fingerprintToken) {
 
-	common.output("fingerprintToken: " + fingerprintToken, "Fingerprint request to component", "checkout.create('threeDS2DeviceFingerprint')");
+	doFingerprint(fingerprintToken);
+	common.output(stringifyFunction(doFingerprint), "Fingerprint request to component");
 
-	const threeDS2IdentifyShopper = globals.checkout
+	globals.flowchart.setActive("FingerprintDevice");
+}
+
+function doFingerprint(fingerprintToken) {
+	globals.checkout
         .create("threeDS2DeviceFingerprint", {
             fingerprintToken: fingerprintToken,
             onComplete: fingerprintData => {
+            	common.output(JSON.stringify(fingerprintData), "Fingerprint result");
             	postFingerprintPaymentsDetails(fingerprintData.data.details["threeds2.fingerprint"]);
             },
             onError: () => {
@@ -217,8 +223,6 @@ function fingerprintDevice(fingerprintToken) {
             }
         })
         .mount("#sdkContainer");
-
-	globals.flowchart.setActive("FingerprintDevice");
 }
 
 // call to payments/details following successful fingerprint
@@ -247,6 +251,12 @@ function postFingerprintPaymentsDetailsComplete(data) {
 	common.output(response, "Response to post-fingerprint payments/details call");
 
 	if (response.resultCode === "ChallengeShopper") {
+		common.output(stringifyFunction(doChallenge), "Challenge request to component");
+
+		// show challenge iframe
+		document.querySelector("#sdkContainer").classList.remove("hidden");
+
+		globals.flowchart.setActive("ChallengeShopper");
 		doChallenge(response.authentication['threeds2.challengeToken']);
 	}
 	else if (response.resultCode === "AuthenticationFinished" || response.resultCode === "Authorised") {
@@ -256,31 +266,28 @@ function postFingerprintPaymentsDetailsComplete(data) {
 
 // perform challenge via SDK
 function doChallenge(challengeToken) {
-
-	common.output("challengeToken: " + challengeToken, "Challenge request to component", "checkout.create('threeDS2Challenge')");
-
-	const threeDS2Challenge = globals.checkout
+	globals.checkout
 		.create('threeDS2Challenge', {
 			challengeToken: challengeToken,
 			onComplete: challengeData => {
-				globals.flowchart.setActive("ChallengeFinished");
+				common.output(challengeData, "Challenge result");
 				postChallengePaymentsDetails(challengeData.data.details["threeds2.challengeResult"]);
 			},
 			onError: () => {
 				common.output("Verification request to component failed", "Fingerprint response from component");
 			},
-			size: '01' // Defaults to '01'
+			size: '01'
 		})
 		.mount('#sdkContainer');
-
-	// show challenge iframe
-	document.querySelector("#sdkContainer").classList.remove("hidden");
-
-	globals.flowchart.setActive("ChallengeShopper");
 }
 
 // call to payments/details following successful challenge
 function postChallengePaymentsDetails(challengeResult) {
+
+	// performing these here to keep the doChallenge method clean
+	globals.flowchart.setActive("ChallengeFinished");
+	document.querySelector("#sdkContainer").classList.add("hidden");
+
 	const request = {
 		"details": {
 			"threeds2.challengeResult": challengeResult
@@ -424,6 +431,11 @@ function checkIfChallengeIsCompleted() {
 // returned when the challenge completes and redirects to result page
 function getCRESFromIframe() {
 	return document.querySelector("[name=threeDSIframe]").contentDocument.querySelector("pre").innerHTML.trim();
+}
+
+// convert functions to pretty output
+function stringifyFunction(func) {
+	return func.toString().replace(/    /g, "\t").replace(/\t/g, "    ");
 }
 
 </script>

@@ -70,6 +70,8 @@ body.dark {
 .output-subtitle {
 	padding-left: 10px;
 	padding-right: 10px;
+
+	overflow: auto;
 }
 
 .output-main-body {
