@@ -86,24 +86,21 @@ function initialize() {
 	
 	// add dynamic flowchart
 	let tree = [
-		"Initial Authorise",
+		"First /payments Call",
 		[
-			"First /payments Call",
+			"Fingerprint Device",
 			[
-				"Fingerprint Device",
+				"Frictionless",
+				"Challenge Shopper", 
 				[
-					"Frictionless",
-					"Challenge Shopper", 
+					"Challenge Finished", 
 					[
-						"Challenge Finished", 
+						"Authorise With Token",
+						"Retrieve MPI Data", 
 						[
-							"Authorise With Token",
-							"Retrieve MPI Data", 
-							[
-								"Authorise Via Adyen",
-								"Authorise Elsewhere"
-							],
-						]
+							"Authorise Via Adyen",
+							"Authorise Elsewhere"
+						],
 					]
 				]
 			]

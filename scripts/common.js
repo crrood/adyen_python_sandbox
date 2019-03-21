@@ -47,7 +47,12 @@ export function AJAXGet(path, callback) {
 	request.open("GET", path, true);
 	request.onreadystatechange = function() {
 		if (this.readyState == 4) {
-			callback(this.responseText);
+			if (this.getResponseHeader("content-type") === "application/json") {
+				callback(JSON.parse(this.responseText));
+			}
+			else {
+				callback(this.responseText);
+			}
 		}
 	};
 
