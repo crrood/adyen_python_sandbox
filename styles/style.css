@@ -261,6 +261,18 @@ body.dark .right-column {
 	margin-bottom: 5px;
 }
 
+  /**************/
+ /* COMPONENTS */
+/**************/
+.component {
+	border: 2px solid;
+	padding: 15px;
+	margin-bottom: 15x;
+	border-radius: 10px;
+
+	width: 300px;
+}
+
   /***********************/
  /* FROM SECURED FIELDS */
 /***********************/

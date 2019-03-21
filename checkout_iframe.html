@@ -70,11 +70,6 @@ document.getElementById("checkoutBtn").addEventListener("click", openCheckout);
 // Handle response from setup call
 const setupCallback = function(data) {
 
-	console.log(data);
-
-	data = JSON.parse(data);
-	console.log(data);
-
 	// Initialize checkout
 	var checkout = chckt.checkout(data, '.checkout', sdkConfigObj);
 

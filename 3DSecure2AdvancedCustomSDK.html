@@ -206,8 +206,6 @@ function initialAuthoriseCall(url, jsonData) {
 // receive response from initialAuthoriseCall
 function initialAuthoriseCallback(data) {
 	// parse and output request / response
-	data = JSON.parse(data);
-
 	const request = data.request;
 	const response = data.response;
 
@@ -267,7 +265,7 @@ function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 	common.output("threeDSServerTransID=" + successfulPromiseResponse.threeDSServerTransID + "<br>transStatus=" + successfulPromiseResponse.transStatus, "Challenge succeeded");
 
 	// remove challenge iframe
-	document.querySelector("#sdkContainer").classList.add("hidden");
+	common.hide("#sdkContainer");
 
 	// update flowchart
 	globals.flowchart.setActive("ChallengeSuccessful");
@@ -287,7 +285,7 @@ function handleFailedSDKChallengePromise(failedPromiseResponse) {
 	console.log(failedPromiseResponse);
 
 	// remove challenge iframe
-	document.querySelector("#sdkContainer").classList.add("hidden");
+	common.hide("#sdkContainer");
 
 	// update flowchart
 	globals.flowchart.setActive("ChallengeFailed");
@@ -302,8 +300,6 @@ function retrieve3ds2Result() {
 
 // send auth request using cavv and eci values
 function acquirerAgnosticAuth(data) {
-	data = JSON.parse(data);
-
 	const request = data.request;
 	const response = data.response;
 
@@ -322,8 +318,6 @@ function adyenTokenAuth(transStatus) {
 
 // get response from authorise3ds2 call
 function adyenTokenAuthCallback(data) {
-	data = JSON.parse(data);
-
 	const request = data.request;
 	const response = data.response;
 

@@ -179,8 +179,6 @@ function submitForm(e) {
 // receive response from initialAuthoriseCall
 function initialAuthoriseCallback(data) {
 	// parse and output request / response
-	data = JSON.parse(data);
-
 	const request = data.request;
 	const response = data.response;
 
@@ -242,8 +240,6 @@ function postFingerprintPaymentsDetails(fingerprintResult) {
 function postFingerprintPaymentsDetailsComplete(data) {
 
 	// parse and output request / response
-	data = JSON.parse(data);
-
 	const request = data.request;
 	const response = data.response;
 
@@ -286,7 +282,7 @@ function postChallengePaymentsDetails(challengeResult) {
 
 	// performing these here to keep the doChallenge method clean
 	globals.flowchart.setActive("ChallengeFinished");
-	document.querySelector("#sdkContainer").classList.add("hidden");
+	common.hide("#sdkContainer");
 
 	const request = {
 		"details": {
@@ -301,8 +297,6 @@ function postChallengePaymentsDetails(challengeResult) {
 
 // callback from call to payments/details following challenge
 function postChallengePaymentsDetailsCallback(data, url) {
-	data = JSON.parse(data);
-
 	const request = data.request;
 	const response = data.response;
 
@@ -323,7 +317,7 @@ function postChallengePaymentsDetailsCallback(data, url) {
 
 // authorise with raw MPI data
 function authoriseWithMPIData(threeDS2Result) {
-	let request = {
+	const request = {
 		"amount":{
 			"currency":"EUR",
 			"value":1000
@@ -359,8 +353,6 @@ function authoriseWithMPIData(threeDS2Result) {
 
 // finish authorisation using raw MPI data
 function authoriseWithMPIDataCallback(data) {
-	data = JSON.parse(data);
-
 	const request = data.request;
 	const response = data.response;
 

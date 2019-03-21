@@ -34,7 +34,7 @@ const setupCallback = function(data) {
 	try {
 
 		// Parse data
-		globals.data = JSON.parse(data);
+		globals.data = data;
 		globals.securedFieldsConfiguration.configObject.originKey = globals.data.originKey;
 		globals.securedFieldsConfiguration.configObject.publicKeyToken = globals.data.publicKeyToken;
 

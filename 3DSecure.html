@@ -31,7 +31,6 @@ document.querySelector("#checkoutBtn").addEventListener("click", () => {
 // Redirects user to result URL via POST call
 function checkoutCallback(data) {
 	// parse response
-	data = JSON.parse(data);
 	let issuerURL = data.redirect.url;
 	let redirectData = data.redirect.data;
 

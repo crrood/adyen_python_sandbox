@@ -226,7 +226,7 @@ function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 	else {
 		adyenTokenAuth(successfulPromiseResponse.transStatus);
 	}
-	document.getElementById("sdkContainer").classList.add("hidden");
+	common.hide("#sdkContainer")
 }
 
 // doChallenge failed resolution
@@ -235,7 +235,7 @@ function handleFailedSDKChallengePromise(failedPromiseResponse) {
 
 	// hide SDK challenge
 	document.querySelector("#threeDSIframeContainer").style.display = "none";
-	document.getElementById("sdkContainer").classList.add("hidden");
+	common.hide("#sdkContainer");
 }
 
 // retrieve cavv and eci values

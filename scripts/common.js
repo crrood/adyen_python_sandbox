@@ -19,7 +19,12 @@ export function AJAXPost(path, callback, params = {}, headers = JSON_ENCODED_HEA
 	request.open("POST", path, true);
 	request.onreadystatechange = function() {
 		if (this.readyState == 4) {
-			callback(this.responseText);
+			if (this.getResponseHeader("content-type") === "application/json") {
+				callback(JSON.parse(this.responseText));
+			}
+			else {
+				callback(this.responseText);
+			}
 		}
 	};
 
@@ -49,7 +54,16 @@ export function AJAXGet(path, callback) {
 	request.send();
 }
 
-// pulls parameters from HTML form and sends to server
+// pulls values from HTML form and encodes into JSON object
+export function getJSONFromFormData(querySelector) {
+	const result = {};
+	for (let el of document.querySelector(querySelector).elements) {
+		result[el.name] = el.value;
+	}
+	return result;
+}
+
+// pulls parameters from HTML form and builds a url with GET params
 // accepts an optional JSON object of parameters to add
 export function buildFormURL(customParams = null) {
 	let inputParams = document.querySelectorAll("input[type='text'], input[type='hidden']");
@@ -155,6 +169,16 @@ export function output(text, title = null, subtitle = null, indentation = 4) {
 
 	// add to page
 	document.querySelector("#output").append(containerEl);
+}
+
+// apply the hidden class to an object
+export function hide(querySelector) {
+	document.querySelector(querySelector).classList.add("display-none");
+}
+
+// remove the hidden class from an object
+export function unhide(querySelector) {
+	document.querySelector(querySelector).classList.remove("display-none");
 }
 
 // this shouldn't be necessary.. I must be building the response wrong somehow
