@@ -66,9 +66,6 @@ import * as common from "./scripts/common.js";
 import Flowchart from "./scripts/flowchart.js";
 import * as SDK from "./scripts/custom3dsSDK.js";
 
-// Adyen helper methods
-import collectBrowserInfo from "./scripts/adyen-3ds2-js-utils/browser/index.js";
-
 // constants
 const NOTIFICATION_URL = common.SUBMIT_URL + "?endpoint=threeds2_result_page";
 const CACHED_THREEDS_URL = "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml";
@@ -428,6 +425,38 @@ function getCRESFromIframe() {
 // convert functions to pretty output
 function stringifyFunction(func) {
 	return func.toString().replace(/    /g, "\t").replace(/\t/g, "    ");
+}
+
+// generate browserInfo object
+function collectBrowserInfo() {
+
+    const screenWidth = window && window.screen ? window.screen.width : '';
+    const screenHeight = window && window.screen ? window.screen.height : '';
+    const colorDepth = window && window.screen ? window.screen.colorDepth : '';
+    const userAgent = window && window.navigator ? window.navigator.userAgent : '';
+    const javaEnabled = window && window.navigator ? navigator.javaEnabled() : false;
+
+    let language = '';
+    if (window && window.navigator) {
+        language = window.navigator.language
+            ? window.navigator.language
+            : window.navigator.browserLanguage; // Else is for IE <+ 10
+    }
+
+    const d = new Date();
+    const timeZoneOffset = d.getTimezoneOffset();
+
+    const browserInfo = {
+        screenWidth,
+        screenHeight,
+        colorDepth,
+        userAgent,
+        timeZoneOffset,
+        language,
+        javaEnabled,
+    };
+
+    return browserInfo;
 }
 
 </script>
