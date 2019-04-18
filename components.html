@@ -24,6 +24,7 @@
 	<div id="componentHolder" class="component display-none"></div>
 	<div id="cardComponentHolder" class="component display-none"></div>
 	<div id="sepaComponentHolder" class="component display-none"></div>
+	<div id="genericComponentHolder" class="component"></div>
 	<br>
 	<button id="payBtn" class="hidden" disabled=true>Pay</button>
 
@@ -92,6 +93,16 @@ function handlePaymentMethodsCallback(response) {
 				onChange: handleStateChange
 			}).mount("#sepaComponentHolder");
 			common.unhide("#sepaComponentHolder");
+		}
+		else {
+			try {
+				checkout.create(pm.type, {
+					onChange: handleStateChange
+				}).mount("#genericComponentHolder");
+			}
+			catch {
+				console.log("invalid pm type: " + pm.type);
+			}
 		}
 	}
 }

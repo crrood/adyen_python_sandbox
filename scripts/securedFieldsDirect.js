@@ -60,7 +60,7 @@ export function initForms() {
 	securedFields.onAllValid(function(allValidObject){
 		// Triggers when all credit card input fields are valid - and triggers again if this state changes.
 		if(allValidObject.allValid === true){
-			console.log('All credit card input is valid :-)');
+			console.log('All credit card input is valid');
 		}
 	});
 
@@ -73,7 +73,6 @@ export function initForms() {
 
 	securedFields.onConfigSuccess(function(someObject){
 		console.log("onClientSuccess");
-		document.querySelector("#hostedCardNumberField").classList.add("data-msg-pattern");
 		console.log(someObject);
 	});
 

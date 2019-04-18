@@ -7,7 +7,6 @@ import base64, binascii, hmac, hashlib
 from collections import OrderedDict
 
 # HTTP parsing
-import cgi
 from urllib.parse import parse_qs, urlencode
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
@@ -661,11 +660,13 @@ def threeds1_notification_url(data):
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/authorise3d"
 	headers = JSON_HEADER_OBJ
 
+	logger.debug(data)
+
 	# reformat request to match required fields
 	request_data = {}
 	request_data["merchantAccount"] = MERCHANT_ACCOUNT
-	request_data["md"] = data["MD"]
-	request_data["paResponse"] = data["PaRes"]
+	request_data["md"] = data["MD"][0]
+	request_data["paResponse"] = data["PaRes"][0]
 
 	# get response from Adyen
 	payments_result = send_request(url, request_data, headers)

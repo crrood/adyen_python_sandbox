@@ -156,9 +156,15 @@ function submitForm(e) {
 		"browserInfo": browserInfo,
 		"channel" : "web",
 		"origin" : window.location.href,
-		"returnUrl" : common.RETURN_URL,
+		// "returnUrl" : common.RETURN_URL,
 		"merchantAccount": ""  // filled in by server
 	};
+
+	// add BIN / MID if necessary
+	if (globals.authenticationOnly) {
+		request.additionalData.acquirerCode = "TestPmmAcquirer";
+		request.additionalData.authorisationMid = "1000";
+	}
 
 	// send to server
 	request.endpoint = common.endpoints.payments;
@@ -326,7 +332,7 @@ function authoriseWithMPIData(threeDS2Result) {
 		"mpiData":{  
 			"cavv": threeDS2Result.authenticationValue,
 			"eci": threeDS2Result.eci,
-			"xid": threeDS2Result.threeDSServerTransID,
+			"dsTransId": threeDS2Result.dsTransID,
 			"directoryResponse": "C", // assuming there was a challenge
 			"authenticationResponse": threeDS2Result.transStatus,
 			"threeDSVersion": "2.1.0" // will we ever return this in the /payments/details call?
