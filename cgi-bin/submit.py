@@ -638,6 +638,11 @@ def threeds1(data):
 		"executeThreeD": "true"
 	}
 
+	# standalone mode
+	data["threeDS2RequestData"] = {
+		"authenticationOnly": "true"
+	}
+
 	# move amount data into parent object
 	reformat_amount(data)
 
@@ -667,6 +672,11 @@ def threeds1_notification_url(data):
 	request_data["merchantAccount"] = MERCHANT_ACCOUNT
 	request_data["md"] = data["MD"][0]
 	request_data["paResponse"] = data["PaRes"][0]
+
+	# standalone mode
+	request_data["threeDS2RequestData"] = {
+		"authenticationOnly": "true"
+	}
 
 	# get response from Adyen
 	payments_result = send_request(url, request_data, headers)
@@ -714,6 +724,7 @@ def threeds2_part1(data):
 	response = {}
 	response["request"] = data
 	response["response"] = result
+	response["endpoint"] = url
 	send_response(response, "application/json")
 
 # API call with 3d Secure 2.0
@@ -734,6 +745,7 @@ def threeds2_part2(data):
 	response = {}
 	response["request"] = data
 	response["response"] = result
+	response["endpoint"] = url
 	send_response(response, "application/json")
 
 def threeds2_auth_via_token(data):
@@ -752,6 +764,7 @@ def threeds2_auth_via_token(data):
 	response = {}
 	response["request"] = data
 	response["response"] = result
+	response["endpoint"] = url
 	send_response(response, "application/json")
 
 ##########################################
@@ -793,6 +806,7 @@ def threeds2_adv_initial_auth(data):
 	response = {}
 	response["request"] = data
 	response["response"] = result
+	response["endpoint"] = url
 
 	# logging.debug(response)
 	send_response(response, "application/json")
@@ -831,6 +845,7 @@ def threeds2_adv_authorise3ds2(data):
 	response = {}
 	response["request"] = str(data)
 	response["response"] = result.decode("utf8")
+	response["endpoint"] = url
 	send_response(str(response), "text/plain")
 
 def threeds2_adv_retrieve3ds2Result(data):
@@ -848,6 +863,7 @@ def threeds2_adv_retrieve3ds2Result(data):
 	response = {}
 	response["request"] = data
 	response["response"] = result
+	response["endpoint"] = url
 	send_response(response, "application/json")
 
 def threeds2_adv_acquirerAgnosticAuth(data):

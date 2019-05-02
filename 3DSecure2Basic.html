@@ -100,28 +100,18 @@ function initialize() {
 		[
 			"Fingerprint Device", 
 			[
-				"Call Authorise3ds2",
+				"Frictionless",
+				"Challenge Shopper",
 				[
-					"Frictionless",
-					"Challenge Shopper", 
+					"Authorise With Token",
+					"Retrieve MPI Data", 
 					[
-						"Challenge Successful", 
-						[
-							"Authorise With Token",
-							"Retrieve MPI Data", 
-							[
-								"Authorise Via Adyen",
-								"Authorise Elsewhere"
-							],
-						],
-						"Challenge Failed", 
-						[
-							"Retry Validation",
-							"Authorise Unauthenticated"
-						]
+						"Authorise Via Adyen",
+						"Authorise Elsewhere"
 					]
 				]
 			]
+
 		]
 	];
 
@@ -161,7 +151,7 @@ function initialAuthoriseCallback(data) {
 	const request = data.request;
 	const response = data.response;
 
-	common.output(request, "Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise");
+	common.output(request, "Request from server to Adyen", data.endpoint);
 	common.output(response, "Response from Adyen to server");
 
 	if (response.resultCode === "IdentifyShopper") {
@@ -231,7 +221,7 @@ function firstAuthorise3ds2Callback(data) {
 	const request = data.request;
 	const response = data.response;
 
-	common.output(request, "Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise");
+	common.output(request, "Request from server to Adyen", data.endpoint);
 	common.output(response, "Response from Adyen to server");
 
 	if (response.resultCode === "ChallengeShopper") {
@@ -249,10 +239,6 @@ function firstAuthorise3ds2Callback(data) {
 		// save token and pspReference for later
 		globals.threeDS2Token = response.additionalData["threeds2.threeDS2Token"].replace(/\\/g, "");
 		globals.challengePspReference = response.pspReference;
-
-		// common.output formatted token in case we want to finish the transaction manually
-		console.log("threeDSToken:");
-		console.log(globals.threeDS2Token);
 
 		// execute the challenge via the SDK
 		doChallenge();
@@ -289,9 +275,6 @@ function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 	// remove challenge iframe
 	common.hide("#sdkContainer");
 
-	// update flowchart
-	globals.flowchart.setActive("ChallengeSuccessful");
-
 	// handle next step in process
 	if (globals.authenticationOnly) {
 		retrieve3ds2Result();
@@ -308,9 +291,6 @@ function handleFailedSDKChallengePromise(failedPromiseResponse) {
 
 	// remove challenge iframe
 	common.hide("#sdkContainer");
-
-	// update flowchart
-	globals.flowchart.setActive("ChallengeFailed");
 }
 
 // retrieve cavv and eci values
@@ -325,11 +305,56 @@ function acquirerAgnosticAuth(data) {
 	const request = data.request;
 	const response = data.response;
 
-	common.output(request, "Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/retrieve3ds2Result");
+	common.output(request, "Request from server to Adyen", data.endpoint);
 	common.output(response, "Response from Adyen to server");
 	globals.flowchart.setActive("RetrieveMPIData");
 
-	let url = common.SUBMIT_URL + "?endpoint=threeds2_adv_acquirerAgnosticAuth" + "&eci=";
+	authoriseWithMPIData(response.threeDS2Result);
+}
+
+// authorise with raw MPI data
+function authoriseWithMPIData(threeDS2Result) {
+	const request = {
+		"amount":{
+			"currency":"EUR",
+			"value":1000
+		 },
+		 "merchantAccount":"", 
+		 "reference":"Localhost 3ds2 with MPI data",
+		 "additionalData" : {
+			"acquirerCode":"TestPmmAcquirer",
+			"authorisationMid":"1499"
+		},
+		"mpiData":{  
+			"cavv": threeDS2Result.authenticationValue,
+			"eci": threeDS2Result.eci,
+			"dsTransId": threeDS2Result.dsTransID,
+			"directoryResponse": "C", // assuming there was a challenge
+			"authenticationResponse": threeDS2Result.transStatus,
+			"threeDSVersion": "2.1.0" // will we ever return this in the /payments/details call?
+		},
+		"card": {
+			"number": "4212345678901245",
+			"expiryMonth": "10",
+			"expiryYear": "2020",
+			"holderName": "John Smith",
+			"cvc": "737"
+		}
+	};
+	request.endpoint = common.endpoints.authorise3ds2;
+
+	common.AJAXPost(common.SERVER_URL, authoriseWithMPIDataCallback, request);
+}
+
+// finish authorisation using raw MPI data
+function authoriseWithMPIDataCallback(data) {
+	const request = data.request;
+	const response = data.response;
+
+	common.output(request, "Payments call with raw MPI data", data.endpoint);
+	common.output(response, "Response to payments call with raw MPI data");
+
+	globals.flowchart.setActive("AuthoriseViaAdyen");
 }
 
 // send authorise3ds2 call with stored token
@@ -343,7 +368,7 @@ function adyenTokenAuthCallback(data) {
 	const request = data.request;
 	const response = data.response;
 
-	common.output(request, "Request from server to Adyen", "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2");
+	common.output(request, "Request from server to Adyen", data.endpoint);
 	common.output(response, "Response from Adyen to server");
 	globals.flowchart.setActive("AuthoriseWithToken");
 }

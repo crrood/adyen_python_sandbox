@@ -77,6 +77,7 @@ request_result = utils.send_request(endpoint, request_data)
 response = {}
 response["request"] = request_data
 response["response"] = request_result
+response["endpoint"] = endpoint
 
 utils.send_response(response)
 

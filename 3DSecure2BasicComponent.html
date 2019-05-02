@@ -93,15 +93,12 @@ function initialize() {
 				"Frictionless",
 				"Challenge Shopper", 
 				[
-					"Challenge Finished", 
+					"Authorise With Token",
+					"Retrieve MPI Data", 
 					[
-						"Authorise With Token",
-						"Retrieve MPI Data", 
-						[
-							"Authorise Via Adyen",
-							"Authorise Elsewhere"
-						],
-					]
+						"Authorise Via Adyen",
+						"Authorise Elsewhere"
+					],
 				]
 			]
 		]
@@ -182,7 +179,7 @@ function initialAuthoriseCallback(data) {
 	const request = data.request;
 	const response = data.response;
 
-	common.output(request, "Initial request to /payments", common.endpoints.payments);
+	common.output(request, "Initial request to /payments", data.endpoint);
 	common.output(response, "Response to initial /payments call");
 
 	if (response.resultCode === "IdentifyShopper") {
@@ -243,7 +240,7 @@ function postFingerprintPaymentsDetailsComplete(data) {
 	const request = data.request;
 	const response = data.response;
 
-	common.output(request, "Post-fingerprint payments/details call", common.endpoints.paymentsDetails);
+	common.output(request, "Post-fingerprint payments/details call", data.endpoint);
 	common.output(response, "Response to post-fingerprint payments/details call");
 
 	if (response.resultCode === "ChallengeShopper") {
@@ -281,7 +278,6 @@ function doChallenge(challengeToken) {
 function postChallengePaymentsDetails(challengeResult) {
 
 	// performing these here to keep the doChallenge method clean
-	globals.flowchart.setActive("ChallengeFinished");
 	common.hide("#sdkContainer");
 
 	const request = {
@@ -300,7 +296,7 @@ function postChallengePaymentsDetailsCallback(data, url) {
 	const request = data.request;
 	const response = data.response;
 
-	common.output(request, "Post-challenge payments/details call", common.endpoints.paymentsDetails);
+	common.output(request, "Post-challenge payments/details call", data.endpoint);
 	common.output(response, "Response to post-challenge payments/details call");
 
 	if (response.resultCode === "AuthenticationFinished") {
@@ -356,7 +352,7 @@ function authoriseWithMPIDataCallback(data) {
 	const request = data.request;
 	const response = data.response;
 
-	common.output(request, "Payments call with raw MPI data", common.endpoints.paymentsDetails);
+	common.output(request, "Payments call with raw MPI data", data.endpoint);
 	common.output(response, "Response to payments call with raw MPI data");
 
 	globals.flowchart.setActive("AuthoriseViaAdyen");

@@ -8,7 +8,9 @@ export const RETURN_URL = SUBMIT_URL + "/?endpoint=threeds1_notification_url";
 
 export const endpoints = {
 	"paymentsDetails": "https://checkout-test.adyen.com/v41/payments/details",
-	"payments": "https://checkout-test.adyen.com/v41/payments"
+	"payments": "https://checkout-test.adyen.com/v41/payments",
+	"authorise": "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise",
+	"authorise3ds2": "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2"
 };
 
 // wrapper to send requests to server
