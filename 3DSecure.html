@@ -3,19 +3,32 @@
 		<link rel="stylesheet" type="text/css" href="styles/style.css"/>
 	</head>
 	<body>
-		<form class="client-form" id="infoForm">
-			<div class="inputHolder">amount: <input type="text" id="value" name="value" value="199"/><br></div>
-			<div class="inputHolder">currency: <input type="text" id="currency" name="currency" value="USD"/><br></div>
-			<div class="inputHolder">number: <input type="text" id="number" name="number" value="5212345678901234"/><br></div>
-			<div class="inputHolder">expiryMonth: <input type="text" id="expiryMonth" name="expiryMonth" value="10"/><br></div>
-			<div class="inputHolder">expiryYear: <input type="text" id="expiryYear" name="expiryYear" value="2020"/><br></div>
-			<div class="inputHolder">cvc: <input type="text" id="cvc" name="cvc" value="737"/><br></div>
-			<div class="inputHolder">holderName: <input type="text" id="holderName" name="holderName" value="Test Shopper"/><br></div>
-			<div class="inputHolder">reference: <input type="text" id="reference" name="reference" value="Localhost 3DS 1"/><br></div>
-			<input type="hidden" name="endpoint" value="threeds1"/>
-			<input type="button" class="submitBtn center" id="checkoutBtn" value="Send request"/>
-		</form>
-		<div id="constructedFormHolder"/>
+		<div class="left-column">
+			<h2>Network activity</h2>
+			<div id="output"></div>
+		</div>
+		
+		<div class="right-column fixed center-content">
+			<iframe class="threeDSIframe" id="threeDSIframe">
+				<div id="constructedFormHolder"/>
+			</iframe>
+
+			<div class="center-content">
+				<div class="checkout-holder">
+					<div class="client-form">
+						<div>
+							<input id="adyenTokenAuth" type="radio" name="transactionTypeRadio" value="adyenTokenAuth">
+							<label for="adyenTokenAuth">Authorise with Adyen</label><br>
+							<input id="acquirerAgnosticAuth" type="radio" checked="checked" name="transactionTypeRadio" value="acquirerAgnosticAuth">
+							<label for="acquirerAgnosticAuth">Standalone</label>
+						</div>
+						<div id="authoriseBtnHolder"></div>
+					</div>
+				</div>
+
+				<div id="sdkContainer" class="hidden challenge-iframe"></div>
+			</div>
+		</div>
 	</body>
 </HTML>
 
@@ -23,16 +36,67 @@
 
 import * as common from "./scripts/common.js";
 
-// Sends form params to server
-document.querySelector("#checkoutBtn").addEventListener("click", () => {
-	common.AJAXPost(common.buildFormURL({"userAgent": navigator.userAgent}), checkoutCallback);
-});
+// Add submit button to DOM
+const authoriseButton = document.createElement("button");
+authoriseButton.onclick = initialAuthorise;
+authoriseButton.innerHTML = "Authorise";
+authoriseButton.id = "authoriseBtn";
+document.querySelector("#authoriseBtnHolder").appendChild(authoriseButton);
 
-// Redirects user to result URL via POST call
-function checkoutCallback(data) {
+// Global variables
+const globals = {}
+
+// Start the transaction
+function initialAuthorise() {
+	globals.authenticationOnly = document.querySelector('input[name="transactionTypeRadio"]:checked').value == "acquirerAgnosticAuth";
+
+	// hide checkout form
+	common.hide(".checkout-holder");
+
+	const request = {
+		"reference": "Localhost 3DS 1",
+		"threeDS2RequestData": {
+			"authenticationOnly": globals.authenticationOnly
+		},
+		"paymentMethod": {
+			"holderName": "Test Shopper",
+			"number": "5212345678901234",
+			"type": "scheme",
+			"expiryMonth": "10",
+			"expiryYear": "2020",
+			"cvc": "737"
+		},
+		"amount": {
+			"value": "2000",
+			"currency": "USD"
+		},
+		"browserInfo": {
+			"userAgent": "Mozilla/5.0 (Macintosh",
+			"acceptheader": "text/html"
+		},
+		"merchantAccount": "ColinRood",
+		"returnUrl": "http://localhost:8000/cgi-bin/submit.py?endpoint=threeds1_notification_url",
+		"additionalData": {
+			"executeThreeD": "true"
+		}
+	}
+
+	// send to server
+	request.endpoint = common.endpoints.payments;
+	common.AJAXPost(common.SERVER_URL, initialAuthoriseCallback, request);
+
+	// prevent default button behavior
+	return false;
+}
+
+
+function initialAuthoriseCallback(data) {
+	common.output(data.request, "Initial /payments call to Adyen", data.endpoint);
+	common.output(data.response, "Response to initial /payments call to Adyen");
+
 	// parse response
-	let issuerURL = data.redirect.url;
-	let redirectData = data.redirect.data;
+	let issuerURL = data.response.redirect.url;
+	let redirectData = data.response.redirect.data;
 
 	// because the redirect has to be done as a POST...
 	// create an HTML form and redirect the user
@@ -50,8 +114,19 @@ function checkoutCallback(data) {
 		form.appendChild(input);
 	}
 
-	document.querySelector("#constructedFormHolder").appendChild(form);
+	document.querySelector("#threeDSIframe").contentWindow.document.documentElement.appendChild(form);
 	form.submit();
+
+	window.addEventListener("message", handlePostMessage);
+}
+
+// gets response from server
+function handlePostMessage(e) {
+	common.hide("#threeDSIframe");
+
+	common.output(e.data.redirectData, "Data in redirect from issuer");
+	common.output(e.data.request, "Request to /authorise3d", e.data.endpoint);
+	common.output(e.data.response, "Response from Adyen");
 }
 
 </script>

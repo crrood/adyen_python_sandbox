@@ -37,15 +37,13 @@
 		<div class="center-content">
 			<div class="checkout-holder">
 				<div class="client-form">
-					<div>
+					<div class="block">
 						<input type="checkbox" id="frictionlessCheckbox"/>
 						<label for="frictionlessCheckbox">Frictionless</label>
 					</div>
-					<div>
-						<input id="adyenTokenAuth" type="radio" name="transactionTypeRadio" value="adyenTokenAuth">
-						<label for="adyenTokenAuth">Adyen Token Auth</label><br>
-						<input id="acquirerAgnosticAuth" type="radio" checked="checked" name="transactionTypeRadio" value="acquirerAgnosticAuth">
-						<label for="acquirerAgnosticAuth">Acquirer Agnostic Auth</label>
+					<div class="block">
+						<input type="checkbox" id="standaloneCheckbox"/>
+						<label for="standaloneCheckbox">Standalone</label>
 					</div>
 					<div id="authoriseBtnHolder"></div>
 				</div>
@@ -123,7 +121,7 @@ function submitForm(e) {
 	if (document.querySelector("#frictionlessCheckbox").checked) {
 		value = 12002;
 	}
-	globals.authenticationOnly = document.querySelector('input[name="transactionTypeRadio"]:checked').value == "acquirerAgnosticAuth";
+	globals.authenticationOnly = document.querySelector("#standaloneCheckbox").checked;
 
 	// get browser info
 	const browserInfo = collectBrowserInfo();
@@ -358,68 +356,9 @@ function authoriseWithMPIDataCallback(data) {
 	globals.flowchart.setActive("AuthoriseViaAdyen");
 }
 
-//////////////////////////////////
-//		FLOWCHART METHODS		//
-//////////////////////////////////
-
-// automated tree generator
-function generateTreeHTML(inputObject) {
-	let result = "";
-	for (let child in inputObject) {
-		if (typeof(inputObject[child]) === "object") {
-			// node has children
-			result = result + "<ul>" + generateTreeHTML(inputObject[child]) + "</ul>";
-		}
-		else {
-			// node is a label
-			result = result + "<li><code id=" + inputObject[child].replace(/ /g, "") + ">" + inputObject[child] + "</code>";
-		}
-	}
-	return result;
-}
-
-// scale the flowchart to fit on screen at lower resolutions
-function scaleFlowchart() {
-	const FLOWCHART_MIN_WIDTH = 750;
-	const availableFlowchartWidth = window.innerWidth / 2;
-	if (availableFlowchartWidth < FLOWCHART_MIN_WIDTH) {
-		const el = document.querySelector(".flowchart");
-		const scale = availableFlowchartWidth / FLOWCHART_MIN_WIDTH;
-		const percentScaleX = "-" + (100 - (scale * 110)).toString() + "%";
-		const percentScaleY = "-" + (100 - (scale * 120)).toString() + "%";
-
-		el.style.webkitTransform = `scale(${scale}) translate(${percentScaleX}, ${percentScaleY})`;
-		el.style.height = (globals.originalFlowchartHeight * scale) + "px";
-	}
-	else {
-		document.querySelector(".flowchart").style.webkitTransform = "";
-	}
-}
-
 //////////////////////////////
 //		UTILITY METHODS		//
 //////////////////////////////
-
-// gets state of auth flow radio buttons
-function getSelectedAuthFlow() {
-	return document.querySelector('input[name="transactionTypeRadio"]:checked').value;
-}
-
-// check location of challenge iframe
-function checkIfChallengeIsCompleted() {
-	try {
-		return (document.querySelector("[name=threeDSIframe]").contentWindow.location.href == NOTIFICATION_URL);
-	}
-	catch(error) {
-		// will return CORS error if challenge hasn't been completed yet
-		return false;
-	}
-}
-
-// returned when the challenge completes and redirects to result page
-function getCRESFromIframe() {
-	return document.querySelector("[name=threeDSIframe]").contentDocument.querySelector("pre").innerHTML.trim();
-}
 
 // convert functions to pretty output
 function stringifyFunction(func) {

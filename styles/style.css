@@ -118,12 +118,14 @@ body.dark .output-main-body {
  /* FORM STYLING */
 /****************/
 .client-form {
-	border: 2px solid;
-	border-radius: 3px;
-	padding: 10px;
 	display: inline-block;
+
+	padding: 10px;
 	margin-left: auto;
 	margin-right: auto;
+
+	border: 2px solid;
+	border-radius: 3px;
 }
 
 .client-form input[type=text] {
@@ -206,6 +208,19 @@ button:disabled {
 /* dark theme */
 body.dark .right-column {
     background-color: #222;
+}
+
+  /*********/
+ /* 3DS 1 */
+/*********/
+.threeDSIframe {
+	display: block;
+
+	margin-top: 20px;
+	margin-bottom: 20px;
+
+	width: 430px;
+	height: 430px;
 }
 
   /*****************/

@@ -626,6 +626,9 @@ def secured_fields_submit(data):
 ##########################
 
 # API call with 3d Secure redirect
+#
+# MOVED TO SERVER.PY
+#
 def threeds1(data):
 
 	# request info
@@ -665,8 +668,6 @@ def threeds1_notification_url(data):
 	url = "https://pal-test.adyen.com/pal/servlet/Payment/authorise3d"
 	headers = JSON_HEADER_OBJ
 
-	logger.debug(data)
-
 	# reformat request to match required fields
 	request_data = {}
 	request_data["merchantAccount"] = MERCHANT_ACCOUNT
@@ -681,7 +682,21 @@ def threeds1_notification_url(data):
 	# get response from Adyen
 	payments_result = send_request(url, request_data, headers)
 
-	send_response(payments_result, "application/json")
+	client_response = {
+		"redirectData": data,
+		"request": request_data,
+		"response": payments_result,
+		"endpoint": url
+	}
+
+	post_message = """
+		<script type="text/javascript">
+		window.parent.postMessage({client_response}, "http://localhost:8000");
+		</script>
+	""".format(client_response=client_response)
+
+	send_response(post_message, "text/html")
+	# send_response(client_response, "application/json")
 
 ######################################
 ##		3D SECURE 2.0 BASIC FLOW	##
@@ -689,6 +704,9 @@ def threeds1_notification_url(data):
 
 # API call with 3d Secure 2.0
 # part 1
+#
+# MOVED TO SERVER.PY
+#
 def threeds2_part1(data):
 
 	# request info
@@ -729,6 +747,9 @@ def threeds2_part1(data):
 
 # API call with 3d Secure 2.0
 # part 2
+#
+# MOVED TO SERVER.PY
+#
 def threeds2_part2(data):
 
 	# request info
@@ -748,6 +769,9 @@ def threeds2_part2(data):
 	response["endpoint"] = url
 	send_response(response, "application/json")
 
+#
+# MOVED TO SERVER.PY
+#
 def threeds2_auth_via_token(data):
 
 	# request info
@@ -770,6 +794,9 @@ def threeds2_auth_via_token(data):
 ##########################################
 ##		3D SECURE 2.0 ADVANCED FLOW 	##
 ##########################################
+#
+# MOVED TO SERVER.PY
+#
 def threeds2_adv_initial_auth(data):
 
 	# request info
@@ -828,6 +855,9 @@ def threeds2_result_page(data):
 	else:
 		send_debug(json.dumps(data))
 
+#
+# MOVED TO SERVER.PY
+#
 def threeds2_adv_authorise3ds2(data):
 
 	# request info
@@ -848,6 +878,9 @@ def threeds2_adv_authorise3ds2(data):
 	response["endpoint"] = url
 	send_response(str(response), "text/plain")
 
+#
+# MOVED TO SERVER.PY
+#
 def threeds2_adv_retrieve3ds2Result(data):
 
 	# request info
@@ -865,9 +898,6 @@ def threeds2_adv_retrieve3ds2Result(data):
 	response["response"] = result
 	response["endpoint"] = url
 	send_response(response, "application/json")
-
-def threeds2_adv_acquirerAgnosticAuth(data):
-	send_debug(data)
 
 ##########################
 ##		RESULT PAGE		##
@@ -916,7 +946,6 @@ router = {
 	"threeds2_adv_initial_auth": threeds2_adv_initial_auth,
 	"threeds2_adv_authorise3ds2": threeds2_adv_authorise3ds2,
 	"threeds2_adv_retrieve3ds2Result": threeds2_adv_retrieve3ds2Result,
-	"threeds2_adv_acquirerAgnosticAuth": threeds2_adv_acquirerAgnosticAuth,
 	"threeds2_result_page": threeds2_result_page,
 	"result_page": result_page,
 	"secured_fields_submit": secured_fields_submit,
