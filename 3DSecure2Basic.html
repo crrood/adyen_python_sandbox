@@ -321,7 +321,7 @@ function authoriseWithMPIData(threeDS2Result) {
 		 "reference":"Localhost 3ds2 with MPI data",
 		 "additionalData" : {
 			"acquirerCode":"TestPmmAcquirer",
-			"authorisationMid":"1499"
+			"authorisationMid":"1000"
 		},
 		"mpiData":{  
 			"cavv": threeDS2Result.authenticationValue,
@@ -339,7 +339,7 @@ function authoriseWithMPIData(threeDS2Result) {
 			"cvc": "737"
 		}
 	};
-	request.endpoint = common.endpoints.authorise3ds2;
+	request.endpoint = common.endpoints.authorise;
 
 	common.AJAXPost(common.SERVER_URL, authoriseWithMPIDataCallback, request);
 }

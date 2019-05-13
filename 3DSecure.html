@@ -16,11 +16,13 @@
 			<div class="center-content">
 				<div class="checkout-holder">
 					<div class="client-form">
-						<div>
-							<input id="adyenTokenAuth" type="radio" name="transactionTypeRadio" value="adyenTokenAuth">
-							<label for="adyenTokenAuth">Authorise with Adyen</label><br>
-							<input id="acquirerAgnosticAuth" type="radio" checked="checked" name="transactionTypeRadio" value="acquirerAgnosticAuth">
-							<label for="acquirerAgnosticAuth">Standalone</label>
+						<div class="block">
+							<input type="checkbox" id="threeds2inMDFlowCheckbox"/>
+							<label for="threeds2inMDFlow">Hosted 3ds2</label>
+						</div>
+						<div class="block">
+							<input type="checkbox" id="standaloneCheckbox"/>
+							<label for="standaloneCheckbox">Standalone</label>
 						</div>
 						<div id="authoriseBtnHolder"></div>
 					</div>
@@ -48,7 +50,7 @@ const globals = {}
 
 // Start the transaction
 function initialAuthorise() {
-	globals.authenticationOnly = document.querySelector('input[name="transactionTypeRadio"]:checked').value == "acquirerAgnosticAuth";
+	globals.authenticationOnly = document.querySelector("#standaloneCheckbox").checked
 
 	// hide checkout form
 	common.hide(".checkout-holder");
@@ -60,7 +62,7 @@ function initialAuthorise() {
 		},
 		"paymentMethod": {
 			"holderName": "Test Shopper",
-			"number": "5212345678901234",
+			"number": "4212345678901245",
 			"type": "scheme",
 			"expiryMonth": "10",
 			"expiryYear": "2020",
@@ -77,7 +79,8 @@ function initialAuthorise() {
 		"merchantAccount": "ColinRood",
 		"returnUrl": "http://localhost:8000/cgi-bin/submit.py?endpoint=threeds1_notification_url",
 		"additionalData": {
-			"executeThreeD": "true"
+			"executeThreeD": "true",
+			"threeDS2InMDFlow": document.querySelector("#threeds2inMDFlowCheckbox").checked
 		}
 	}
 
