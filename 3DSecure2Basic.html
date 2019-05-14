@@ -275,7 +275,7 @@ function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 
 	// handle next step in process
 	if (globals.authenticationOnly) {
-		retrieve3ds2Result();
+		retrieve3ds2Result(successfulPromiseResponse.transStatus);
 	}
 	else {
 		adyenTokenAuth(successfulPromiseResponse.transStatus);
@@ -293,9 +293,17 @@ function handleFailedSDKChallengePromise(failedPromiseResponse) {
 
 // retrieve cavv and eci values
 // to potentially send to another acquirer
-function retrieve3ds2Result() {
-	let url = common.SUBMIT_URL + "?endpoint=threeds2_adv_retrieve3ds2Result" + "&pspReference=" + globals.challengePspReference;
-	common.AJAXGet(url, acquirerAgnosticAuth);
+function retrieve3ds2Result(transStatus) {
+	const request = {
+		"merchantAccount":"", 
+		"threeDS2Token": globals.threeDS2Token,
+		"threeDS2Result": {
+		   "transStatus": transStatus
+		},
+	};
+	request.endpoint = common.endpoints.authorise3ds2;
+
+	common.AJAXPost(common.SERVER_URL, authoriseWithMPIDataCallback, request);
 }
 
 // send auth request using cavv and eci values
