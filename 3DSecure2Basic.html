@@ -274,12 +274,7 @@ function handleSuccessfulSDKChallengePromise(successfulPromiseResponse) {
 	common.hide("#sdkContainer");
 
 	// handle next step in process
-	if (globals.authenticationOnly) {
-		retrieve3ds2Result(successfulPromiseResponse.transStatus);
-	}
-	else {
-		adyenTokenAuth(successfulPromiseResponse.transStatus);
-	}
+	postChallengeAuthorise3ds2(successfulPromiseResponse.transStatus);
 }
 
 // doChallenge failed resolution
@@ -291,9 +286,10 @@ function handleFailedSDKChallengePromise(failedPromiseResponse) {
 	common.hide("#sdkContainer");
 }
 
-// retrieve cavv and eci values
-// to potentially send to another acquirer
-function retrieve3ds2Result(transStatus) {
+// post-challenge /authorise3ds2 call
+// returns authorised if authenticationOnly = false
+// returns MPI data if authenticationOnly = true
+function postChallengeAuthorise3ds2(transStatus) {
 	const request = {
 		"merchantAccount":"", 
 		"threeDS2Token": globals.threeDS2Token,
@@ -303,19 +299,24 @@ function retrieve3ds2Result(transStatus) {
 	};
 	request.endpoint = common.endpoints.authorise3ds2;
 
-	common.AJAXPost(common.SERVER_URL, authoriseWithMPIDataCallback, request);
+	common.AJAXPost(common.SERVER_URL, postChallengeAuthorise3ds2Callback, request);
 }
 
-// send auth request using cavv and eci values
-function acquirerAgnosticAuth(data) {
+// response from post-challenge /authorise3ds2 call
+function postChallengeAuthorise3ds2Callback(data) {
 	const request = data.request;
 	const response = data.response;
 
-	common.output(request, "Request from server to Adyen", data.endpoint);
-	common.output(response, "Response from Adyen to server");
-	globals.flowchart.setActive("RetrieveMPIData");
+	common.output(request, "Post-challenge /authorise3ds2 call", data.endpoint);
+	common.output(response, "Response to post-challenge /authorise3ds2 call");
 
-	authoriseWithMPIData(response.threeDS2Result);
+	if (response.resultCode === "AuthenticationFinished") {
+		globals.flowchart.setActive("RetrieveMPIData");
+		authoriseWithMPIData(response.additionalData);
+	}
+	else {
+		globals.flowchart.setActive("AuthoriseViaAdyen");
+	}
 }
 
 // authorise with raw MPI data
@@ -332,11 +333,11 @@ function authoriseWithMPIData(threeDS2Result) {
 			"authorisationMid":"1000"
 		},
 		"mpiData":{  
-			"cavv": threeDS2Result.authenticationValue,
-			"eci": threeDS2Result.eci,
-			"dsTransId": threeDS2Result.dsTransID,
+			"cavv": threeDS2Result["threeds2.threeDS2Result.authenticationValue"],
+			"eci": threeDS2Result["threeds2.threeDS2Result.eci"],
+			"dsTransId": threeDS2Result["threeds2.threeDS2Result.dsTransID"],
 			"directoryResponse": "C", // assuming there was a challenge
-			"authenticationResponse": threeDS2Result.transStatus,
+			"authenticationResponse": threeDS2Result["threeds2.threeDS2Result.transStatus"],
 			"threeDSVersion": "2.1.0" // will we ever return this in the /payments/details call?
 		},
 		"card": {
@@ -361,22 +362,6 @@ function authoriseWithMPIDataCallback(data) {
 	common.output(response, "Response to payments call with raw MPI data");
 
 	globals.flowchart.setActive("AuthoriseViaAdyen");
-}
-
-// send authorise3ds2 call with stored token
-function adyenTokenAuth(transStatus) {
-	let url = common.SUBMIT_URL + "?endpoint=threeds2_auth_via_token" + "&threeDS2Token=" + encodeURIComponent(globals.threeDS2Token) + "&transStatus=" + transStatus;
-	common.AJAXGet(url, adyenTokenAuthCallback);
-}
-
-// get response from authorise3ds2 call
-function adyenTokenAuthCallback(data) {
-	const request = data.request;
-	const response = data.response;
-
-	common.output(request, "Request from server to Adyen", data.endpoint);
-	common.output(response, "Response from Adyen to server");
-	globals.flowchart.setActive("AuthoriseWithToken");
 }
 
 </script>
