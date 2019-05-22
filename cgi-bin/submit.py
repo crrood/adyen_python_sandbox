@@ -625,78 +625,15 @@ def secured_fields_submit(data):
 ##		3D Secure 1		##
 ##########################
 
-# API call with 3d Secure redirect
-#
-# MOVED TO SERVER.PY
-#
-def threeds1(data):
-
-	# request info
-	url = "https://checkout-test.adyen.com/v40/payments"
-	headers = JSON_HEADER_OBJ
-
-	# static fields
-	data["returnUrl"] = "{}/cgi-bin/submit.py?endpoint=threeds1_notification_url".format(LOCAL_ADDRESS)  # noqa: E501
-	data["additionalData"] = {
-		"executeThreeD": "true"
-	}
-
-	# standalone mode
-	data["threeDS2RequestData"] = {
-		"authenticationOnly": "true"
-	}
-
-	# move amount data into parent object
-	reformat_amount(data)
-
-	# move card data into parent object
-	reformat_card_checkout(data, encrypted=False)
-
-	# move userAgent into browserInfo object
-	indent_field(data, "browserInfo", "userAgent")
-	data["browserInfo"]["acceptheader"] = "text/html"
-
-	# get response from Adyen
-	payments_result = send_request(url, data, headers)
-
-	send_response(payments_result, "application/json")
-
 # handler for callback from issuing bank
 def threeds1_notification_url(data):
-
-	# request info
-	url = "https://pal-test.adyen.com/pal/servlet/Payment/authorise3d"
-	headers = JSON_HEADER_OBJ
-
-	# reformat request to match required fields
-	request_data = {}
-	request_data["merchantAccount"] = MERCHANT_ACCOUNT
-	request_data["md"] = data["MD"][0]
-	request_data["paResponse"] = data["PaRes"][0]
-
-	# standalone mode
-	request_data["threeDS2RequestData"] = {
-		"authenticationOnly": "true"
-	}
-
-	# get response from Adyen
-	payments_result = send_request(url, request_data, headers)
-
-	client_response = {
-		"redirectData": data,
-		"request": request_data,
-		"response": payments_result,
-		"endpoint": url
-	}
-
 	post_message = """
 		<script type="text/javascript">
-		window.parent.postMessage({client_response}, "http://localhost:8000");
+		window.parent.postMessage({data}, "http://localhost:8000");
 		</script>
-	""".format(client_response=client_response)
+	""".format(data=data)
 
 	send_response(post_message, "text/html")
-	# send_response(client_response, "application/json")
 
 ######################################
 ##		3D SECURE 2.0 BASIC FLOW	##
@@ -938,7 +875,6 @@ router = {
 	"directory_lookup": directory_lookup,
 	"secured_fields_setup": secured_fields_setup,
 	"skip_details": skip_details,
-	"threeds1": threeds1,
 	"threeds1_notification_url": threeds1_notification_url,
 	"threeds2_part1": threeds2_part1,
 	"threeds2_part2": threeds2_part2,

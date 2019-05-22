@@ -10,6 +10,7 @@ export const endpoints = {
 	"paymentsDetails": "https://checkout-test.adyen.com/v41/payments/details",
 	"payments": "https://checkout-test.adyen.com/v41/payments",
 	"authorise": "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise",
+	"authorise3d": "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3d",
 	"authorise3ds2": "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2"
 };
 

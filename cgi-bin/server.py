@@ -54,9 +54,12 @@ except KeyError:
 ##		SERVER-SIDE FIELDS		##
 ##################################
 
+# add merchant account if the request contains a blank value for it
 if "merchantAccount" in request_data.keys():
-	request_data["merchantAccount"] = utils.config["merchant_account"]
+	if len(request_data["merchantAccount"]) == 0:
+		request_data["merchantAccount"] = utils.config["merchant_account"]
 
+# add accept header if browserInfo is present
 if "browserInfo" in request_data.keys():
 	request_data["browserInfo"]["acceptHeader"] = ACCEPT_HEADER
 
