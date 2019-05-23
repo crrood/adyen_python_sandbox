@@ -41,7 +41,7 @@
 							<label for="threeds2inMDFlowCheckbox">Hosted 3ds2</label>
 						</div>
 						<div class="block">
-							<input type="checkbox" id="frictionlessCheckbox"/>
+							<input type="checkbox" id="frictionlessCheckbox" disabled="true"/>
 							<label for="frictionlessCheckbox">Frictionless</label>
 						</div>
 						<div class="block">
@@ -88,6 +88,11 @@ authoriseButton.onclick = initialAuthorise;
 authoriseButton.innerHTML = "Authorise";
 authoriseButton.id = "authoriseBtn";
 document.querySelector("#authoriseBtnHolder").appendChild(authoriseButton);
+
+// disable frictionless flow if 3ds2 isn't checked
+document.querySelector("#threeds2inMDFlowCheckbox").addEventListener("click",
+	e => document.querySelector("#frictionlessCheckbox").disabled = !e.target.checked
+);
 
 // Start the transaction
 function initialAuthorise() {
