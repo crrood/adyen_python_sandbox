@@ -31,9 +31,7 @@
 				</div>
 			</div>
 
-			<iframe class="threeDSIframe" id="threeDSIframe">
-				<div id="constructedFormHolder"/>
-			</iframe>
+			<iframe class="threeDSIframe display-none" id="threeDSIframe"></iframe>
 
 			<div class="center-content">
 				<div class="checkout-holder">
@@ -43,12 +41,16 @@
 							<label for="threeds2inMDFlowCheckbox">Hosted 3ds2</label>
 						</div>
 						<div class="block">
+							<input type="checkbox" id="frictionlessCheckbox"/>
+							<label for="frictionlessCheckbox">Frictionless</label>
+						</div>
+						<div class="block">
 							<input type="checkbox" id="standaloneCheckbox"/>
 							<label for="standaloneCheckbox">Standalone</label>
 						</div>
 						<div class="block">
-							<input type="checkbox" id="frictionlessCheckbox"/>
-							<label for="frictionlessCheckbox">Frictionless</label>
+							<input type="checkbox" id="notEnrolledCheckbox"/>
+							<label for="notEnrolledCheckbox">Not enrolled</label>
 						</div>
 						<div id="authoriseBtnHolder"></div>
 					</div>
@@ -70,7 +72,7 @@ const globals = {};
 let tree = [
 	"First /payments Call",
 	[
-		"Frictionless",
+		"Not Enrolled",
 		"3D Secure",
 		[
 			"Authorisation",
@@ -97,14 +99,12 @@ function initialAuthorise() {
 	common.hide(".checkout-holder");
 
 	// frictionless
-	let requestAmount = 0;
-	if (document.querySelector("#frictionlessCheckbox").checked) {
-		requestAmount = 12002;
-	}
-	else {
-		requestAmount = 1000;
-	}
+	const requestAmount = document.querySelector("#frictionlessCheckbox").checked ? 12002 : 1000;
 
+	// not enrolled
+	const cardNumber = document.querySelector("#notEnrolledCheckbox").checked ? "4199350000000002" : "4212345678901245";
+
+	// server request
 	const request = {
 		"reference": "Localhost 3DS 1",
 		"threeDS2RequestData": {
@@ -112,7 +112,7 @@ function initialAuthorise() {
 		},
 		"paymentMethod": {
 			"holderName": "Test Shopper",
-			"number": "4212345678901245",
+			"number": cardNumber,
 			"type": "scheme",
 			"expiryMonth": "10",
 			"expiryYear": "2020",
@@ -144,35 +144,44 @@ function initialAuthorise() {
 
 
 function initialAuthoriseCallback(data) {
+	// output to page
 	common.output(data.request, "Initial /payments call to Adyen", data.endpoint);
 	common.output(data.response, "Response to initial /payments call to Adyen");
 
-	// parse response
-	let issuerURL = data.response.redirect.url;
-	let redirectData = data.response.redirect.data;
-
-	// because the redirect has to be done as a POST...
-	// create an HTML form and redirect the user
-	let form = document.createElement("form");
-	form.setAttribute("method", "POST");
-	form.setAttribute("action", issuerURL);
-
-	// iteract through redirect params
-	for (let param in redirectData) {
-		let input = document.createElement("input");
-		input.setAttribute("type", "hidden");
-		input.setAttribute("name", param);
-		input.setAttribute("value", redirectData[param]);
-
-		form.appendChild(input);
+	// see if transaction went through successfully
+	if (data.response.resultCode === "Authorised") {
+		globals.flowchart.setActive("NotEnrolled");
 	}
+	else {
+		// parse response
+		let issuerURL = data.response.redirect.url;
+		let redirectData = data.response.redirect.data;
 
-	document.querySelector("#threeDSIframe").contentWindow.document.documentElement.appendChild(form);
-	form.submit();
+		// because the redirect has to be done as a POST...
+		// create an HTML form and redirect the user
+		let form = document.createElement("form");
+		form.setAttribute("method", "POST");
+		form.setAttribute("action", issuerURL);
 
-	globals.flowchart.setActive("3DSecure");
+		// iteract through redirect params
+		for (let param in redirectData) {
+			let input = document.createElement("input");
+			input.setAttribute("type", "hidden");
+			input.setAttribute("name", param);
+			input.setAttribute("value", redirectData[param]);
 
-	window.addEventListener("message", handlePostMessage);
+			form.appendChild(input);
+		}
+
+		// request and display challenge in iframe
+		common.unhide("#threeDSIframe");
+		document.querySelector("#threeDSIframe").contentWindow.document.documentElement.appendChild(form);
+		form.submit();
+
+		globals.flowchart.setActive("3DSecure");
+
+		window.addEventListener("message", handlePostMessage);
+	}
 }
 
 // gets redirect response from server
