@@ -7,6 +7,7 @@ export const SUBMIT_URL = "http://localhost:8000/cgi-bin/submit.py";
 export const RETURN_URL = SUBMIT_URL + "/?endpoint=threeds1_notification_url";
 
 export const endpoints = {
+	"paymentMethods": "https://checkout-test.adyen.com/v41/paymentMethods",
 	"paymentsDetails": "https://checkout-test.adyen.com/v41/payments/details",
 	"payments": "https://checkout-test.adyen.com/v41/payments",
 	"authorise": "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise",

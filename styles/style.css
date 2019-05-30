@@ -184,6 +184,7 @@ button:disabled {
  /* COLUMN LAYOUT */
 /*****************/
 .right-column {
+	position: absolute;
     width: 50%;
     top: 0%;
     left: 50%;
@@ -285,7 +286,7 @@ body.dark .right-column {
 	margin-bottom: 15x;
 	border-radius: 10px;
 
-	width: 300px;
+	width: fit-content;
 }
 
   /***********************/

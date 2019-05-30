@@ -4,7 +4,7 @@
 	<title>3DS 2.0</title>
 	<link rel="stylesheet" type="text/css" href="styles/style.css"/>
 	<link rel="stylesheet" type="text/css" href="styles/flowchart.css"/>
-	<script src="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.2.0/adyen.js"></script>
+	<script src="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/2.5.0/adyen.js"></script>
 </head>
 
 <body>
@@ -105,7 +105,9 @@ function initialize() {
 	globals.flowchart = new Flowchart(tree, document.querySelector("#flowchart"));
 
 	// Adyen 3ds2 component
-	globals.checkout = new AdyenCheckout();
+	globals.checkout = new AdyenCheckout({
+		originKey: "pub.v2.8115054323780109.aHR0cDovL2xvY2FsaG9zdDo4MDAw.B92basPQjzeM7_TtJ2IKZoln780QtvwAiPFDEbKs7Ng"
+	});
 }
 
 // send form data to server
