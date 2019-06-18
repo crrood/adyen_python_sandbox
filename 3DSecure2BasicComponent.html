@@ -153,7 +153,6 @@ function submitForm(e) {
 		"browserInfo": browserInfo,
 		"channel" : "web",
 		"origin" : window.location.href,
-		// "returnUrl" : common.RETURN_URL,
 		"merchantAccount": ""  // filled in by server
 	};
 
@@ -279,7 +278,7 @@ function postChallengePaymentsDetails(challengeResult) {
 
 	// performing these here to keep the doChallenge method clean
 	common.hide("#sdkContainer");
-
+	
 	const request = {
 		"details": {
 			"threeds2.challengeResult": challengeResult

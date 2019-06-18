@@ -4,15 +4,18 @@ export const JSON_ENCODED_HEADER = { "Content-Type": "application/json" };
 
 export const SERVER_URL = "http://localhost:8000/cgi-bin/server.py";
 export const SUBMIT_URL = "http://localhost:8000/cgi-bin/submit.py";
-export const RETURN_URL = SUBMIT_URL + "/?endpoint=threeds1_notification_url";
+export const RETURN_URL = SUBMIT_URL + "/?endpoint=result_page";
+
+const CHECKOUT_VERSION = "v41";
+const PAL_VERSION = "v40";
 
 export const endpoints = {
-	"paymentMethods": "https://checkout-test.adyen.com/v41/paymentMethods",
-	"paymentsDetails": "https://checkout-test.adyen.com/v41/payments/details",
-	"payments": "https://checkout-test.adyen.com/v41/payments",
-	"authorise": "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise",
-	"authorise3d": "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3d",
-	"authorise3ds2": "https://pal-test.adyen.com/pal/servlet/Payment/v40/authorise3ds2"
+	"paymentMethods": "https://checkout-test.adyen.com/" + CHECKOUT_VERSION + "/paymentMethods",
+	"paymentsDetails": "https://checkout-test.adyen.com/" + CHECKOUT_VERSION + "/payments/details",
+	"payments": "https://checkout-test.adyen.com/" + CHECKOUT_VERSION + "/payments",
+	"authorise": "https://pal-test.adyen.com/pal/servlet/Payment/" + PAL_VERSION + "/authorise",
+	"authorise3d": "https://pal-test.adyen.com/pal/servlet/Payment/" + PAL_VERSION + "/authorise3d",
+	"authorise3ds2": "https://pal-test.adyen.com/pal/servlet/Payment/" + PAL_VERSION + "/authorise3ds2"
 };
 
 // wrapper to send requests to server

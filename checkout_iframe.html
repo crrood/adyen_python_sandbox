@@ -88,6 +88,15 @@ const setupCallback = function(data) {
 		}
 	};
 
+	// showProcessingAnimation	
+	chckt.hooks.showProcessingAnimation = function(actionButton) {
+	  actionButton.innerText = 'Edited text'
+	  actionButton.style['background-color'] = '#22A';
+	  debugger;
+	  return false;
+	};
+
+
 	// Validation
 	chckt.onAllValid = function(data) {
 		console.log("onAllValid");

@@ -291,7 +291,7 @@ def checkout_setup(data):
 	# }
 
 	data["enableRecurring"] = "true"
-	data["enableOneClick"] = "false"
+	data["enableOneClick"] = "true"
 
 	reformat_amount(data)
 
