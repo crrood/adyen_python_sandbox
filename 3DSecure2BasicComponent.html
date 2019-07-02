@@ -104,6 +104,9 @@ function initialize() {
 
 	globals.flowchart = new Flowchart(tree, document.querySelector("#flowchart"));
 
+	// track whether we've challenged the user so we can keep the flowchart up to date
+	globals.challengePerformed = false;
+
 	// Adyen 3ds2 component
 	globals.checkout = new AdyenCheckout({
 		originKey: "pub.v2.8115054323780109.aHR0cDovL2xvY2FsaG9zdDo4MDAw.B92basPQjzeM7_TtJ2IKZoln780QtvwAiPFDEbKs7Ng"
@@ -113,16 +116,11 @@ function initialize() {
 // send form data to server
 function submitForm(e) {
 
-	let jsonData = {}; // JSON object for logging
-
 	// hide checkout form
 	document.querySelector(".checkout-holder").classList.add("display-none");
 	
 	// handle checkbox options
-	let value = 1000;
-	if (document.querySelector("#frictionlessCheckbox").checked) {
-		value = 12002;
-	}
+	const value = document.querySelector("#frictionlessCheckbox").checked ? 12002 : 1000;
 	globals.authenticationOnly = document.querySelector("#standaloneCheckbox").checked;
 
 	// get browser info
@@ -164,7 +162,7 @@ function submitForm(e) {
 
 	// send to server
 	request.endpoint = common.endpoints.payments;
-	common.AJAXPost(common.SERVER_URL, initialAuthoriseCallback, request);
+	common.AJAXPost(common.SERVER_URL, paymentsCallback, request);
 
 	globals.flowchart.setActive("First/paymentsCall");
 
@@ -172,142 +170,79 @@ function submitForm(e) {
 	return false;
 }
 
-// receive response from initialAuthoriseCall
-function initialAuthoriseCallback(data) {
+// receive response from /payments or /payments/details call
+function paymentsCallback(data) {
 	// parse and output request / response
 	const request = data.request;
 	const response = data.response;
 
-	common.output(request, "Initial request to /payments", data.endpoint);
-	common.output(response, "Response to initial /payments call");
+	// parse shortened endpoint
+	const shortedEndpoint = data.endpoint.includes("details") ? "/payments/details" : "/payments";
+
+	common.output(request, "HTTP - Request to " + shortedEndpoint, data.endpoint);
+	common.output(response, "HTTP - Response to " + shortedEndpoint + " call");
 
 	if (response.resultCode === "IdentifyShopper") {
 
-		// save required data for later
+		// save paymentData
 		globals.paymentData = response.paymentData;
 
 		// execute the fingerprint via the SDK
-		fingerprintDevice(response.authentication["threeds2.fingerprintToken"]);
+		doFingerprint(response.authentication["threeds2.fingerprintToken"]);
+		common.output(stringifyFunction(doFingerprint), "Javascript - Fingerprint request to component");
+
+		globals.flowchart.setActive("FingerprintDevice");
 	}
-	else if (response.resultCode === "AuthenticationFinished" || response.resultCode === "Authorised") {
-		// authentication is complete - we can stop here!
-		globals.flowchart.setActive("Frictionless");
-	}
-}
+	else if (response.resultCode === "ChallengeShopper") {
 
-// perform fingerprint via Adyen component
-function fingerprintDevice(fingerprintToken) {
+		// save paymentData
+		globals.paymentData = response.paymentData;
 
-	doFingerprint(fingerprintToken);
-	common.output(stringifyFunction(doFingerprint), "Fingerprint request to component");
-
-	globals.flowchart.setActive("FingerprintDevice");
-}
-
-function doFingerprint(fingerprintToken) {
-	globals.checkout
-        .create("threeDS2DeviceFingerprint", {
-            fingerprintToken: fingerprintToken,
-            onComplete: fingerprintData => {
-            	common.output(JSON.stringify(fingerprintData), "Fingerprint result");
-            	postFingerprintPaymentsDetails(fingerprintData.data.details["threeds2.fingerprint"]);
-            },
-            onError: () => {
-            	common.output("Verification request to component failed", "Fingerprint response from component");
-            }
-        })
-        .mount("#sdkContainer");
-}
-
-// call to payments/details following successful fingerprint
-function postFingerprintPaymentsDetails(fingerprintResult) {
-	const request = {
-		"details": {
-			"threeds2.fingerprint": fingerprintResult
-		},
-		"paymentData": globals.paymentData
-	};
-	request.endpoint = common.endpoints.paymentsDetails;
-
-	common.AJAXPost(common.SERVER_URL, postFingerprintPaymentsDetailsComplete, request);
-}
-
-// callback from call to payments/details following fingerprint
-function postFingerprintPaymentsDetailsComplete(data) {
-
-	// parse and output request / response
-	const request = data.request;
-	const response = data.response;
-
-	common.output(request, "Post-fingerprint payments/details call", data.endpoint);
-	common.output(response, "Response to post-fingerprint payments/details call");
-
-	if (response.resultCode === "ChallengeShopper") {
-		common.output(stringifyFunction(doChallenge), "Challenge request to component");
+		common.output(stringifyFunction(doChallenge), "Javascript - Challenge request to component");
 
 		// show challenge iframe
 		document.querySelector("#sdkContainer").classList.remove("hidden");
 
+		globals.challengePerformed = true;
 		globals.flowchart.setActive("ChallengeShopper");
 		doChallenge(response.authentication['threeds2.challengeToken']);
 	}
-	else if (response.resultCode === "AuthenticationFinished" || response.resultCode === "Authorised") {
-		globals.flowchart.setActive("Frictionless");
+	else if (response.resultCode === "AuthenticationFinished") {
+
+		// update flowchart
+		const flowchartState = globals.challengePerformed ? "RetrieveMPIData" : "Frictionless";
+		globals.flowchart.setActive(flowchartState);
+
+		// authorise with MPI data
+		authoriseWithMPIData(response.threeDS2Result);
+	}
+	else if (response.resultCode === "Authorised") {
+
+		// update flowchart state
+		if (globals.challengePerformed) {
+			if (request.hasOwnProperty("paymentData")) {
+				globals.flowchart.setActive("AuthoriseWithToken");
+			}
+			else {
+				globals.flowchart.setActive("AuthoriseViaAdyen");
+			}
+		}
+		else {
+			globals.flowchart.setActive("Frictionless");
+		}
 	}
 }
 
-// perform challenge via SDK
-function doChallenge(challengeToken) {
-	globals.checkout
-		.create('threeDS2Challenge', {
-			challengeToken: challengeToken,
-			onComplete: challengeData => {
-				common.output(challengeData, "Challenge result");
-				postChallengePaymentsDetails(challengeData.data.details["threeds2.challengeResult"]);
-			},
-			onError: () => {
-				common.output("Verification request to component failed", "Fingerprint response from component");
-			},
-			size: '01'
-		})
-		.mount('#sdkContainer');
-}
-
-// call to payments/details following successful challenge
-function postChallengePaymentsDetails(challengeResult) {
-
-	// performing these here to keep the doChallenge method clean
-	common.hide("#sdkContainer");
-	
+// make a call to /payments/details
+function callPaymentsDetails(responseData) {
 	const request = {
-		"details": {
-			"threeds2.challengeResult": challengeResult
-		},
+		"details": responseData.data.details,
 		"paymentData": globals.paymentData
 	};
+
 	request.endpoint = common.endpoints.paymentsDetails;
 
-	common.AJAXPost(common.SERVER_URL, postChallengePaymentsDetailsCallback, request);
-}
-
-// callback from call to payments/details following challenge
-function postChallengePaymentsDetailsCallback(data, url) {
-	const request = data.request;
-	const response = data.response;
-
-	common.output(request, "Post-challenge payments/details call", data.endpoint);
-	common.output(response, "Response to post-challenge payments/details call");
-
-	if (response.resultCode === "AuthenticationFinished") {
-		authoriseWithMPIData(response.threeDS2Result);
-		globals.flowchart.setActive("RetrieveMPIData");
-	}
-	else if (response.resultCode === "Refused") {
-		globals.flowchart.setActive("RetrieveMPIData");
-	}
-	else {
-		globals.flowchart.setActive("AuthoriseWithToken");
-	}
+	common.AJAXPost(common.SERVER_URL, paymentsCallback, request);
 }
 
 // authorise with raw MPI data
@@ -316,21 +251,16 @@ function authoriseWithMPIData(threeDS2Result) {
 		"amount":{
 			"currency":"EUR",
 			"value":1000
-		 },
-		 "merchantAccount":"", 
-		 "reference":"Localhost 3ds2 with MPI data",
-		 "additionalData" : {
-			// "allow3DS2": "true",
-			"acquirerCode":"TestPmmAcquirer",
-			"authorisationMid":"1000"
 		},
+		"merchantAccount":"", 
+		"reference":"Localhost 3ds2 with MPI data",
 		"mpiData":{  
 			"cavv": threeDS2Result.authenticationValue,
 			"eci": threeDS2Result.eci,
 			"dsTransId": threeDS2Result.dsTransID,
-			"directoryResponse": "C", // assuming there was a challenge
+			"directoryResponse": globals.challengePerformed ? "C" : "Y",
 			"authenticationResponse": threeDS2Result.transStatus,
-			"threeDSVersion": "2.1.0" // will we ever return this in the /payments/details call?
+			"threeDSVersion": threeDS2Result.messageVersion
 		},
 		"paymentMethod": {
 			"type": "scheme",
@@ -343,18 +273,40 @@ function authoriseWithMPIData(threeDS2Result) {
 	};
 	request.endpoint = common.endpoints.payments;
 
-	common.AJAXPost(common.SERVER_URL, authoriseWithMPIDataCallback, request);
+	common.AJAXPost(common.SERVER_URL, paymentsCallback, request);
 }
 
-// finish authorisation using raw MPI data
-function authoriseWithMPIDataCallback(data) {
-	const request = data.request;
-	const response = data.response;
+function doFingerprint(fingerprintToken) {
+	globals.checkout
+        .create("threeDS2DeviceFingerprint", {
+            fingerprintToken: fingerprintToken,
+            onComplete: fingerprintData => {
+            	common.output(JSON.stringify(fingerprintData), "Javascript - Fingerprint result");
+            	callPaymentsDetails(fingerprintData);
+            },
+            onError: () => {
+            	common.output("Verification request to component failed", "Fingerprint response from component");
+            }
+        })
+        .mount("#sdkContainer");
+}
 
-	common.output(request, "Payments call with raw MPI data", data.endpoint);
-	common.output(response, "Response to payments call with raw MPI data");
-
-	globals.flowchart.setActive("AuthoriseViaAdyen");
+// perform challenge via SDK
+function doChallenge(challengeToken) {
+	globals.checkout
+		.create('threeDS2Challenge', {
+			challengeToken: challengeToken,
+			onComplete: challengeData => {
+				common.output(challengeData, "Javascript - Challenge result");
+				callPaymentsDetails(challengeData);
+				common.hide("#sdkContainer");
+			},
+			onError: () => {
+				common.output("Verification request to component failed", "Fingerprint response from component");
+			},
+			size: '01'
+		})
+		.mount('#sdkContainer');
 }
 
 //////////////////////////////
