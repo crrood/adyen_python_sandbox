@@ -6,7 +6,7 @@ export const SERVER_URL = "http://localhost:8000/cgi-bin/server.py";
 export const SUBMIT_URL = "http://localhost:8000/cgi-bin/submit.py";
 export const RETURN_URL = SUBMIT_URL + "/?endpoint=result_page";
 
-const CHECKOUT_VERSION = "v41";
+const CHECKOUT_VERSION = "v49";
 const PAL_VERSION = "v40";
 
 export const endpoints = {

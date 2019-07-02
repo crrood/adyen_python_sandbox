@@ -160,6 +160,7 @@ function initialAuthoriseCallback(data) {
 		// parse response
 		let issuerURL = data.response.redirect.url;
 		let redirectData = data.response.redirect.data;
+		globals.paymentData = data.response.paymentData;
 
 		// because the redirect has to be done as a POST...
 		// create an HTML form and redirect the user
@@ -193,6 +194,17 @@ function handlePostMessage(e) {
 	common.hide("#threeDSIframe");
 	common.output(e.data, "Data in redirect from issuer");
 
+	// /payments/details doesn't work with authenticationOnly currently
+	/*
+	const request = {
+		"paymentData": globals.paymentData,
+		"details": {
+			"MD": e.data.MD[0],
+			"PaRes": e.data.PaRes[0]
+		}
+	}
+	*/
+
 	const request = {
 		"md": e.data.MD[0],
 		"paResponse": e.data.PaRes[0],
@@ -205,13 +217,14 @@ function handlePostMessage(e) {
 		}
 	}
 
+	// request.endpoint = common.endpoints.paymentsDetails;
 	request.endpoint = common.endpoints.authorise3d;
 
 	common.AJAXPost(common.SERVER_URL, postRedirectCallback, request);
 }
 
 function postRedirectCallback(data) {
-	common.output(data.request, "Request to /authorise3d", data.endpoint);
+	common.output(data.request, "Request to /payments/details", data.endpoint);
 	common.output(data.response, "Response from Adyen");
 
 	if (data.response.resultCode === "AuthenticationFinished") {

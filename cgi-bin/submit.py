@@ -1,6 +1,7 @@
 #!/usr/local/adyen/python3/bin/python3
 import json, os, sys, datetime, configparser
 import time, logging
+import cgi
 
 # HMAC
 import base64, binascii, hmac, hashlib
@@ -249,16 +250,20 @@ def reformat_card_checkout(data, encrypted=True):
 def checkout_setup(data):
 
 	# URL and headers
-	url = "https://checkout-test.adyen.com/v32/paymentSession"
+	url = "https://checkout-test.adyen.com/v40/paymentSession"
 	headers = JSON_HEADER_OBJ
 
 	# static fields
-	data["sdkVersion"] = "1.3.0"
+	data["sdkVersion"] = "1.9.9"
 
 	data["html"] = "true"
 	data["origin"] = LOCAL_ADDRESS
 	data["returnUrl"] = RETURN_URL
 	data["reference"] = "Localhost checkout"
+
+	data["configuration"] = {
+		"cardHolderName": "REQUIRED"
+	}
 
 	# data["shopperName"] = {}
 	# data["shopperName"]["firstName"] = "Colin"
@@ -291,7 +296,7 @@ def checkout_setup(data):
 	# }
 
 	data["enableRecurring"] = "true"
-	data["enableOneClick"] = "true"
+	data["enableOneClick"] = "false"
 
 	reformat_amount(data)
 
