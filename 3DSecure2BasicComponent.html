@@ -45,6 +45,10 @@
 						<input type="checkbox" id="standaloneCheckbox"/>
 						<label for="standaloneCheckbox">Standalone</label>
 					</div>
+					<div class="block">
+						<input type="checkbox" id="contAuthCheckbox"/>
+						<label for="contAuthCheckbox">ContAuth</label>
+					</div>
 					<div id="authoriseBtnHolder"></div>
 				</div>
 			</div>
@@ -114,10 +118,10 @@ function initialize() {
 }
 
 // send form data to server
-function submitForm(e) {
+function submitForm() {
 
 	// hide checkout form
-	document.querySelector(".checkout-holder").classList.add("display-none");
+	common.hide(".checkout-holder");
 	
 	// handle checkbox options
 	const value = document.querySelector("#frictionlessCheckbox").checked ? 12002 : 1000;
@@ -127,21 +131,13 @@ function submitForm(e) {
 	const browserInfo = collectBrowserInfo();
 	browserInfo.acceptHeader = "";  // filled in by server when field is present
 
-	// request with hardcoded card information
+	// build request framework
 	const request = {
 		"amount":{
 			"currency": "EUR",
 			"value": value
 		},
 		"reference": "Localhost 3ds2 basic component",
-		"paymentMethod": {
-			"type":"scheme",
-			"number": "4212345678901245",
-			"expiryMonth": "10",
-			"expiryYear": "2020",
-			"holderName": "John Smith",
-			"cvc": "737"
-		},
 		"additionalData" : {
 			"allow3DS2" : true
 		},
@@ -153,6 +149,32 @@ function submitForm(e) {
 		"origin" : window.location.href,
 		"merchantAccount": ""  // filled in by server
 	};
+
+	// payment instrument information
+	// and recurring fields (if necessary)
+	globals.paymentMethodData = {};
+	globals.contAuth = document.querySelector("#contAuthCheckbox").checked;
+	if (globals.contAuth) {
+		globals.paymentMethodData.paymentMethod = {
+			"type": "scheme",
+			"recurringDetailReference": "LATEST"
+		}
+
+		globals.paymentMethodData.shopperReference = "threeDS2";
+		globals.paymentMethodData.shopperInteraction = "ContAuth";
+		globals.paymentMethodData.recurringProcessingModel = "CardOnFile";
+	}
+	else {
+		globals.paymentMethodData.paymentMethod = {
+			"type": "scheme",
+			"number": "4212345678901245",
+			"expiryMonth": "10",
+			"expiryYear": "2020",
+			"holderName": "John Smith",
+			"cvc": "737"
+		}
+	}
+	Object.assign(request, globals.paymentMethodData);
 
 	// add BIN / MID if necessary
 	if (globals.authenticationOnly) {
@@ -261,16 +283,9 @@ function authoriseWithMPIData(threeDS2Result) {
 			"directoryResponse": globals.challengePerformed ? "C" : "Y",
 			"authenticationResponse": threeDS2Result.transStatus,
 			"threeDSVersion": threeDS2Result.messageVersion
-		},
-		"paymentMethod": {
-			"type": "scheme",
-			"number": "4212345678901245",
-			"expiryMonth": "10",
-			"expiryYear": "2020",
-			"holderName": "John Smith",
-			"cvc": "737"
 		}
 	};
+	Object.assign(request, globals.paymentMethodData);
 	request.endpoint = common.endpoints.payments;
 
 	common.AJAXPost(common.SERVER_URL, paymentsCallback, request);
