@@ -7,7 +7,7 @@ export const SUBMIT_URL = "http://localhost:8000/cgi-bin/submit.py";
 export const RETURN_URL = SUBMIT_URL + "/?endpoint=result_page";
 
 const CHECKOUT_VERSION = "v49";
-const PAL_VERSION = "v40";
+const PAL_VERSION = "v49";
 
 export const endpoints = {
 	"paymentMethods": "https://checkout-test.adyen.com/" + CHECKOUT_VERSION + "/paymentMethods",
