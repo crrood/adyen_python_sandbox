@@ -121,6 +121,10 @@ function onAdditionalDetails(state, dropin) {
 	console.log("onAdditionalDetails");
 	console.log(state);
 	console.log(dropin);
+
+	common.output(state, "onAdditionalDetails callback");
+
+	callPaymentsDetails(state.data);
 }
 
 // send payment info to Adyen
@@ -134,7 +138,22 @@ function sendPayment(stateData) {
 			"value": formData.value
 		},
 		"paymentMethod": stateData.paymentMethod,
-		"returnUrl": common.RETURN_URL
+		"returnUrl": common.RETURN_URL,
+		"browserInfo": {
+		    "screenWidth": 2560,
+		    "colorDepth": 24,
+		    "language": "en-US",
+		    "javaEnabled": false,
+		    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
+		    "acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+		    "screenHeight": 1440,
+		    "timeZoneOffset": 420
+		},
+		"additionalData": {
+		    "allow3DS2": true
+		},
+    	"origin": window.location.origin,
+    	"channel": "web"
 	};
 	request.endpoint = common.endpoints.payments;
 
@@ -146,19 +165,23 @@ function handlePaymentsCallback(data) {
 	common.output(data.request, "/payments request", data.endpoint);
 	common.output(data.response, "/payments response");
 
-	// handle redirects
-	if (data.response.resultCode === "RedirectShopper") {
-
-		// remove drop-in component
-		globals.dropin.unmount();
-
-		// create an iframe and redirect it
-		const iframe = document.createElement("iframe");
-		iframe.style.width = "100%";
-		iframe.style.height = "500px";
-		document.querySelector("#redirectIframe").appendChild(iframe);
-		iframe.contentWindow.location = data.response.redirect.url;
+	// handle follow up actions
+	if (data.response.hasOwnProperty("action")) {
+		globals.dropin.handleAction(data.response.action);
 	}
+	else if (data.response.resultCode === "Authorised" || data.response.resultCode === "Refused") {
+		globals.dropin.unmount();
+		document.querySelector("#componentHolder").textContent = data.response.resultCode;
+	}
+}
+
+function callPaymentsDetails(data) {
+	const request = {
+		...data,
+		endpoint: common.endpoints.paymentsDetails
+	}
+
+	common.AJAXPost(common.SERVER_URL, handlePaymentsCallback, request)
 }
 
 </script>
