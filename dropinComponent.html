@@ -49,7 +49,7 @@ globals.componentInitializerOutput = `const sharedConfiguration = {
 };
 
 // intialize checkout object
-const checkout = new AdyenCheckout(sharedConfiguration);`
+const checkout = new AdyenCheckout(sharedConfiguration);`;
 
 // actions to do on page load
 window.onload = function() {
@@ -69,7 +69,7 @@ function getAvailablePaymentMethods(e) {
 		shopperLocale: document.querySelector("#shopperLocaleInput").value,
 		countryCode: document.querySelector("#countryCodeInput").value,
 		merchantAccount: "" // filled in by server
-	}
+	};
 	request.endpoint = common.endpoints.paymentMethods;
 
 	common.AJAXPost(
@@ -82,7 +82,7 @@ function getAvailablePaymentMethods(e) {
 // display available components
 function handlePaymentMethodsCallback(data) {
 
-	common.output(data.request, "/paymentMethods request", data.endpoint)
+	common.output(data.request, "/paymentMethods request", data.endpoint);
 	common.output(data.response, "/paymentMethods response");
 
 	// config options shared between components
@@ -96,7 +96,7 @@ function handlePaymentMethodsCallback(data) {
 	// intialize checkout object
 	const checkout = new AdyenCheckout(sharedConfiguration);
 
-	common.output(globals.componentInitializerOutput, "Initialize Dropin Component")
+	common.output(globals.componentInitializerOutput, "Initialize Dropin Component");
 
 	// initialize dropin component
 	globals.dropin = checkout.create("dropin", {
@@ -179,9 +179,9 @@ function callPaymentsDetails(data) {
 	const request = {
 		...data,
 		endpoint: common.endpoints.paymentsDetails
-	}
+	};
 
-	common.AJAXPost(common.SERVER_URL, handlePaymentsCallback, request)
+	common.AJAXPost(common.SERVER_URL, handlePaymentsCallback, request);
 }
 
 </script>

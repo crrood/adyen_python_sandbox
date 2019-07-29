@@ -49,11 +49,11 @@
 						<input type="checkbox" id="contAuthCheckbox"/>
 						<label for="contAuthCheckbox">ContAuth</label>
 					</div>
-					<div id="authoriseBtnHolder"></div>
+					<button id="authoriseBtn">Authorise</button>
 				</div>
 			</div>
 
-			<div id="sdkContainer" class="hidden challenge-iframe"></div>
+			<div id="componentContainer" class="hidden challenge-iframe"></div>
 		</div>
 	</div>
 
@@ -66,25 +66,14 @@
 // custom utilities
 import * as common from "./scripts/common.js";
 import Flowchart from "./scripts/flowchart.js";
-import * as SDK from "./scripts/custom3dsSDK.js";
-
-// constants
-const NOTIFICATION_URL = common.SUBMIT_URL + "?endpoint=threeds2_result_page";
-const CACHED_THREEDS_URL = "https://pal-test.adyen.com/threeds2simulator/acs/startMethod.shtml";
 
 // container for global variables
 const globals = {};
 
 // get everything ready to go
-initialize();
-function initialize() {
+window.onload = () => {
 
-	// Add submit button to DOM
-	const authoriseButton = document.createElement("button");
-	authoriseButton.onclick = submitForm;
-	authoriseButton.innerHTML = "Authorise";
-	authoriseButton.id = "authoriseBtn";
-	document.querySelector("#authoriseBtnHolder").appendChild(authoriseButton);
+	document.querySelector("#authoriseBtn").addEventListener("click", submitForm);
 	
 	// add dynamic flowchart
 	let tree = [
@@ -115,7 +104,7 @@ function initialize() {
 	globals.checkout = new AdyenCheckout({
 		originKey: "pub.v2.8115054323780109.aHR0cDovL2xvY2FsaG9zdDo4MDAw.B92basPQjzeM7_TtJ2IKZoln780QtvwAiPFDEbKs7Ng"
 	});
-}
+};
 
 // send form data to server
 function submitForm() {
@@ -138,11 +127,11 @@ function submitForm() {
 			"value": value
 		},
 		"reference": "Localhost 3ds2 basic component",
-		"additionalData" : {
-			"allow3DS2" : true
-		},
 		"threeDS2RequestData": {
 			"authenticationOnly": globals.authenticationOnly
+		},
+		"additionalData": {
+			"executeThreeD": true
 		},
 		"browserInfo": browserInfo,
 		"channel" : "web",
@@ -158,7 +147,7 @@ function submitForm() {
 		globals.paymentMethodData.paymentMethod = {
 			"type": "scheme",
 			"recurringDetailReference": "LATEST"
-		}
+		};
 
 		globals.paymentMethodData.shopperReference = "threeDS2";
 		globals.paymentMethodData.shopperInteraction = "ContAuth";
@@ -172,14 +161,16 @@ function submitForm() {
 			"expiryYear": "2020",
 			"holderName": "John Smith",
 			"cvc": "737"
-		}
+		};
 	}
 	Object.assign(request, globals.paymentMethodData);
 
 	// add BIN / MID if necessary
 	if (globals.authenticationOnly) {
-		request.additionalData.acquirerCode = "TestPmmAcquirer";
-		request.additionalData.authorisationMid = "1000";
+		request.additionalData = {
+			"acquirerCode": "TestPmmAcquirer",
+			"authorisationMid": "1000"
+		};
 	}
 
 	// send to server
@@ -209,7 +200,7 @@ function paymentsCallback(data) {
 		// save paymentData
 		globals.paymentData = response.paymentData;
 
-		// execute the fingerprint via the SDK
+		// execute the fingerprint via the Component
 		doFingerprint(response.authentication["threeds2.fingerprintToken"]);
 		common.output(stringifyFunction(doFingerprint), "Javascript - Fingerprint request to component");
 
@@ -223,7 +214,7 @@ function paymentsCallback(data) {
 		common.output(stringifyFunction(doChallenge), "Javascript - Challenge request to component");
 
 		// show challenge iframe
-		document.querySelector("#sdkContainer").classList.remove("hidden");
+		document.querySelector("#componentContainer").classList.remove("hidden");
 
 		globals.challengePerformed = true;
 		globals.flowchart.setActive("ChallengeShopper");
@@ -303,10 +294,10 @@ function doFingerprint(fingerprintToken) {
             	common.output("Verification request to component failed", "Fingerprint response from component");
             }
         })
-        .mount("#sdkContainer");
+        .mount("#componentContainer");
 }
 
-// perform challenge via SDK
+// perform challenge via Component
 function doChallenge(challengeToken) {
 	globals.checkout
 		.create('threeDS2Challenge', {
@@ -314,14 +305,14 @@ function doChallenge(challengeToken) {
 			onComplete: challengeData => {
 				common.output(challengeData, "Javascript - Challenge result");
 				callPaymentsDetails(challengeData);
-				common.hide("#sdkContainer");
+				common.hide("#componentContainer");
 			},
 			onError: () => {
 				common.output("Verification request to component failed", "Fingerprint response from component");
 			},
 			size: '01'
 		})
-		.mount('#sdkContainer');
+		.mount('#componentContainer');
 }
 
 //////////////////////////////
