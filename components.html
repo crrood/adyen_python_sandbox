@@ -30,8 +30,6 @@
 		<button id="payBtn" class="hidden" disabled=true>Pay</button>
 	</div>
 
-
-
 </body>
 
 <script type="module">
@@ -63,7 +61,7 @@ function getAvailablePaymentMethods(e) {
 		shopperLocale: document.querySelector("#shopperLocaleInput").value,
 		countryCode: document.querySelector("#countryCodeInput").value,
 		merchantAccount: "" // filled in by server
-	}
+	};
 	request.endpoint = common.endpoints.paymentMethods;
 
 	common.AJAXPost(
@@ -76,7 +74,7 @@ function getAvailablePaymentMethods(e) {
 // display available components
 function handlePaymentMethodsCallback(data) {
 
-	common.output(data.request, "/paymentMethods request", data.endpoint)
+	common.output(data.request, "/paymentMethods request", data.endpoint);
 	common.output(data.response, "/paymentMethods response");
 
 	// config options shared between components
@@ -153,7 +151,7 @@ function sendPayment() {
 			"currency": formData.currency,
 			"value": formData.value
 		},
-		"paymentMethod": globals.activePaymentInfo
+		...globals.activePaymentInfo
 	};
 	request.endpoint = common.endpoints.payments;
 

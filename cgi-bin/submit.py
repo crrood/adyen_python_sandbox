@@ -1,7 +1,6 @@
 #!/usr/local/adyen/python3/bin/python3
 import json, os, sys, datetime, configparser
 import time, logging
-import cgi
 
 # HMAC
 import base64, binascii, hmac, hashlib
