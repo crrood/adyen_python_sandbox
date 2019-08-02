@@ -36,8 +36,6 @@
 
 import * as common from "./scripts/common.js";
 
-const ORIGIN_KEY = "pub.v2.8115054323780109.aHR0cDovL2xvY2FsaG9zdDo4MDAw.B92basPQjzeM7_TtJ2IKZoln780QtvwAiPFDEbKs7Ng";
-
 const globals = {};
 
 // actions to do on page load
@@ -80,7 +78,7 @@ function handlePaymentMethodsCallback(data) {
 	// config options shared between components
 	const sharedConfiguration = {
 	    locale: document.querySelector("[name=shopperLocale]").value,
-	    originKey: ORIGIN_KEY,
+	    originKey: common.ORIGIN_KEY,
 	    loadingContext: "https://checkoutshopper-test.adyen.com/checkoutshopper/",
 	    environment: "test"
 	};

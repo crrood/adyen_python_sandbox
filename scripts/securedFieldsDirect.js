@@ -1,4 +1,4 @@
-import { AJAXPost, buildFormURL } from "./common.js";
+import { AJAXPost, buildFormURL, ORIGIN_KEY } from "./common.js";
 
 // Define a custom style.
 const styleObject = {
@@ -41,7 +41,7 @@ export function initForms() {
 	var securedFields = csf(
 		{
 			configObject : {
-				originKey : "pub.v2.8115054323780109.aHR0cDovL2xvY2FsaG9zdDo4MDAw.B92basPQjzeM7_TtJ2IKZoln780QtvwAiPFDEbKs7Ng"
+				originKey : ORIGIN_KEY
 			},
 			rootNode: '.cards-div',
 			paymentMethods : {
