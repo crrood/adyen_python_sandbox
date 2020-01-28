@@ -11,7 +11,7 @@
 		<h2>Network activity</h2>
 		<div id="output"></div>
 	</div>
-	
+
 	<div class="right-column fixed">
 		<div class="flowchart-container">
 			<figure class="flowchart">
@@ -38,9 +38,9 @@
 				<span>
 					<form>
 						<input class="formEls" type="hidden" name="holderName" value="Theresa Cure"></input>
-						<input class="formEls" type="hidden" name="number" value="4111111111111111"></input>
-						<input class="formEls" type="hidden" name="expiryYear" value="2020"></input>
-						<input class="formEls" type="hidden" name="expiryMonth" value="10"></input>
+						<input class="formEls" type="hidden" name="number" value="4917610000000000"></input>
+						<input class="formEls" type="hidden" name="expiryYear" value="2030"></input>
+						<input class="formEls" type="hidden" name="expiryMonth" value="03"></input>
 						<input class="formEls" type="hidden" name="cvc" value="737"></input>
 						<input class="formEls" type="hidden" name="value" value="1499" id="valueInput"></input>
 						<input class="formEls" type="hidden" name="currency" value="EUR"></input>
@@ -94,28 +94,28 @@ function initialize() {
 	authoriseButton.disabled = true;
 	authoriseButton.id = "authoriseBtn";
 	document.querySelector("#authoriseBtnHolder").appendChild(authoriseButton);
-	
+
 	// add dynamic flowchart
 	let tree = [
 		"Get3dsAvailability",
 		[
-			"Fingerprint Device", 
+			"Fingerprint Device",
 			[
 				"Initial Authorise",
 				[
 					"Frictionless",
-					"Challenge Shopper", 
+					"Challenge Shopper",
 					[
-						"Challenge Successful", 
+						"Challenge Successful",
 						[
 							"Authorise With Token",
-							"Retrieve MPI Data", 
+							"Retrieve MPI Data",
 							[
 								"Authorise Via Adyen",
 								"Authorise Elsewhere"
 							],
 						],
-						"Challenge Failed", 
+						"Challenge Failed",
 						[
 							"Retry Validation",
 							"Authorise Unauthenticated"
@@ -141,8 +141,8 @@ function fingerprintDevice() {
 	// give the cached (hardcoded) data to the SDK
 	const fingerprintParams = {
 		"threeDSServerTransID": globals.threeDSServerTransID,
-		"threeDSMethodURL": CACHED_THREEDS_URL, 
-		"YOUR_NOTIFICATION_ENDPOINT": NOTIFICATION_URL, 
+		"threeDSMethodURL": CACHED_THREEDS_URL,
+		"YOUR_NOTIFICATION_ENDPOINT": NOTIFICATION_URL,
 		'CONTAINER': document.querySelector("#sdkContainer")
 	};
 	const fingerprintPromise = SDK.getFingerprint(...Object.values(fingerprintParams));
@@ -153,7 +153,7 @@ function fingerprintDevice() {
 	fingerprintPromise.then((successfulPromiseResponse) => {
 		common.output(successfulPromiseResponse, "Fingerprint response from SDK", "SDK.getFingerprint");
 		globals.fingerprintResponse = successfulPromiseResponse;
-		
+
 		// enable authorise button
 		document.querySelector("#authoriseBtn").disabled = false;
 
@@ -173,7 +173,7 @@ function submitForm(e) {
 
 	// hide checkout form
 	document.querySelector(".checkout-holder").classList.add("display-none");
-	
+
 	// handle frictionless checkbox
 	if (document.querySelector("#frictionlessCheckbox").checked) {
 		document.querySelector("#valueInput").value = 12002;
@@ -253,7 +253,7 @@ function doChallenge() {
 
 	// create the iframe for the promise
 	SDK.doChallenge(globals.acsURL, globals.cReqData, iframeConfig, NOTIFICATION_URL).then(
-		handleSuccessfulSDKChallengePromise, 
+		handleSuccessfulSDKChallengePromise,
 		handleFailedSDKChallengePromise);
 
 	// show challenge iframe

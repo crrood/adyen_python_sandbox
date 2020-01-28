@@ -1,3 +1,5 @@
+##This project is no longer being maintained, please see [this repo](https://github.com/crrood/adyen_integration_samples) for up to date samples
+
 # adyen_python_sandbox
 Code samples for (almost) all of the available Adyen integrations, meant as a reference for an end-to-end implementation.
 

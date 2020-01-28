@@ -1,5 +1,5 @@
 <head>
-	<script type="text/javascript" src="https://checkoutshopper-test.adyen.com/checkoutshopper/assets/js/sdk/checkoutSDK.1.9.9.min.js"></script>
+	<script type="text/javascript" src="https://checkoutshopper-test.adyen.com/checkoutshopper/assets/js/sdk/checkoutSDK.1.9.11.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="styles/style.css"></link>
 </head>
 
@@ -75,6 +75,7 @@ const setupCallback = function(data) {
 
 	// Handle response from initiate call
 	chckt.hooks.beforeComplete = function(pNode, pHookData){
+		console.log("chckt.hooks.beforeComplete");
 
 		// logging
 		console.log("pHookData:");
@@ -88,12 +89,21 @@ const setupCallback = function(data) {
 		}
 	};
 
+	// Handle errors
+	chckt.hooks.handleError = function(node, paymentMethod, errorResponse) {
+		console.log("chckt.hooks.handleError");
+	    console.log("Node: ", node);
+	    console.log("Payment method: ", paymentMethod);
+	    console.log("Error response: ", errorResponse);
+	    return false;
+	}
+
 	// showProcessingAnimation	
 	chckt.hooks.showProcessingAnimation = function(actionButton) {
-	  actionButton.innerText = 'Edited text'
-	  actionButton.style['background-color'] = '#22A';
-	  debugger;
-	  return false;
+		console.log("chckt.hooks.showProcessingAnimation");
+		actionButton.innerText = 'Edited text'
+		actionButton.style['background-color'] = '#22A';
+		return false;
 	};
 
 
@@ -105,6 +115,7 @@ const setupCallback = function(data) {
 
 	// Other hooks
 	chckt.hooks.getDataFromSubmissionProcess = function(checkoutNode, formData) {
+		console.log("chckt.hooks.getDataFromSubmissionProcess");
 		console.log("checkoutNode");
 		console.log(checkoutNode);
 		console.log("formData");

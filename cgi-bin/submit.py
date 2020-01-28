@@ -249,7 +249,7 @@ def reformat_card_checkout(data, encrypted=True):
 def checkout_setup(data):
 
 	# URL and headers
-	url = "https://checkout-test.adyen.com/v40/paymentSession"
+	url = "https://checkout-test.adyen.com/v50/paymentSession"
 	headers = JSON_HEADER_OBJ
 
 	# static fields
@@ -259,6 +259,7 @@ def checkout_setup(data):
 	data["origin"] = LOCAL_ADDRESS
 	data["returnUrl"] = RETURN_URL
 	data["reference"] = "Localhost checkout"
+	data["shopperInteraction"] = "Ecommerce"
 
 	data["configuration"] = {
 		"cardHolderName": "REQUIRED"
